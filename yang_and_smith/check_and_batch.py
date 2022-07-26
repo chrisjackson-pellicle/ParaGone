@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
 
 """
 - Checks gene names in paralog files and the external outgroup file (if provided) for dots, and converts them to
@@ -32,7 +32,6 @@ if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
 
 
-# Configure logger:
 def setup_logger(name, log_file, console_level=logging.INFO, file_level=logging.DEBUG,
                  logger_object_level=logging.DEBUG):
     """

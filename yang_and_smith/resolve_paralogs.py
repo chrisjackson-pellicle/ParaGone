@@ -30,6 +30,7 @@ import signal
 # Import program modules:
 from yang_and_smith import paralogy_subparsers
 from yang_and_smith import check_and_batch
+from yang_and_smith import align_and_clean
 
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
@@ -106,6 +107,17 @@ def check_and_batch_main(args):
     check_and_batch.main(args)
 
 
+def align_and_clean_main(args):
+    """
+    Calls the function main() from module align_and_clean
+
+    :param args: argparse namespace with subparser options for function align_and_clean.main()
+    :return: None: no return value specified; default is None
+    """
+
+    align_and_clean.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -127,9 +139,11 @@ def parse_arguments():
     # Add subparsers:
     subparsers = parser.add_subparsers(title='Subcommands for resolve_paralogs', description='Valid subcommands:')
     parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
+    parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
+    parser_align_and_clean.set_defaults(func=align_and_clean_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()

@@ -48,3 +48,45 @@ def add_check_and_batch_parser(subparsers):
                                              'Default is: %(default)s')
 
     return parser_check_and_batch
+
+
+def add_align_and_clean_parser(subparsers):
+    """
+    Parser for align_and_clean
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_align_and_clean = subparsers.add_parser('align_and_clean',
+                                                   help='Align and QC input files')
+    parser_align_and_clean.add_argument('gene_fasta_directory',
+                                        type=str,
+                                        help='directory containing fasta files (with sanitised gene names) including '
+                                             'paralogs')
+    parser_align_and_clean.add_argument('--pool',
+                                        type=int,
+                                        default=1,
+                                        help='Number of alignments to run concurrently. Default is: %(default)s')
+    parser_align_and_clean.add_argument('--threads',
+                                        type=int,
+                                        default=1,
+                                        help='Number of threads to use for each concurrent alignment. Default '
+                                             'is: %(default)s')
+    parser_align_and_clean.add_argument('--no_stitched_contigs',
+                                        action='store_true',
+                                        default=False,
+                                        help='If specified, realign mafft alignments with clustal omega. Default is: '
+                                             '%(default)s')
+    parser_align_and_clean.add_argument('--use_muscle',
+                                        action='store_true',
+                                        default=False,
+                                        help='If specified, use muscle rather than mafft for initial alignments. '
+                                             'Default is: %(default)s')
+    parser_align_and_clean.add_argument('--mafft_algorithm',
+                                        default='auto',
+                                        help='Algorithm to use for mafft alignments. Default is: %(default)s')
+
+    return parser_align_and_clean
+
+
