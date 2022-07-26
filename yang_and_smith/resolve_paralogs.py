@@ -27,12 +27,6 @@ import time
 import signal
 
 
-# Import program modules:
-from yang_and_smith import paralogy_subparsers
-from yang_and_smith import check_and_batch
-from yang_and_smith import align_and_clean
-
-
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'HybPiper requires Python 3.6 or higher.'
 
@@ -47,6 +41,11 @@ if unsuccessful_imports:
     package_list = '\n'.join(unsuccessful_imports)
     sys.exit(f'The required Python packages are not found:\n\n{package_list}\n\nAre they installed for the Python '
              f'installation used to run HybPiper?')
+
+# Import program modules:
+from yang_and_smith import paralogy_subparsers
+from yang_and_smith import check_and_batch
+from yang_and_smith import align_and_clean
 
 
 ########################################################################################################################
@@ -156,6 +155,9 @@ def main():
     if len(sys.argv) == 1:
         print(__doc__)
         sys.exit(1)
+
+    # check for external dependencies:
+
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
