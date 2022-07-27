@@ -36,63 +36,27 @@ try:
     from Bio import SeqIO, SeqRecord
 except ImportError:
     unsuccessful_imports.append('Bio')
+try:
+    from ete3 import Tree
+except ImportError:
+    unsuccessful_imports.append('ete3')
 
 if unsuccessful_imports:
     package_list = '\n'.join(unsuccessful_imports)
     sys.exit(f'The required Python packages are not found:\n\n{package_list}\n\nAre they installed for the Python '
-             f'installation used to run HybPiper?')
+             f'installation used to run resolve_paralogs?')
 
 # Import program modules:
 from yang_and_smith import paralogy_subparsers
 from yang_and_smith import check_and_batch
 from yang_and_smith import align_and_clean
+from yang_and_smith import alignment_to_tree
+from yang_and_smith import utils
 
 
 ########################################################################################################################
 # Define functions
 ########################################################################################################################
-
-def setup_logger(name, log_file, console_level=logging.INFO, file_level=logging.DEBUG,
-                 logger_object_level=logging.DEBUG):
-    """
-    Function to create a logger instance.
-
-    By default, logs level DEBUG and above to file.
-    By default, logs level INFO and above to stderr and file.
-
-    :param str name: name for the logger instance
-    :param str log_file: filename for log file
-    :param str console_level: logger level for logging to console
-    :param str file_level: logger level for logging to file
-    :param str logger_object_level: logger level for logger object
-    :return: logging.Logger: logger object
-    """
-
-    # Get date and time string for log filename:
-    date_and_time = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
-
-    # Log to file:
-    file_handler = logging.FileHandler(f'{log_file}_{date_and_time}.log', mode='w')
-    file_handler.setLevel(file_level)
-    file_format = logging.Formatter('%(asctime)s - %(filename)s - %(name)s - %(funcName)s - %(levelname)s - %('
-                                    'message)s')
-    file_handler.setFormatter(file_format)
-
-    # Log to Terminal (stderr):
-    console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setLevel(console_level)
-    console_format = logging.Formatter('%(message)s')
-    console_handler.setFormatter(console_format)
-
-    # Setup logger:
-    logger_object = logging.getLogger(name)
-    logger_object.setLevel(logger_object_level)  # Default level is 'WARNING'
-
-    # Add handlers to the logger
-    logger_object.addHandler(console_handler)
-    logger_object.addHandler(file_handler)
-
-    return logger_object
 
 
 def check_and_batch_main(args):
@@ -117,6 +81,17 @@ def align_and_clean_main(args):
     align_and_clean.main(args)
 
 
+def alignment_to_tree_main(args):
+    """
+    Calls the function main() from module alignment_to_tree
+
+    :param args: argparse namespace with subparser options for function alignment_to_tree.main()
+    :return: None: no return value specified; default is None
+    """
+
+    alignment_to_tree.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -126,7 +101,7 @@ def parse_arguments():
 
     parser = argparse.ArgumentParser(prog='resolve_paralogs', description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter,
-                                     epilog='To view parameters and help for a subcommand, use e.g. "check_and_batch'
+                                     epilog='To view parameters and help for a subcommand, use e.g. "check_and_batch '
                                             '--help"')
     group_1 = parser.add_mutually_exclusive_group(required=False)
     group_1.add_argument('--version', '-v',
@@ -139,10 +114,12 @@ def parse_arguments():
     subparsers = parser.add_subparsers(title='Subcommands for resolve_paralogs', description='Valid subcommands:')
     parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
     parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
+    parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
     parser_align_and_clean.set_defaults(func=align_and_clean_main)
+    parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
@@ -156,8 +133,14 @@ def main():
         print(__doc__)
         sys.exit(1)
 
-    # check for external dependencies:
+    # Initialise logger:
+    logger = utils.setup_logger(__name__, 'resolve_paralogs')
 
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()

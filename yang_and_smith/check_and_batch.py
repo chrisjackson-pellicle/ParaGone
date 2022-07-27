@@ -28,53 +28,6 @@ import textwrap
 from yang_and_smith import utils
 
 
-if sys.version_info[0] < 3:
-    raise Exception("Must be using Python 3")
-
-
-def setup_logger(name, log_file, console_level=logging.INFO, file_level=logging.DEBUG,
-                 logger_object_level=logging.DEBUG):
-    """
-    Function to create a logger instance.
-
-    By default, logs level DEBUG and above to file.
-    By default, logs level INFO and above to stderr and file.
-
-    :param string name: name for the logger instance
-    :param string log_file: filename for log file
-    :param string console_level: level for logging to console
-    :param string file_level: level for logging to file
-    :param string logger_object_level: level for logger object
-    :return: a logger object
-    """
-
-    # Get date and time string for log filename:
-    date_and_time = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
-
-    # Log to file:
-    file_handler = logging.FileHandler(f'{log_file}_{date_and_time}.log', mode='w')
-    file_handler.setLevel(file_level)
-    file_format = logging.Formatter('%(asctime)s - %(filename)s - %(name)s - %(funcName)s - %(levelname)s - %('
-                                    'message)s')
-    file_handler.setFormatter(file_format)
-
-    # Log to Terminal (stdout):
-    console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setLevel(console_level)
-    console_format = logging.Formatter('%(message)s')
-    console_handler.setFormatter(console_format)
-
-    # Setup logger:
-    logger_object = logging.getLogger(name)
-    logger_object.setLevel(logger_object_level)  # Default level is 'WARNING'
-
-    # Add handlers to the logger
-    logger_object.addHandler(console_handler)
-    logger_object.addHandler(file_handler)
-
-    return logger_object
-
-
 def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None):
     """
     Checks gene names in paralog files and the external outgroup file (if the latter is provided) for periods/dots,
@@ -284,9 +237,9 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = setup_logger(__name__, 'check_and_batch')
+    logger = utils.setup_logger(__name__, 'check_and_batch')
 
-    logger.info(f'{"[INFO]:":10} Script was called with these arguments:')
+    logger.info(f'{"[INFO]:":10} Subcommand check_and_batch was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')

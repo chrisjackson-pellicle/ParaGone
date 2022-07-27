@@ -32,15 +32,17 @@ def add_check_and_batch_parser(subparsers):
                                         type=str,
                                         dest='external_outgroups',
                                         default=None,
-                                        help='If one or more taxon names are provided, only use these sequences from '
-                                             'the user-provided external_outgroups_file')
+                                        help='If a taxon name is provided, only use these sequences from '
+                                             'the user-provided external_outgroups_file. Note that this parameter can '
+                                             'be specified one ore more times.')
     parser_check_and_batch.add_argument('--internal_outgroup',
                                         action='append',
                                         type=str,
                                         dest='internal_outgroups',
                                         default=None,
                                         help='Taxon name to use as an internal outgroup (i.e. present in input '
-                                             'paralog files')
+                                             'paralog files). Note that this parameter can be specified one ore more '
+                                             'times.')
     parser_check_and_batch.add_argument('--batch_size',
                                         type=int,
                                         default=20,
@@ -89,4 +91,38 @@ def add_align_and_clean_parser(subparsers):
 
     return parser_align_and_clean
 
+
+def add_alignment_to_tree_parser(subparsers):
+    """
+    Parser for alignment_to_tree
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_alignment_to_tree = subparsers.add_parser('alignment_to_tree',
+                                                     help='Takes folder of alignments and generates phylogenetic trees')
+    parser_alignment_to_tree.add_argument('alignment_directory',
+                                          type=str,
+                                          help='directory containing fasta alignment files')
+    parser_alignment_to_tree.add_argument('--pool',
+                                          type=int,
+                                          default=1,
+                                          help='Number of trees to run concurrently. Default is: %(default)s')
+    parser_alignment_to_tree.add_argument('--threads',
+                                          type=int,
+                                          default=1,
+                                          help='Number of threads to use for each concurrent tree. Default '
+                                               'is: %(default)s')
+    parser_alignment_to_tree.add_argument('--generate_bootstraps',
+                                          action='store_true',
+                                          default=False,
+                                          help='Create bootstraps for trees using UFBoot. Default is: '
+                                               '%(default)s')
+    parser_alignment_to_tree.add_argument('--use_fasttree',
+                                          action='store_true',
+                                          default=False,
+                                          help='Use FastTree instead of IQTREE. Default is: %(default)s')
+
+    return parser_alignment_to_tree
 
