@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
 
 """
 Takes a trimmed, hmmcleaned alignment and produces a tree via FastTreeMP or IQTree
@@ -281,10 +281,13 @@ def main(args):
                                                 logger=logger)
 
         utils.resolve_polytomies(trees_folder, logger=logger)
+
     else:
-        iqtree_multiprocessing(args.alignment_directory,
-                               pool=args.pool,
-                               threads=args.threads,
-                               bootstraps=args.generate_bootstraps,
-                               logger=logger)
+        trees_folder = iqtree_multiprocessing(args.alignment_directory,
+                                              pool=args.pool,
+                                              threads=args.threads,
+                                              bootstraps=args.generate_bootstraps,
+                                              logger=logger)
+
+        utils.resolve_polytomies(trees_folder, logger=logger)  # CJJ test this!
 

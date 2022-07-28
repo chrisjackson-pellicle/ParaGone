@@ -126,3 +126,70 @@ def add_alignment_to_tree_parser(subparsers):
 
     return parser_alignment_to_tree
 
+
+def add_trim_tree_tips_parser(subparsers):
+    """
+    Parser for trim_tree_tips
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_trim_tree_tips = subparsers.add_parser('trim_tree_tips',
+                                                  help='Remove tree tips on long branches')
+    parser_trim_tree_tips.add_argument('treefile_directory',
+                                       type=str,
+                                       help='directory containing tree newick files')
+    parser_trim_tree_tips.add_argument('--tree_file_suffix',
+                                       type=str,
+                                       default='.treefile',
+                                       help='Suffix for newick tree files. Default is: %(default)s')
+    parser_trim_tree_tips.add_argument('--relative_cutoff',
+                                       type=float,
+                                       default=0.2,
+                                       help='Relative cutoff for removing tree tips. Default is: %(default)s')
+    parser_trim_tree_tips.add_argument('--absolute_cutoff',
+                                       type=float,
+                                       default=0.4,
+                                       help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+    parser_trim_tree_tips.add_argument('--output_folder',
+                                       default='tree_files_trimmed',
+                                       help='Directory name for output trees. Default is: %(default)s')
+
+    return parser_trim_tree_tips
+
+
+
+# def add_mask_tree_tips_parser(subparsers):
+#     """
+#     Parser for mask_tree_tips
+#
+#     :param argparse._SubParsersAction subparsers:
+#     :return None: no return value specified; default is None
+#     """
+#
+#     parser_mask_tree_tips = subparsers.add_parser('mask_tree_tips',
+#                                                    help='Takes folder of alignments and generates phylogenetic trees')
+#     parser_mask_tree_tips.add_argument('alignment_directory',
+#                                           type=str,
+#                                           help='directory containing fasta alignment files')
+#     parser_mask_tree_tips.add_argument('--pool',
+#                                           type=int,
+#                                           default=1,
+#                                           help='Number of trees to run concurrently. Default is: %(default)s')
+#     parser_mask_tree_tips.add_argument('--threads',
+#                                           type=int,
+#                                           default=1,
+#                                           help='Number of threads to use for each concurrent tree. Default '
+#                                                'is: %(default)s')
+#     parser_mask_tree_tips.add_argument('--generate_bootstraps',
+#                                           action='store_true',
+#                                           default=False,
+#                                           help='Create bootstraps for trees using UFBoot. Default is: '
+#                                                '%(default)s')
+#     parser_mask_tree_tips.add_argument('--use_fasttree',
+#                                           action='store_true',
+#                                           default=False,
+#                                           help='Use FastTree instead of IQTREE. Default is: %(default)s')
+#
+#     return parser_mask_tree_tips

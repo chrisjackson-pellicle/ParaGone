@@ -41,6 +41,7 @@ try:
 except ImportError:
     unsuccessful_imports.append('ete3')
 
+
 if unsuccessful_imports:
     package_list = '\n'.join(unsuccessful_imports)
     sys.exit(f'The required Python packages are not found:\n\n{package_list}\n\nAre they installed for the Python '
@@ -51,6 +52,11 @@ from yang_and_smith import paralogy_subparsers
 from yang_and_smith import check_and_batch
 from yang_and_smith import align_and_clean
 from yang_and_smith import alignment_to_tree
+from yang_and_smith import trim_tree_tips
+from yang_and_smith import newick3
+from yang_and_smith import phylo3
+from yang_and_smith import tree_utils
+from yang_and_smith import seq
 from yang_and_smith import utils
 
 
@@ -92,6 +98,17 @@ def alignment_to_tree_main(args):
     alignment_to_tree.main(args)
 
 
+def trim_tree_tips_main(args):
+    """
+    Calls the function main() from module trim_tree_tips_main
+
+    :param args: argparse namespace with subparser options for function trim_tree_tips_main.main()
+    :return: None: no return value specified; default is None
+    """
+
+    trim_tree_tips.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -115,11 +132,14 @@ def parse_arguments():
     parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
     parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
     parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)
+    parser_mask_tree_tips = paralogy_subparsers.add_trim_tree_tips_parser(subparsers)
+    # parser_mask_tree_tips = paralogy_subparsers.add_mask_tree_tips_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
     parser_align_and_clean.set_defaults(func=align_and_clean_main)
     parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
+    parser_mask_tree_tips.set_defaults(func=trim_tree_tips_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
