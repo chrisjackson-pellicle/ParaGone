@@ -60,7 +60,7 @@ def fastq_generator(infile):
 
 
 def read_fasta_file(filename):
-    """given the path to a fasta file, retern a list of seq objects"""
+    """given the path to a fasta file, return a list of seq objects"""
     fl = open(filename, "r")
     seqlist = []  # list of sequence objects
     templab = ""

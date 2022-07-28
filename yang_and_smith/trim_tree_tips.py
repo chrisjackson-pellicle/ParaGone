@@ -179,10 +179,10 @@ def trim(curroot, relative_cutoff, absolute_cutoff, tree_name=None, logger=None)
 
 def write_trim_report(collated_trim_report_dict, treefile_directory, logger=None):
     """
-    Writes a *.tsv report detailing which tips were trimmed from each tree, and whu
+    Writes a *.tsv report detailing which tips were trimmed from each tree, and why.
 
     :param dict collated_trim_report_dict: dictionary of default dicts for absolute and relative cut-off tips/reasons
-    :param str treefile_directory: name of treefile directory for report filename
+    :param str treefile_directory: name of tree file directory for report filename
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -264,9 +264,3 @@ def main(args):
                       logger=logger)
 
     assert filecount > 0, f'No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}'
-
-
-
-
-
-

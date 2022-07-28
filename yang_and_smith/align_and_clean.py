@@ -249,8 +249,8 @@ def run_hmm_cleaner(input_folder, logger=None):
         command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
 
         host = socket.gethostname()
-        # if host == '192-168-1-116.tpgi.com.au':
-        if host == 'RBGs-MacBook-Air.local':
+        if host == '192-168-1-116.tpgi.com.au':
+        # if host == 'RBGs-MacBook-Air.local':
             command = f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/perl ' \
                       f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/HmmCleaner.pl {alignment}'
 

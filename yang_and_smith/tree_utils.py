@@ -7,7 +7,7 @@ import os, sys
 #     return label.split("@")[0]
 
 
-def get_name(label):  #CJJ
+def get_name(label):  # CJJ
     """Get taxonID from a tip label"""
     return label.split(".")[0]
 
