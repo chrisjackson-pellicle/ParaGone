@@ -249,8 +249,7 @@ def run_hmm_cleaner(input_folder, logger=None):
         command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
 
         host = socket.gethostname()
-        if host == '192-168-1-116.tpgi.com.au':
-        # if host == 'RBGs-MacBook-Air.local':
+        if host == '192-168-1-102.tpgi.com.au' or host == 'RBGs-MacBook-Air.local':
             command = f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/perl ' \
                       f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/HmmCleaner.pl {alignment}'
 
@@ -451,7 +450,14 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'align_and_clean')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/02_align_and_clean')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand align_and_clean was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,

@@ -152,9 +152,9 @@ def add_trim_tree_tips_parser(subparsers):
                                        type=float,
                                        default=0.4,
                                        help='Absolute cutoff for removing tree tips. Default is: %(default)s')
-    parser_trim_tree_tips.add_argument('--output_folder',
-                                       default='tree_files_trimmed',
-                                       help='Directory name for output trees. Default is: %(default)s')
+    # parser_trim_tree_tips.add_argument('--output_folder',
+    #                                    default='tree_files_trimmed',
+    #                                    help='Directory name for output trees. Default is: %(default)s')
 
     return parser_trim_tree_tips
 
@@ -227,3 +227,36 @@ def add_cut_deep_paralogs_parser(subparsers):
 
     return parser_cut_deep_paralogs
 
+
+def add_fasta_from_tree_parser(subparsers):
+    """
+    Parser for fasta_from_tree
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_fasta_from_tree = subparsers.add_parser('fasta_from_tree',
+                                                   help='Filters an alignment for names in tree')
+    parser_fasta_from_tree.add_argument('treefile_directory',
+                                        type=str,
+                                        help='directory containing tree newick files')
+    parser_fasta_from_tree.add_argument('--tree_file_suffix',
+                                        type=str,
+                                        default='.subtree',
+                                        help='Suffix for newick tree files. Default is: %(default)s')
+    parser_fasta_from_tree.add_argument('alignment_directory',
+                                        type=str,
+                                        help='directory containing fasta alignment files')
+    parser_fasta_from_tree.add_argument('--from_cut_deep_paralogs',
+                                        action='store_true',
+                                        default=False,
+                                        help='If set, trees are from QC step "cut_deep_paralogs". Default is: %('
+                                             'default)s')
+    parser_fasta_from_tree.add_argument('--batch_size',
+                                        type=int,
+                                        default=20,
+                                        help='Number of fasta files in each batch, from input paralog fasta files. '
+                                             'Default is: %(default)s')
+
+    return parser_fasta_from_tree

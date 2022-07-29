@@ -12,17 +12,12 @@
 
 import logging
 import sys
-import argparse
 import os
-import socket
-import gzip
 import re
-import fnmatch
 import glob
 import shutil
 from collections import defaultdict
 from Bio import SeqIO
-import datetime
 import textwrap
 
 from yang_and_smith import utils
@@ -40,7 +35,7 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
     """
 
     # Create folder for input fasta files with sanitised names:
-    sanitised_input_folder = f'00_paralogs_with_sanitised_gene_names'
+    sanitised_input_folder = f'paralogs_with_sanitised_gene_names'
 
     utils.createfolder(sanitised_input_folder)
 
@@ -205,8 +200,8 @@ def batch_input_files(gene_fasta_directory, batch_size=20):
     :return:
     """
 
-    output_directory_for_batch_folders = f'01_batch_folders'
-    utils. createfolder(output_directory_for_batch_folders)
+    output_directory_for_batch_folders = f'batch_paralog_folders'
+    utils.createfolder(output_directory_for_batch_folders)
 
     fasta_file_list = glob.glob(f'{gene_fasta_directory}/*.fasta')
 
@@ -237,7 +232,14 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'check_and_batch')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/01_check_and_batch')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand check_and_batch was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,

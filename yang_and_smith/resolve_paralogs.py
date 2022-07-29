@@ -55,6 +55,7 @@ from yang_and_smith import alignment_to_tree
 from yang_and_smith import trim_tree_tips
 from yang_and_smith import mask_tree_tips
 from yang_and_smith import cut_deep_paralogs
+from yang_and_smith import fasta_from_tree
 from yang_and_smith import newick3
 from yang_and_smith import phylo3
 from yang_and_smith import tree_utils
@@ -133,6 +134,17 @@ def cut_deep_paralogs_main(args):
     cut_deep_paralogs.main(args)
 
 
+def fasta_from_tree_main(args):
+    """
+    Calls the function main() from module fasta_from_tree
+
+    :param args: argparse namespace with subparser options for function fasta_from_tree.main()
+    :return: None: no return value specified; default is None
+    """
+
+    fasta_from_tree.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -159,6 +171,7 @@ def parse_arguments():
     parser_trim_tree_tips = paralogy_subparsers.add_trim_tree_tips_parser(subparsers)
     parser_mask_tree_tips = paralogy_subparsers.add_mask_tree_tips_parser(subparsers)
     parser_cut_deep_paralogs = paralogy_subparsers.add_cut_deep_paralogs_parser(subparsers)
+    parser_fasta_from_tree = paralogy_subparsers.add_fasta_from_tree_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
@@ -167,6 +180,7 @@ def parse_arguments():
     parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
     parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
     parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
+    parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
@@ -180,14 +194,18 @@ def main():
         print(__doc__)
         sys.exit(1)
 
+    # Create a directory for logs for each step of the pipeline:
+    utils.createfolder('logs_resolve_paralogs')
+
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'resolve_paralogs')
+    # logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/resolve_paralogs')
 
     # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+    # if utils.check_dependencies(logger=logger):
+    #     logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    # else:
+    #     logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+    #     sys.exit(1)
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()

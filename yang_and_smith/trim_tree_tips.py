@@ -188,7 +188,7 @@ def write_trim_report(collated_trim_report_dict, treefile_directory, logger=None
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_trim_tips_report.tsv'
+    report_filename = f'{basename}_trimmed_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing trim tips report to file {report_filename}')
 
@@ -220,7 +220,14 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'trim_tree_tips')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/04_trim_tree_tips')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand trim_tree_tips was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
@@ -230,7 +237,11 @@ def main(args):
     logger.info(f'{"[INFO]:":10} Absolute cutoff value: {args.absolute_cutoff}')
 
     filecount = 0
-    utils.createfolder(args.output_folder)
+
+    # Create output folder:
+    treefile_directory_basename = os.path.basename(args.treefile_directory)
+    output_folder = f'{treefile_directory_basename}_trimmed'
+    utils.createfolder(output_folder)
 
     collated_trim_report_dict = dict()
 
@@ -253,7 +264,7 @@ def main(args):
                                                'relative_cutoff': nodes_above_relative_cutoff}
 
         if trimmed_tree:
-            with open(f'{args.output_folder}/{basename}.tt', 'w') as outfile_handle:
+            with open(f'{output_folder}/{basename}.tt', 'w') as outfile_handle:
                 outfile_handle.write(newick3.tostring(trimmed_tree) + ";\n")
         else:
             logger.warning(f'No trimmed tree produced for {basename}!')
@@ -263,4 +274,5 @@ def main(args):
                       args.treefile_directory,
                       logger=logger)
 
-    assert filecount > 0, f'No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}'
+    assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
+                                       f' {args.treefile_directory}')

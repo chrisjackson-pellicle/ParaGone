@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+
 """
 This module contains some general functions and classes.
 """
@@ -159,3 +161,4 @@ def resolve_polytomies(treefile_directory, logger=None):
 
         else:
             logger.debug(f'Tree {tree_basename} has no polytomies - keeping original file.')
+

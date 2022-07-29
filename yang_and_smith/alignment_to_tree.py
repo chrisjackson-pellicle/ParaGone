@@ -36,7 +36,7 @@ def fasttree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename}_tree_files'
+    output_folder = f'{input_folder_basename.rstrip("alignments_hmmcleaned")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
@@ -153,7 +153,7 @@ def iqtree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename}_tree_files'
+    output_folder = f'{input_folder_basename.rstrip("alignments_hmmcleaned")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
@@ -266,7 +266,14 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'alignment_to_tree')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/03_alignment_to_tree')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand alignment_to_tree was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,

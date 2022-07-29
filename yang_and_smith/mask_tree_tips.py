@@ -156,7 +156,7 @@ def write_mask_report(collated_mask_report_dict, treefile_directory, logger=None
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_mask_tips_report.tsv'
+    report_filename = f'{basename}_masked_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing mask tips report to file {report_filename}')
 
@@ -206,14 +206,25 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'mask_tree_tips')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/05_mask_tree_tips')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand mask_tree_tips was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
 
-    utils.createfolder(args.output_folder)
+    # Create output folder:
+    treefile_directory_basename = os.path.basename(args.treefile_directory)
+    output_folder = f'{treefile_directory_basename}_masked'
+    utils.createfolder(output_folder)
+
     filecount = 0
 
     # Create a dictionary of gene name to alignment file name:
@@ -278,7 +289,7 @@ def main(args):
             continue
 
         # Write 'masked' tree to file:
-        tree_to_write = f'{args.output_folder}/{tree_file_basename}.mm'
+        tree_to_write = f'{output_folder}/{tree_file_basename}.mm'
         with open(tree_to_write, "w") as tree_outfile:
             tree_outfile.write(newick3.tostring(curroot) + ";\n")
 
@@ -287,6 +298,7 @@ def main(args):
                       args.treefile_directory,
                       logger=logger)
 
-    assert filecount > 0, f'No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}'
+    assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
+                                       f' {args.treefile_directory}')
 
 
