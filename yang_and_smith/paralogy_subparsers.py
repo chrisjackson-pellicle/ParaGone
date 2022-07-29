@@ -305,8 +305,16 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 help='Algorithm to use for mafft alignments. Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--external_outgroups_file',
                                                 type=str,
+                                                default=None,
                                                 help='file in fasta format with additional outgroup sequences to add '
                                                      'to each gene')
+    parser_align_selected_and_tree.add_argument('--external_outgroup',
+                                                action='append',
+                                                type=str,
+                                                dest='external_outgroups',
+                                                default=None,
+                                                help='If one or more taxon names are provided, only use these '
+                                                     'sequences from the user-provided external_outgroups_file')
     parser_align_selected_and_tree.add_argument('--internal_outgroup',
                                                 action='append',
                                                 type=str,

@@ -58,7 +58,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     else:
         logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
-    # Filter out any inpout files with fewer than four sequences:
+    # Filter out any input files with fewer than four sequences:
     target_genes = []
     for fasta_file in sorted(glob.glob(f'{fasta_to_align_folder}/*.fasta')):
         with open(fasta_file, 'r') as input_fasta_handle:
@@ -77,7 +77,8 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                       fasta_file,
                                       algorithm,
                                       output_folder,
-                                      counter, lock,
+                                      counter,
+                                      lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
                                       no_stitched_contigs=no_stitched_contigs,
@@ -92,7 +93,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
-    logger.debug(f'{"[INFO]:":10} {len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
+    logger.debug(f'{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
 
     return output_folder
 
@@ -185,7 +186,7 @@ def mafft_or_muscle_align(fasta_file,
                 logger.error(f'trimal FAILED. Output is: {exc}')
                 logger.error(f'trimal stdout is: {exc.stdout}')
                 logger.error(f'trimal stderr is: {exc.stderr}')
-                sys.exit('There was an issue running trimal. Check input files!')
+                raise ValueError('There was an issue running trimal. Check input files!')
 
         with lock:
             counter.value += 1
@@ -359,7 +360,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
-    logger.debug(f'{"[INFO]:":10} {len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
+    logger.debug(f'{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
 
     return output_folder
 
@@ -423,7 +424,7 @@ def clustalo_align(fasta_file,
             logger.error(f'trimal FAILED. Output is: {exc}')
             logger.error(f'trimal stdout is: {exc.stdout}')
             logger.error(f'trimal stderr is: {exc.stderr}')
-            sys.exit('There was an issue running trimal. Check input files!')
+            raise ValueError('There was an issue running trimal. Check input files!')
 
         with lock:
             counter.value += 1
