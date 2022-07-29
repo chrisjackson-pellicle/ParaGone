@@ -253,10 +253,6 @@ def iqtree(alignment_file,
                          f' {counter.value}/{num_files_to_process}')
 
 
-########################################################################################################################
-########################################################################################################################
-# Run script:
-
 def main(args):
     """
     Entry point for the resolve_paralogs.py script
@@ -279,6 +275,7 @@ def main(args):
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
+    logger.debug(args)
 
     if args.use_fasttree:
         trees_folder = fasttree_multiprocessing(args.alignment_directory,

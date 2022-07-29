@@ -233,6 +233,8 @@ def main(args):
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
+    logger.debug(args)
+
     logger.info(f'{"[INFO]:":10} Relative cutoff value: {args.relative_cutoff}')
     logger.info(f'{"[INFO]:":10} Absolute cutoff value: {args.absolute_cutoff}')
 

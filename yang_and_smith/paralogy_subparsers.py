@@ -41,7 +41,7 @@ def add_check_and_batch_parser(subparsers):
                                         dest='internal_outgroups',
                                         default=None,
                                         help='Taxon name to use as an internal outgroup (i.e. present in input '
-                                             'paralog files). Note that this parameter can be specified one ore more '
+                                             'paralog files). Note that this parameter can be specified one or more '
                                              'times.')
     parser_check_and_batch.add_argument('--batch_size',
                                         type=int,
@@ -260,3 +260,70 @@ def add_fasta_from_tree_parser(subparsers):
                                              'Default is: %(default)s')
 
     return parser_fasta_from_tree
+
+
+def add_align_selected_and_tree_parser(subparsers):
+    """
+    Parser for align_selected_and_tree
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_align_selected_and_tree = subparsers.add_parser('align_selected_and_tree',
+                                                           help='Aligns selected fasta seqs for each subtree, '
+                                                                'and generates a new tree')
+    parser_align_selected_and_tree.add_argument('selected_alignment_directory',
+                                                type=str,
+                                                help='directory containing selected alignment files corresponding to '
+                                                     'subtrees')
+    parser_align_selected_and_tree.add_argument('hmmcleaned_alignment_directory',
+                                                type=str,
+                                                help='directory containing hmmcleaned original fasta alignment files')
+    parser_align_selected_and_tree.add_argument('--pool',
+                                                type=int,
+                                                default=1,
+                                                help='Number of alignments/trees to run concurrently. Default is: %('
+                                                     'default)s')
+    parser_align_selected_and_tree.add_argument('--threads',
+                                                type=int,
+                                                default=1,
+                                                help='Number of threads to use for each concurrent alignment/tree. '
+                                                     'Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--no_stitched_contigs',
+                                                action='store_true',
+                                                default=False,
+                                                help='If specified, realign mafft alignments with clustal omega. '
+                                                     'Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--use_muscle',
+                                                action='store_true',
+                                                default=False,
+                                                help='If specified, use muscle rather than mafft for initial '
+                                                     'alignments. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--mafft_algorithm',
+                                                default='auto',
+                                                help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--external_outgroups_file',
+                                                type=str,
+                                                help='file in fasta format with additional outgroup sequences to add '
+                                                     'to each gene')
+    parser_align_selected_and_tree.add_argument('--internal_outgroup',
+                                                action='append',
+                                                type=str,
+                                                dest='internal_outgroups',
+                                                default=None,
+                                                help='Taxon name to use as an internal outgroup (i.e. present in input '
+                                                     'paralog files). Note that this parameter can be specified one '
+                                                     'or more times.')
+    parser_align_selected_and_tree.add_argument('--generate_bootstraps',
+                                                action='store_true',
+                                                default=False,
+                                                help='Create bootstraps for trees using UFBoot. Default is: %('
+                                                     'default)s')
+    parser_align_selected_and_tree.add_argument('--use_fasttree',
+                                                action='store_true',
+                                                default=False,
+                                                help='Use FastTree instead of IQTREE. Default is: %(default)s')
+
+    return parser_align_selected_and_tree
+

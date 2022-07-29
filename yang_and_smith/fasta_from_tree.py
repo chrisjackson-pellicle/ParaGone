@@ -171,6 +171,7 @@ def main(args):
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
+    logger.debug(args)
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
