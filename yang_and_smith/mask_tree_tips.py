@@ -106,10 +106,7 @@ def mask_paraphyletic_tips(curroot,
             if not node.istip:
                 continue  # only look at tips
 
-            # print(f'\n{newick3.tostring(node)}')
             parent = node.parent
-            # print(f'parent is: {newick3.tostring(parent)}')
-
             if node == curroot or parent == curroot:
                 continue  # no paraphyletic tips for the root
 
@@ -219,7 +216,7 @@ def main(args):
     utils.createfolder(args.output_folder)
     filecount = 0
 
-    # Create a dictionary of gene name to alignmen file name:
+    # Create a dictionary of gene name to alignment file name:
     gene_name_to_alignment_dict = {}  # key is gene name, value is the alignment file name
     for alignment_file in glob.glob(f'{args.alignment_directory}/*{args.alignment_file_suffix}'):
         alignment_basename = os.path.basename(alignment_file)
@@ -242,7 +239,6 @@ def main(args):
         filecount += 1
 
         logger.info(f'{"[INFO]:":10} Analysing tree: {tree_file_basename}')
-        # print(f'\n{"[INFO]:":10} Analysing tree: {tree_file_basename}\n\n')
 
         unamiguous_characters_dict = {}  # key is seqid, value is number of unambiguous chrs
         for seq in read_fasta_file(f'{args.alignment_directory}/{gene_name_to_alignment_dict[tree_gene_name]}'):

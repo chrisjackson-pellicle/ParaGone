@@ -46,9 +46,9 @@ def get_back_names(node, root):
 
 def remove_kink(node, curroot):
     """
-    smooth the kink created by prunning
+    smooth the kink created by pruning
     to prevent creating orphaned tips
-    after prunning twice at the same node
+    after pruning twice at the same node
     """
     if node == curroot and curroot.nchildren == 2:
         # move the root away to an adjacent none-tip

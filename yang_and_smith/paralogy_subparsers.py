@@ -192,3 +192,38 @@ def add_mask_tree_tips_parser(subparsers):
                                        help='Directory name for output trees. Default is: %(default)s')
 
     return parser_mask_tree_tips
+
+
+def add_cut_deep_paralogs_parser(subparsers):
+    """
+    Parser for cut_deep_paralogs
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_cut_deep_paralogs = subparsers.add_parser('cut_deep_paralogs',
+                                                     help='Cut long internal branches to remove deep paralogs')
+    parser_cut_deep_paralogs.add_argument('treefile_directory',
+                                          type=str,
+                                          help='directory containing tree newick files')
+    parser_cut_deep_paralogs.add_argument('--tree_file_suffix',
+                                          type=str,
+                                          default='.mm',
+                                          help='Suffix for newick tree files. Default is: %(default)s')
+    parser_cut_deep_paralogs.add_argument('--internal_branch_length_cutoff',
+                                          type=float,
+                                          default=0.3,
+                                          help='Internal branch length cutoff cutting tree. Default is: %('
+                                               'default)s')
+    parser_cut_deep_paralogs.add_argument('--minimum_number_taxa',
+                                          type=int,
+                                          default=4,
+                                          help='Minimum number of taxa in tree for tree to be reatined. Default is: %('
+                                               'default)s')
+    parser_cut_deep_paralogs.add_argument('--output_folder',
+                                          default='tree_files_trimmed_and_masked_and_cut',
+                                          help='Directory name for output trees. Default is: %(default)s')
+
+    return parser_cut_deep_paralogs
+
