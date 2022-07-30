@@ -68,8 +68,11 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
     logger.debug(f'list_of_internal_outgroups: {list_of_internal_outgroups}')
     logger.debug(f'list_of_external_outgroups_to_select: {list_of_external_outgroups}')
 
+    if not file_of_external_outgroups and not list_of_internal_outgroups:
+        logger.warning(f'{"[WARNING]:":10} No external or internal outgroups supplied!')
+
     input_folder_basename = os.path.basename(selected_alignment_directory)
-    output_folder = f'{input_folder_basename}_outgroups_added'
+    output_folder = f'{input_folder_basename}_selected_alignments_outgroups_added'
     utils.createfolder(output_folder)  # for the outgroups added fasta files
 
     # Read in original paralog fasta files, and create a dictionary of gene_id:list_of_seq_names for taxa in
@@ -77,9 +80,9 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
     internal_outgroup_dict = defaultdict(lambda: defaultdict(list))
     all_paralog_taxon_names = set()
 
-    for fasta in glob.glob(f'{hmmcleaned_alignment_directory}/*.hmm.trimmed.fasta'):
-        gene_id = os.path.basename(fasta).split('.')[0]  # get prefix e.g. '4471'
-        seqs = SeqIO.parse(fasta, 'fasta')
+    for original_alignment in glob.glob(f'{hmmcleaned_alignment_directory}/*.hmm.trimmed.fasta'):
+        gene_id = os.path.basename(original_alignment).split('.')[0]  # get prefix e.g. '4471'
+        seqs = SeqIO.parse(original_alignment, 'fasta')
 
         # Populate the internal_outgroup_dict (potentially more than one sequence per taxon):
         for seq in seqs:
@@ -89,7 +92,7 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
                 internal_outgroup_dict[gene_id][seq_name_prefix].append(seq)
 
         if list_of_internal_outgroups:
-            alignment = AlignIO.read(fasta, 'fasta')
+            alignment = AlignIO.read(original_alignment, 'fasta')
 
             # Create an MultipleSeqAlignment object for ingroup sequences only, and take the first 10 sequences from
             # the ingroup alignment for distance matrix calculations:
@@ -139,11 +142,11 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
         set([seq.name for gene_id, seq_list in external_outgroup_dict.items() for seq in seq_list])
 
     # Read in QC'd paralog files, add outgroup seqs, and write new fasta files ready for alignment:
-    for fasta in glob.glob(f'{selected_alignment_directory}/*.selected.fa'):
-        gene_id = re.sub('_[1-9]$', '', str(os.path.basename(fasta).split('.')[0]))  # 4527_1.selected -> 4527
-        gene_id_with_subtree_number = os.path.basename(fasta).split('.')[0]  # 4527_1.selected -> 4527_1
+    for selected_alignment in glob.glob(f'{selected_alignment_directory}/*.selected.fasta'):
+        gene_id = re.sub('_[1-9]$', '', str(os.path.basename(selected_alignment).split('.')[0]))  # 4527_1.selected -> 4527
+        gene_id_with_subtree_number = os.path.basename(selected_alignment).split('.')[0]  # 4527_1.selected -> 4527_1
 
-        seqs = list(SeqIO.parse(fasta, 'fasta'))
+        seqs = list(SeqIO.parse(selected_alignment, 'fasta'))
         if list_of_internal_outgroups:
             # Get seqs that are NOT internal outgroups:
             seqs_to_write = [seq for seq in seqs if seq.name.split('.')[0] not in list_of_internal_outgroups]
@@ -166,7 +169,7 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
         logger.info(f'ingroup_taxon_names: {ingroup_taxon_names}')
     else:
         ingroup_taxon_names = [name for name in all_paralog_taxon_names]
-        logger.info(f'ingroup_taxon_names: {ingroup_taxon_names}')
+        logger.debug(f'ingroup_taxon_names: {ingroup_taxon_names}')
     with open(f'in_and_outgroups_list_{os.path.basename(selected_alignment_directory)}.txt', 'w') as group_list:
         if list_of_internal_outgroups:
             for taxon in list_of_internal_outgroups:
@@ -253,7 +256,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_alignments_lucy'
+    output_folder = f'{input_folder_basename}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -396,7 +399,7 @@ def mafft_or_muscle_align(fasta_file,
 
     finally:
         with lock:
-            sys.stderr.write(f'\r{"[INFO]:":10}Finished generating alignment for file {fasta_file_basename}, '
+            sys.stderr.write(f'\r{"[INFO]:":10} Finished generating alignment for file {fasta_file_basename}, '
                              f'{counter.value}/{num_files_to_process}')
 
 
@@ -418,7 +421,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     output_folder = f'{input_folder_basename}_clustal'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
+    logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
     target_genes = [file for file in sorted(glob.glob(f'{fasta_to_align_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool_threads) as pool:
@@ -514,7 +517,7 @@ def clustalo_align(fasta_file,
 
     finally:
         with lock:
-            sys.stderr.write(f'\r{"[INFO]:":10}Finished generating alignment for file {fasta_file_basename}, '
+            sys.stderr.write(f'\r{"[INFO]:":10} Finished generating alignment for file {fasta_file_basename}, '
                              f'{counter.value}/{num_files_to_process}')
 
 
@@ -538,7 +541,7 @@ def fasttree_multiprocessing(alignments_folder,
     output_folder = f'{input_folder_basename}_tree_files'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
+    logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
     alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
@@ -631,8 +634,8 @@ def fasttree(alignment_file,
         return os.path.basename(expected_output_file)
 
     finally:
-        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating output {os.path.basename(expected_output_file)},'
-                         f' {counter.value}/{num_files_to_process}', end='')
+        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating tree {os.path.basename(expected_output_file)},'
+                         f' {counter.value}/{num_files_to_process}')
 
 
 def iqtree_multiprocessing(alignments_folder,
@@ -655,7 +658,7 @@ def iqtree_multiprocessing(alignments_folder,
     output_folder = f'{input_folder_basename}_tree_files'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
+    logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
     alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
@@ -748,7 +751,7 @@ def iqtree(alignment_file,
         return os.path.basename(expected_output_file)
 
     finally:
-        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating output {os.path.basename(expected_output_file)},'
+        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating tree {os.path.basename(expected_output_file)},'
                          f' {counter.value}/{num_files_to_process}')
 
 
@@ -817,6 +820,8 @@ def main(args):
             utils.resolve_polytomies(trees_folder, logger=logger)
 
     elif args.no_stitched_contigs:  # re-align with Clustal Omega.
+        logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
+
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
             outgroups_added_folder,
             algorithm=args.mafft_algorithm,
