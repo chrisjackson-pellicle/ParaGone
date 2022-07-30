@@ -493,7 +493,7 @@ def clustalo_align(fasta_file,
         try:
 
             result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                     '-gapthreshold','0.12', '-terminalonly', '-gw', '1'],
+                                     '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
                                     universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                     check=True)
             logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
@@ -536,54 +536,86 @@ def fasttree_multiprocessing(alignments_folder,
 
     input_folder_basename = os.path.basename(alignments_folder)
     output_folder = f'{input_folder_basename}_tree_files'
-    createfolder(output_folder)
+    utils.createfolder(output_folder)
 
-    logger.info('Generating FastTree trees from alignments...\n')
+    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
     alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed.fasta'))]
-    alignments.extend([file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed_hmm.fasta'))])
-    # print(alignments)
 
-    with ProcessPoolExecutor(max_workers=pool_threads) as pool:
+    with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
         lock = manager.Lock()
         counter = manager.Value('i', 0)
-        future_results = [pool.submit(fasttree, alignment, output_folder, counter, lock,
-                                      num_files_to_process=len(alignments), bootstraps=bootstraps)
+        future_results = [pool.submit(fasttree,
+                                      alignment,
+                                      output_folder,
+                                      threads,
+                                      counter,
+                                      lock,
+                                      num_files_to_process=len(alignments),
+                                      bootstraps=bootstraps,
+                                      logger=logger)
                           for alignment in alignments]
         for future in future_results:
-            future.add_done_callback(done_callback)
+            future.add_done_callback(utils.done_callback)
+
         wait(future_results, return_when="ALL_COMPLETED")
-    tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if file_exists_and_not_empty(tree)]
-    logger.info(f'\n{len(tree_list)} trees generated from {len(future_results)} fasta files...\n')
+
+    tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if utils.file_exists_and_not_empty(tree)]
+
+    logger.debug(f'\n{len(tree_list)} trees generated from {len(future_results)} fasta files...')
+
+    return output_folder
 
 
-def fasttree(alignment_file, output_folder, counter, lock, num_files_to_process, bootstraps=False):
+def fasttree(alignment_file,
+             output_folder,
+             threads,
+             counter,
+             lock,
+             num_files_to_process,
+             bootstraps=False,
+             logger=None):
     """
-    Generate trees from alignments using FastTree
+    Generate trees from alignments using FastTreeMP
+
+    :param str alignment_file: path to alignment file
+    :param str output_folder: name of output folder for tree
+    :param int threads: number of threads to use for FastTreeMP
+    :param multiprocessing.managers.ValueProxy counter: shared counter for fasta files processed
+    :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
+    :param int num_files_to_process: total number of alignment fasta files for tree generation
+    :param bool bootstraps: if False, turn off support calculation
+    :param logging.Logger logger: a logger object
+    :return str expected_output_file: name of expected output tree file
     """
+
     alignment_file_basename = os.path.basename(alignment_file)
     expected_output_file = f'{output_folder}/{alignment_file_basename}.treefile'
 
     try:
-        assert file_exists_and_not_empty(expected_output_file)
+        assert utils.file_exists_and_not_empty(expected_output_file)
         logger.debug(f'Output exists for {expected_output_file}, skipping...')
         with lock:
             counter.value += 1
+
         return os.path.basename(expected_output_file)
+
     except AssertionError:
         try:
             if bootstraps:
-                fasttree_command = f'FastTreeMP -gtr -nt < {alignment_file} > {expected_output_file}'
+                fasttree_command = f'export OMP_NUM_THREADS={threads};' \
+                                   f'FastTreeMP -gtr -nt < {alignment_file} > {expected_output_file}'
                 result = subprocess.run(fasttree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        universal_newlines=True)
+                                        universal_newlines=True, check=True)
                 logger.debug(f'FastTreeMP check_returncode() is: {result.check_returncode()}')
                 logger.debug(f'FastTreeMP stdout is: {result.stdout}')
                 logger.debug(f'FastTreeMP stderr is: {result.stderr}')
 
             else:
-                fasttree_command = f'FastTreeMP -gtr -nt -nosupport < {alignment_file} > {expected_output_file}'
+                fasttree_command = f'export OMP_NUM_THREADS={threads};' \
+                                   f'FastTreeMP -gtr -nt -nosupport < {alignment_file} > {expected_output_file}'
                 result = subprocess.run(fasttree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        universal_newlines=True)
+                                        universal_newlines=True, check=True)
                 logger.debug(f'FastTreeMP check_returncode() is: {result.check_returncode()}')
                 logger.debug(f'FastTreeMP stdout is: {result.stdout}')
                 logger.debug(f'FastTreeMP stderr is: {result.stderr}')
@@ -593,77 +625,131 @@ def fasttree(alignment_file, output_folder, counter, lock, num_files_to_process,
             logger.error(f'FastTreeMP stdout is: {exc.stdout}')
             logger.error(f'FastTreeMP stderr is: {exc.stderr}')
 
-        # except:
-        #     logger.info(f'\nNo tree produced for {alignment_file}- fewer than 3 sequences in alignment?\n')
         with lock:
             counter.value += 1
+
         return os.path.basename(expected_output_file)
+
     finally:
-        print(f'\rFinished generating output {os.path.basename(expected_output_file)}, {counter.value}'
-              f'/{num_files_to_process}', end='')
+        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating output {os.path.basename(expected_output_file)},'
+                         f' {counter.value}/{num_files_to_process}', end='')
 
 
-def iqtree_multiprocessing(alignments_folder, pool_threads=1, iqtree_threads=2, bootstraps=False):
+def iqtree_multiprocessing(alignments_folder,
+                           pool=1,
+                           threads=1,
+                           bootstraps=False,
+                           logger=None):
     """
-    Generate iqtree trees using multiprocessing.
+    Generate IQTree trees using multiprocessing.
+
+    :param str alignments_folder: name of folder containing alignments
+    :param int pool: number of concurrent trees to run; default is 1
+    :param int threads: number threads for each concurrent tree; default is 1
+    :param bool bootstraps: if False, turn off support calculation
+    :param logging.Logger logger: a logger object
+    :return str output_folder: path to output folder containing tree files
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
     output_folder = f'{input_folder_basename}_tree_files'
-    createfolder(output_folder)
+    utils.createfolder(output_folder)
 
-    logger.info('Generating trees from alignments...\n')
+    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
     alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
-    # print(alignments)
 
-    with ProcessPoolExecutor(max_workers=pool_threads) as pool:
+    with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
         lock = manager.Lock()
         counter = manager.Value('i', 0)
-        future_results = [pool.submit(iqtree, alignment, output_folder, iqtree_threads, counter, lock,
-                                      num_files_to_process=len(alignments), bootstraps=bootstraps)
+        future_results = [pool.submit(iqtree,
+                                      alignment,
+                                      output_folder,
+                                      threads,
+                                      counter,
+                                      lock,
+                                      num_files_to_process=len(alignments),
+                                      bootstraps=bootstraps,
+                                      logger=logger)
                           for alignment in alignments]
         for future in future_results:
-            future.add_done_callback(done_callback)
+            future.add_done_callback(utils.done_callback)
+
         wait(future_results, return_when="ALL_COMPLETED")
-    tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if file_exists_and_not_empty(tree)]
-    logger.info(f'\n{len(tree_list)} trees generated from {len(future_results)} fasta files...\n')
+
+    tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if utils.file_exists_and_not_empty(tree)]
+
+    logger.debug(f'\n{len(tree_list)} trees generated from {len(future_results)} fasta files...')
+
+    return output_folder
 
 
-def iqtree(alignment_file, output_folder, iqtree_threads, counter, lock, num_files_to_process, bootstraps=False):
+def iqtree(alignment_file,
+           output_folder,
+           threads,
+           counter,
+           lock,
+           num_files_to_process,
+           bootstraps=False,
+           logger=None):
     """
-    Generate trees from alignments using iqtree
+    Generate trees from alignments using IQTREE
+
+    :param str alignment_file: path to alignment file
+    :param str output_folder: name of output folder for tree
+    :param int threads: number of threads to use for FastTreeMP
+    :param multiprocessing.managers.ValueProxy counter: shared counter for fasta files processed
+    :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
+    :param int num_files_to_process: total number of alignment fasta files for tree generation
+    :param bool bootstraps: if False, turn off support calculation
+    :param logging.Logger logger: a logger object
+    :return str expected_output_file: name of expected output tree file
     """
+
     alignment_file_basename = os.path.basename(alignment_file)
     expected_output_file = f'{output_folder}/{alignment_file_basename}.treefile'
-    print(alignment_file)
 
     try:
-        assert file_exists_and_not_empty(expected_output_file)
+        assert utils.file_exists_and_not_empty(expected_output_file)
         logger.debug(f'Output exists for {expected_output_file}, skipping...')
         with lock:
             counter.value += 1
+
         return os.path.basename(expected_output_file)
+
     except AssertionError:
         try:
             if bootstraps:
-                check_iqtree = subprocess.run(['iqtree', '-redo', '-pre',
-                                               f'{output_folder}/{alignment_file_basename}',
-                                               '-s', alignment_file, '-m', 'GTR+G', '-bb', '1000', '-bnni', '-nt',
-                                               str(iqtree_threads), '-quiet'], check=True)
+                iqtree_command = f'iqtree -redo -pre {output_folder}/{alignment_file_basename} -s {alignment_file} ' \
+                                 f'-m GTR+G -bb 1000 -bnni -nt {str(threads)} -quiet'
+                result = subprocess.run(iqtree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        universal_newlines=True, check=True)
+                logger.debug(f'IQTREE check_returncode() is: {result.check_returncode()}')
+                logger.debug(f'IQTREE stdout is: {result.stdout}')
+                logger.debug(f'IQTREE stderr is: {result.stderr}')
+
             else:
-                check_iqtree = subprocess.run(['iqtree', '-redo', '-pre',
-                                               f'{output_folder}/{alignment_file_basename}',
-                                               '-s', alignment_file, '-m', 'GTR+G', '-nt',
-                                               str(iqtree_threads), '-quiet'], check=True)
-                # print(check_iqtree)
-        except:
-            logger.info(f'No tree produced for {alignment_file}- fewer than 3 sequences in alignment?')
+                iqtree_command = f'iqtree -redo -pre {output_folder}/{alignment_file_basename} -s {alignment_file} ' \
+                                 f'-m GTR+G -nt {str(threads)} -quiet'
+                result = subprocess.run(iqtree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        universal_newlines=True, check=True)
+                logger.debug(f'IQTREE check_returncode() is: {result.check_returncode()}')
+                logger.debug(f'IQTREE stdout is: {result.stdout}')
+                logger.debug(f'IQTREE stderr is: {result.stderr}')
+
+        except subprocess.CalledProcessError as exc:
+            logger.error(f'IQTREE FAILED. Output is: {exc}')
+            logger.error(f'IQTREE stdout is: {exc.stdout}')
+            logger.error(f'IQTREE stderr is: {exc.stderr}')
+
         with lock:
             counter.value += 1
+
         return os.path.basename(expected_output_file)
+
     finally:
-        print(f'\rFinished generating output {os.path.basename(expected_output_file)}, {counter.value}/{num_files_to_process}', end='')
+        sys.stderr.write(f'\r{"[INFO]:":10} Finished generating output {os.path.basename(expected_output_file)},'
+                         f' {counter.value}/{num_files_to_process}')
 
 
 def main(args):
@@ -711,39 +797,57 @@ def main(args):
             use_muscle=args.use_muscle,
             logger=logger)
 
+        # Generate trees:
+        if args.use_fasttree:
+            trees_folder = fasttree_multiprocessing(alignments_output_folder,
+                                                    pool=args.pool,
+                                                    threads=args.threads,
+                                                    bootstraps=args.generate_bootstraps,
+                                                    logger=logger)
 
+            utils.resolve_polytomies(trees_folder, logger=logger)
 
-    #
-    #     # Generate trees:
-    #     if results.use_fasttree:
-    #         fasttree_multiprocessing(alignments_output_folder,
-    #                                  pool_threads=results.threads_pool,
-    #                                  bootstraps=results.generate_bootstraps)  # Uses OpenMP with max threads default
-    #     else:
-    #         iqtree_multiprocessing(alignments_output_folder,
-    #                                pool_threads=results.threads_pool,
-    #                                iqtree_threads=results.threads_mafft,
-    #                                bootstraps=results.generate_bootstraps)
-    #
-    # elif results.no_supercontigs:  # re-align with Clustal Omega.
-    #     alignments_output_folder = mafft_align_multiprocessing(outgroups_added_folder,
-    #                                                            algorithm=results.mafft_algorithm,
-    #                                                            pool_threads=results.threads_pool,
-    #                                                            mafft_threads=results.threads_mafft,
-    #                                                            no_supercontigs=results.no_supercontigs,
-    #                                                            use_muscle=results.use_muscle)
-    #
-    #     clustal_alignment_output_folder = clustalo_align_multiprocessing(alignments_output_folder,
-    #                                                                      pool_threads=results.threads_pool,
-    #                                                                      clustalo_threads=results.threads_mafft)
-    #     # Generate trees:
-    #     if results.use_fasttree:
-    #         fasttree_multiprocessing(clustal_alignment_output_folder,
-    #                                  pool_threads=results.threads_pool,
-    #                                  bootstraps=results.generate_bootstraps)  # Uses OpenMP with max threads default
-    #     else:
-    #         iqtree_multiprocessing(clustal_alignment_output_folder,
-    #                                pool_threads=results.threads_pool,
-    #                                iqtree_threads=results.threads_mafft,
-    #                                bootstraps=results.generate_bootstraps)
+        else:
+            trees_folder = iqtree_multiprocessing(alignments_output_folder,
+                                                  pool=args.pool,
+                                                  threads=args.threads,
+                                                  bootstraps=args.generate_bootstraps,
+                                                  logger=logger)
+
+            utils.resolve_polytomies(trees_folder, logger=logger)
+
+    elif args.no_stitched_contigs:  # re-align with Clustal Omega.
+        alignments_output_folder = mafft_or_muscle_align_multiprocessing(
+            outgroups_added_folder,
+            algorithm=args.mafft_algorithm,
+            pool_threads=args.pool,
+            mafft_threads=args.threads,
+            no_stitched_contigs=args.no_stitched_contigs,
+            use_muscle=args.use_muscle,
+            logger=logger)
+
+        clustal_alignment_output_folder = clustalo_align_multiprocessing(
+            alignments_output_folder,
+            pool_threads=args.pool,
+            clustalo_threads=args.threads,
+            logger=logger)
+
+        # Generate trees:
+        if args.use_fasttree:
+            trees_folder = fasttree_multiprocessing(clustal_alignment_output_folder,
+                                                    pool=args.pool,
+                                                    threads=args.threads,
+                                                    bootstraps=args.generate_bootstraps,
+                                                    logger=logger)
+
+            utils.resolve_polytomies(trees_folder, logger=logger)
+
+        else:
+            trees_folder = iqtree_multiprocessing(clustal_alignment_output_folder,
+                                                  pool=args.pool,
+                                                  threads=args.threads,
+                                                  bootstraps=args.generate_bootstraps,
+                                                  logger=logger)
+
+            utils.resolve_polytomies(trees_folder, logger=logger)
 

@@ -180,7 +180,7 @@ def iqtree_multiprocessing(alignments_folder,
 
     tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if utils.file_exists_and_not_empty(tree)]
 
-    logger.debug(f'{len(tree_list)} trees generated from {len(future_results)} fasta files...\n')
+    logger.debug(f'{len(tree_list)} trees generated from {len(future_results)} fasta files...')
 
     return output_folder
 
