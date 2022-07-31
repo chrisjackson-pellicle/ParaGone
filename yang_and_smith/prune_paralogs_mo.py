@@ -285,7 +285,6 @@ def prune_paralogs_from_rerooted_homotree(root,
     # If there are still taxon duplications (putative paralogs) in the ingroup clade, keep pruning:
     while len(get_front_names(root)) > len(set(get_front_names(root))):
         for node in root.iternodes(order=0):  # PREORDER, root to tip  CJJ: this tree includes outgroup taxa
-            print(f'node is {node.label}')
 
             if node.istip:
                 continue
@@ -344,6 +343,7 @@ def parse_ingroup_and_outgroup_file(in_out_file, logger=None):
 
     return ingroups, outgroups
 
+
 def write_mo_report(treefile_directory,
                     trees_with_fewer_than_minimum_taxa,
                     trees_with_1to1_orthologs,
@@ -378,26 +378,92 @@ def write_mo_report(treefile_directory,
     logger.info(f'{"[INFO]:":10} Writing Monophyletic Outgroup (MO) report to file {report_filename}')
 
     with open(report_filename, 'w') as report_handle:
-        report_handle.write(f'Number of input trees with fewer than minimum taxa\t'
-                            f'Number of input trees with 1-to-1 orthologs\t'
-                            f'Number of input trees with no outgroup taxa\t'
-                            f'Number of input trees with unrecognised taxa\t'
-                            f'Number of input trees with duplicate taxa in the outgroup\t'
-                            f'Number of input trees with putative paralogs and monophyletic outgroup\t'
-                            f'Number of input trees with putative paralogs and non-monophyletic outgroup\t'
-                            f'Number of MO pruned trees with greater than minimum taxa\t'
-                            f'Number of MO pruned trees with fewer than minimum taxa\n')
+        report_handle.write(f'\t'
+                            f'Input trees with unrecognised taxa (skipped)\t'
+                            f'Input trees with fewer than minimum taxa (skipped)\t'
+                            f'Input trees with 1-to-1 orthologs\t'
+                            f'Input trees with no outgroup taxa\t'
+                            f'Input trees with duplicate taxa in the outgroup\t'
+                            f'Input trees with putative paralogs and monophyletic outgroup\t'
+                            f'Input trees with putative paralogs and non-monophyletic outgroup\t'
+                            f'MO pruned trees with greater than minimum taxa\t'
+                            f'MO pruned trees with fewer than minimum taxa'
+                            f'\n')
 
-        report_handle.write(f'{len(trees_with_fewer_than_minimum_taxa)}\t'
+        report_handle.write(f'Number of trees\t'
+                            f'{len(trees_with_unrecognised_taxon_names)}\t'
+                            f'{len(trees_with_fewer_than_minimum_taxa)}\t'
                             f'{len(trees_with_1to1_orthologs)}\t'
                             f'{len(trees_with_no_outgroup_taxa)}\t'
-                            f'{len(trees_with_unrecognised_taxon_names)}\t'
                             f'{len(tree_with_duplicate_taxa_in_outgroup)}\t'
                             f'{len(trees_with_monophyletic_outgroups)}\t'
                             f'{len(trees_with_non_monophyletic_outgroups)}\t'
                             f'{len(trees_with_mo_output_file_above_minimum_taxa)}\t'
-                            f'{len(trees_with_mo_output_file_below_minimum_taxa)}\n')
+                            f'{len(trees_with_mo_output_file_below_minimum_taxa)}'
+                            f'\n')
 
+        if trees_with_unrecognised_taxon_names:
+            tree_names_with_unrecognised_taxon_names = ''
+            for treename, unrecognised_taxon_names_list in trees_with_unrecognised_taxon_names.items():
+                unrecognised_taxon_names_joined = ', '.join(unrecognised_taxon_names_list)
+                tree_names_with_unrecognised_taxon_names = f'{tree_names_with_unrecognised_taxon_names} {treename}:' \
+                                                           f' {unrecognised_taxon_names_joined}, '
+        else:
+            tree_names_with_unrecognised_taxon_names = 'None'
+
+        if trees_with_fewer_than_minimum_taxa:
+            tree_names_minimum_taxa_joined = ', '.join(trees_with_fewer_than_minimum_taxa.keys())
+        else:
+            tree_names_minimum_taxa_joined = 'None'
+
+        if trees_with_1to1_orthologs:
+            tree_names_1to1_orthologs_joined = ', '.join(trees_with_1to1_orthologs.keys())
+        else:
+            tree_names_1to1_orthologs_joined = 'None'
+
+        if trees_with_no_outgroup_taxa:
+            tree_names_with_no_outgroup_taxa_joined = ', '.join(trees_with_no_outgroup_taxa.keys())
+        else:
+            tree_names_with_no_outgroup_taxa_joined = 'None'
+
+        if tree_with_duplicate_taxa_in_outgroup:
+            tree_names_with_duplicate_taxa_in_outgroup_joined = ', '.join(tree_with_duplicate_taxa_in_outgroup.keys())
+        else:
+            tree_names_with_duplicate_taxa_in_outgroup_joined = 'None'
+
+        if trees_with_monophyletic_outgroups:
+            tree_names_with_monophyletic_outgroups_joined = ', '.join(trees_with_monophyletic_outgroups.keys())
+        else:
+            tree_names_with_monophyletic_outgroups_joined = 'None'
+
+        if trees_with_non_monophyletic_outgroups:
+            tree_names_with_non_monophyletic_outgroups_joined = ', '.join(trees_with_non_monophyletic_outgroups.keys())
+        else:
+            tree_names_with_non_monophyletic_outgroups_joined = 'None'
+
+        if trees_with_mo_output_file_above_minimum_taxa:
+            tree_names_with_mo_output_file_above_minimum_taxa_joined = \
+                ', '.join(trees_with_mo_output_file_above_minimum_taxa.keys())
+        else:
+            tree_names_with_mo_output_file_above_minimum_taxa_joined = 'None'
+
+        if trees_with_mo_output_file_below_minimum_taxa:
+            tree_names_with_mo_output_file_below_minimum_taxa_joined = \
+                ', '.join(trees_with_mo_output_file_below_minimum_taxa.keys())
+        else:
+            tree_names_with_mo_output_file_below_minimum_taxa_joined = 'None'
+
+        report_handle.write(f'Tree names\t'
+                            f'{tree_names_with_unrecognised_taxon_names}\t'
+                            f'{tree_names_minimum_taxa_joined}\t'
+                            f'{tree_names_1to1_orthologs_joined}\t'
+                            f'{tree_names_with_no_outgroup_taxa_joined}\t'
+                            f'{tree_names_with_duplicate_taxa_in_outgroup_joined}\t'
+                            f'{tree_names_with_monophyletic_outgroups_joined}\t'
+                            f'{tree_names_with_non_monophyletic_outgroups_joined}\t'
+                            f'{tree_names_with_mo_output_file_above_minimum_taxa_joined}\t'
+                            f'{tree_names_with_mo_output_file_below_minimum_taxa_joined}\t'
+                            f'\n')
 
 def main(args):
     """
@@ -455,6 +521,19 @@ def main(args):
             curroot = intree
             names = get_front_names(curroot)
             num_tips, num_taxa = len(names), len(set(names))
+
+            # Check for unrecognised tip names and skip tree if present:
+            unrecognised_names = False
+            for name in names:
+                if name not in ingroups and name not in outgroups:
+                    logger.warning(f'{"[WARNING]:":10} Taxon name {name} in tree {treefile_basename} not found in '
+                                   f'ingroups or outgroups. Skipping tree...')
+                    trees_with_unrecognised_taxon_names[treefile_basename].append(name)
+                    unrecognised_names = True
+            if unrecognised_names:
+                continue
+
+            # Check if tree contains more than the minimum number of taxa:
             if num_taxa < args.minimum_taxa:
                 logger.warning(f'{"[WARNING]:":10} Tree {treefile_basename} contains {num_taxa} taxa; minimum_taxa '
                                f'required is {args.minimum_taxa}. Skipping tree...')
@@ -466,6 +545,7 @@ def main(args):
         # If the tree has no taxon duplication, no cutting is needed:
         if num_tips == num_taxa:
             logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contain no duplicated taxon names (i.e. paralogs).')
+
             trees_with_1to1_orthologs[treefile_basename] = newick3.tostring(curroot)
 
             if not args.ignore_1to1_orthologs:
@@ -478,15 +558,6 @@ def main(args):
             # Now need to deal with taxon duplications. Check to make sure that the ingroup and outgroup names were
             # set correctly:
             logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contains paralogs...')
-            unrecognised_names = []
-            for name in names:
-                if name not in ingroups and name not in outgroups:
-                    logger.warning(f'{"[WARNING]:":10} Taxon name {name} in tree {treefile_basename} not found in '
-                                   f'ingroups or outgroups. Skipping tree...')
-                    trees_with_unrecognised_taxon_names[treefile_basename].append(name)
-
-            if len(unrecognised_names) != 0:
-                continue
 
             outgroup_names = get_front_outgroup_names(curroot, outgroups)
 
