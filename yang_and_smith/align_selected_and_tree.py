@@ -444,7 +444,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
-    logger.debug(f'\n{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
+    logger.debug(f'{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
 
     return output_folder
 
@@ -565,7 +565,7 @@ def fasttree_multiprocessing(alignments_folder,
 
     tree_list = [tree for tree in glob.glob(f'{output_folder}/*.treefile') if utils.file_exists_and_not_empty(tree)]
 
-    logger.debug(f'\n{len(tree_list)} trees generated from {len(future_results)} fasta files...')
+    logger.debug(f'{len(tree_list)} trees generated from {len(future_results)} fasta files...')
 
     return output_folder
 

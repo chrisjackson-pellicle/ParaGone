@@ -67,7 +67,7 @@ def remove_a_tip(root, tip_node, tree_name=None, logger=None):
     """
     Remove a given tip from a tree, and remove the 'kink' that this produces.
 
-    :param phylo3.Node root:
+    :param phylo3.Node root: tree object parsed by newick3.parse
     :param phylo3.Node tip_node:
     :param str tree_name: name of the tree e.g. 6886.paralogs.aln.hmm.trimmed.fasta.treefile
     :param logging.Logger logger: a logger object

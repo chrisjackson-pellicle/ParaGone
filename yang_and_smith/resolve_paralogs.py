@@ -57,6 +57,7 @@ from yang_and_smith import mask_tree_tips
 from yang_and_smith import cut_deep_paralogs
 from yang_and_smith import fasta_from_tree
 from yang_and_smith import align_selected_and_tree
+from yang_and_smith import prune_paralogs_mo
 from yang_and_smith import newick3
 from yang_and_smith import phylo3
 from yang_and_smith import tree_utils
@@ -157,6 +158,17 @@ def align_selected_and_tree_main(args):
     align_selected_and_tree.main(args)
 
 
+def prune_paralogs_mo_main(args):
+    """
+    Calls the function main() from module prune_paralogs_mo
+
+    :param args: argparse namespace with subparser options for function prune_paralogs_mo.main()
+    :return: None: no return value specified; default is None
+    """
+
+    prune_paralogs_mo.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -185,6 +197,7 @@ def parse_arguments():
     parser_cut_deep_paralogs = paralogy_subparsers.add_cut_deep_paralogs_parser(subparsers)
     parser_fasta_from_tree = paralogy_subparsers.add_fasta_from_tree_parser(subparsers)
     parser_align_selected_and_tree = paralogy_subparsers.add_align_selected_and_tree_parser(subparsers)
+    parser_prune_paralogs_mo = paralogy_subparsers.add_prune_paralogs_mo_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
@@ -195,6 +208,7 @@ def parse_arguments():
     parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
     parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
+    parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()

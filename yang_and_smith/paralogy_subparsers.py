@@ -241,13 +241,13 @@ def add_fasta_from_tree_parser(subparsers):
     parser_fasta_from_tree.add_argument('treefile_directory',
                                         type=str,
                                         help='directory containing tree newick files')
+    parser_fasta_from_tree.add_argument('alignment_directory',
+                                        type=str,
+                                        help='directory containing fasta alignment files')
     parser_fasta_from_tree.add_argument('--tree_file_suffix',
                                         type=str,
                                         default='.subtree',
                                         help='Suffix for newick tree files. Default is: %(default)s')
-    parser_fasta_from_tree.add_argument('alignment_directory',
-                                        type=str,
-                                        help='directory containing fasta alignment files')
     parser_fasta_from_tree.add_argument('--from_cut_deep_paralogs',
                                         action='store_true',
                                         default=False,
@@ -335,3 +335,36 @@ def add_align_selected_and_tree_parser(subparsers):
 
     return parser_align_selected_and_tree
 
+
+def add_prune_paralogs_mo_parser(subparsers):
+    """
+    Parser for fasta_from_tree
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_prune_paralogs_mo = subparsers.add_parser('prune_paralogs_mo',
+                                                     help='Prune paralogs from tree using Monophyletic Outgroups (MO) '
+                                                     'algorithm')
+    parser_prune_paralogs_mo.add_argument('treefile_directory',
+                                          type=str,
+                                          help='directory containing tree newick files')
+    parser_prune_paralogs_mo.add_argument('in_and_outgroup_list',
+                                          type=str,
+                                          help='Text file listing in- and out-group taxa')
+    parser_prune_paralogs_mo.add_argument('--tree_file_suffix',
+                                          type=str,
+                                          default='.treefile',
+                                          help='Suffix for newick tree files. Default is: %(default)s')
+    parser_prune_paralogs_mo.add_argument('--minimum_taxa',
+                                          type=int,
+                                          default=2,
+                                          help='Minimum number of taxa required. Default is: %(default)s')
+    parser_prune_paralogs_mo.add_argument('--ignore_1to1_orthologs',
+                                          action='store_true',
+                                          default=False,
+                                          help='Output 1to1 orthologs, i.e. trees with on paralogs. Default is: %('
+                                               'default)s')
+
+    return parser_prune_paralogs_mo
