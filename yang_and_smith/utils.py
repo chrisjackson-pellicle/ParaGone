@@ -162,3 +162,40 @@ def resolve_polytomies(treefile_directory, logger=None):
         else:
             logger.debug(f'Tree {tree_basename} has no polytomies - keeping original file.')
 
+
+def parse_ingroup_and_outgroup_file(in_out_file, logger=None):
+    """
+    Parse an input text file and return a list of ingroup taxa and a list of outgroup taxa.
+
+    :param str in_out_file: path to the text file containing ingroup and outgroup designations
+    :param logging.Logger logger: a logger object
+    :return list ingroups, outgroups: lists of ingroup taxa and outgroup taxa
+    """
+
+    ingroups = []
+    outgroups = []
+
+    with open(in_out_file, 'r') as in_out_handle:
+        for line in in_out_handle:
+            if len(line) < 3:
+                logger.debug(f'Skipping line {line} in in_out_file {os.path.basename(in_out_file)} as len < 3')
+                continue
+            sample = line.strip().split("\t")
+            if sample[0] == "IN":
+                ingroups.append(sample[1])
+            elif sample[0] == "OUT":
+                outgroups.append(sample[1])
+            else:
+                logger.error(f'{"[ERROR]:":10} Check in_and_outgroup_list file format for the following line:')
+                logger.error(f'\n{" " * 10} {line}')
+                sys.exit(1)
+
+    # Check if there are taxa designated as both ingroup AND outgroup:
+    if len(set(ingroups) & set(outgroups)) > 0:
+        logger.error(f'{"[ERROR]:":10} Taxon ID {set(ingroups)} & {set(outgroups)} are in both ingroup and outgroup!')
+        sys.exit(1)
+
+    logger.info(f'{"[INFO]:":10} There are {len(ingroups)} ingroup taxa and {len(outgroups)} outgroup taxa on the'
+                f' {os.path.basename(in_out_file)} file provided')
+
+    return ingroups, outgroups

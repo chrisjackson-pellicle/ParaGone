@@ -37,116 +37,7 @@ import shutil
 import textwrap
 
 from yang_and_smith import utils
-
-
-def get_name(label):
-    """
-    Given a tip label, return taxon name identifier (first field after splitting by dor/period)
-
-    :param str label: label of a tree tip
-    :return:
-    """
-
-    return label.split(".")[0]
-
-
-def get_cluster_id(filename):
-    """
-    Returns first field of tree file name, after splitting by dot/period.
-
-    :param str filename: file name of input tree file
-    :return str: first field of tree file name, after splitting by dot/period.
-    """
-
-    return filename.split(".")[0]
-
-
-def get_front_labels(node):
-    """
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :return list:
-    """
-
-    leaves = node.leaves()
-    return [i.label for i in leaves]
-
-
-def get_back_labels(node, root):
-    """
-    Return taxon names for all child tips OTH THAN the child tips of the given node
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :param phylo3.Node root: tree object parsed by newick3.parse
-    :return set:
-    """
-
-    all_labels = get_front_labels(root)
-    front_labels = get_front_labels(node)
-    return set(all_labels) - set(front_labels)  # labels do not repeat
-
-
-def get_front_names(node):  # may include duplicates
-    """
-    Return taxon names for all child tips of the given node
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :return list:
-    """
-
-    labels = get_front_labels(node)
-    return [get_name(i) for i in labels]
-
-
-def get_front_outgroup_names(node, outgroups):
-    """
-    Recovers taxon names in tree, and returns a list of the names that are also present in the outgroups list.
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :param list outgroups: list of outgroup names recovered from in_and_outgroup_list file
-    :return list: a list of taxon names in the provided tree, if they are present in the outgroups list
-    """
-
-    names = get_front_names(node)
-    return [i for i in names if i in outgroups]
-
-
-def get_back_names(node, root):  # may include duplicates
-    """
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :param phylo3.Node root: tree object parsed by newick3.parse
-    :return list:
-    """
-
-    back_labels = get_back_labels(node, root)
-    return [get_name(i) for i in back_labels]
-
-
-def remove_kink(node, curroot):
-    """
-
-    :param phylo3.Node node: tree object parsed by newick3.parse
-    :param phylo3.Node curroot: tree object parsed by newick3.parse
-    :return:
-    """
-
-    if node == curroot and curroot.nchildren == 2:
-        # move the root away to an adjacent none-tip
-        if curroot.children[0].istip:  # the other child is not tip
-            curroot = phylo3.reroot(curroot, curroot.children[1])
-        else:
-            curroot = phylo3.reroot(curroot, curroot.children[0])
-    # ---node---< all nodes should have one child only now
-    length = node.length + (node.children[0]).length
-    par = node.parent
-    kink = node
-    node = node.children[0]
-    # parent--kink---node<
-    par.remove_child(kink)
-    par.add_child(node)
-    node.length = length
-    return node, curroot
+from yang_and_smith import tree_utils
 
 
 def reroot_with_monophyletic_outgroups(root,
@@ -168,7 +59,7 @@ def reroot_with_monophyletic_outgroups(root,
     outgroup_labels = []
     for leaf in leaves:
         label = leaf.label  # e.g. 376678.main or 376728.0, etc
-        name = get_name(label)  # e.g. 376678 or 376728, etc
+        name = tree_utils.get_name(label)  # e.g. 376678 or 376728, etc
         if name in outgroups:
             outgroup_matches[label] = leaf
             outgroup_labels.append(label)
@@ -184,8 +75,8 @@ def reroot_with_monophyletic_outgroups(root,
             if node == root:
                 continue  # Skip the root
 
-            front_names = get_front_names(node)
-            back_names = get_back_names(node, root)
+            front_names = tree_utils.get_front_names(node)
+            back_names = tree_utils.get_back_names(node, root)
             front_in_names, front_out_names, back_in_names, back_out_names = 0, 0, 0, 0
 
             # Get counts of ingroup and outgroup taxa at front and back of the current node:
@@ -227,21 +118,21 @@ def prune_paralogs_from_rerooted_homotree(root,
     :return phylo3.Node root: tree object after pruning with Monophyletic Outgroups (MO) algorithm
     """
 
-    if len(get_front_names(root)) == len(set(get_front_names(root))):
+    if len(tree_utils.get_front_names(root)) == len(set(tree_utils.get_front_names(root))):
         return root  # no pruning needed CJJ This is same as 1to1_orthologs, isn't it?
 
     # Check for duplications at the root first. One or two of the trifurcating root clades are ingroup clades:
     node0, node1, node2 = root.children[0], root.children[1], root.children[2]
-    out0, out1, out2 = len(get_front_outgroup_names(node0, outgroups)),\
-                       len(get_front_outgroup_names(node1, outgroups)),\
-                       len(get_front_outgroup_names(node2, outgroups))
+    out0, out1, out2 = len(tree_utils.get_front_outgroup_names(node0, outgroups)),\
+                       len(tree_utils.get_front_outgroup_names(node1, outgroups)),\
+                       len(tree_utils.get_front_outgroup_names(node2, outgroups))
 
     logger.debug(f'Outgroup taxon count in node0, node1, node2 is: {out0}, {out1}, {out2}')
 
     # Identify the ingroup clades and check for names overlap:
     if out0 == 0 and out1 == 0:  # 0 and 1 are the ingroup clades
-        name_set0 = set(get_front_names(node0))
-        name_set1 = set(get_front_names(node1))
+        name_set0 = set(tree_utils.get_front_names(node0))
+        name_set1 = set(tree_utils.get_front_names(node1))
         if len(name_set0.intersection(name_set1)) > 0:
 
             if len(name_set0) > len(name_set1):  # cut the side with fewer taxa
@@ -254,8 +145,8 @@ def prune_paralogs_from_rerooted_homotree(root,
                 node0.prune()
 
     elif out1 == 0 and out2 == 0:  # 1 and 2 are the ingroup clades
-        name_set1 = set(get_front_names(node1))
-        name_set2 = set(get_front_names(node2))
+        name_set1 = set(tree_utils.get_front_names(node1))
+        name_set2 = set(tree_utils.get_front_names(node2))
         if len(name_set1.intersection(name_set2)) > 0:
             if len(name_set1) > len(name_set2):  # cut the side with fewer taxa
                 logger.debug(f'Cutting node2: {newick3.tostring(node2)}')
@@ -267,8 +158,8 @@ def prune_paralogs_from_rerooted_homotree(root,
                 node1.prune()
 
     elif out0 == 0 and out2 == 0:  # 0 and 2 are the ingroup clades
-        name_set0 = set(get_front_names(node0))
-        name_set2 = set(get_front_names(node2))
+        name_set0 = set(tree_utils.get_front_names(node0))
+        name_set2 = set(tree_utils.get_front_names(node2))
         if len(name_set0.intersection(name_set2)) > 0:
             if len(name_set0) > len(name_set2):  # cut the side with fewer taxa
                 root.remove_child(node2)
@@ -283,7 +174,7 @@ def prune_paralogs_from_rerooted_homotree(root,
         raise ValueError('More than one clade with outgroup sequences!')
 
     # If there are still taxon duplications (putative paralogs) in the ingroup clade, keep pruning:
-    while len(get_front_names(root)) > len(set(get_front_names(root))):
+    while len(tree_utils.get_front_names(root)) > len(set(tree_utils.get_front_names(root))):
         for node in root.iternodes(order=0):  # PREORDER, root to tip  CJJ: this tree includes outgroup taxa
 
             if node.istip:
@@ -292,8 +183,8 @@ def prune_paralogs_from_rerooted_homotree(root,
                 continue
 
             child0, child1 = node.children[0], node.children[1]
-            name_set0 = set(get_front_names(child0))
-            name_set1 = set(get_front_names(child1))
+            name_set0 = set(tree_utils.get_front_names(child0))
+            name_set1 = set(tree_utils.get_front_names(child1))
             if len(name_set0.intersection(name_set1)) > 0:
                 if len(name_set0) > len(name_set1):  # cut the side with fewer taxa
                     node.remove_child(child1)
@@ -301,47 +192,10 @@ def prune_paralogs_from_rerooted_homotree(root,
                 else:
                     node.remove_child(child0)
                     child0.prune()
-                node, root = remove_kink(node, root)  # no re-rooting here
+                node, root = tree_utils.remove_kink(node, root)  # no re-rooting here
                 break
 
     return root
-
-
-def parse_ingroup_and_outgroup_file(in_out_file, logger=None):
-    """
-
-    :param str in_out_file: path to the text file containing ingroup and outgroup designations
-    :param logging.Logger logger: a logger object
-    :return list ingroups, outgroups: lists of ingroup taxa and outgroup taxa
-    """
-
-    ingroups = []
-    outgroups = []
-
-    with open(in_out_file, 'r') as in_out_handle:
-        for line in in_out_handle:
-            if len(line) < 3:
-                logger.debug(f'Skipping line {line} in in_out_file {os.path.basename(in_out_file)} as len < 3')
-                continue
-            sample = line.strip().split("\t")
-            if sample[0] == "IN":
-                ingroups.append(sample[1])
-            elif sample[0] == "OUT":
-                outgroups.append(sample[1])
-            else:
-                logger.error(f'{"[ERROR]:":10} Check in_and_outgroup_list file format for the following line:')
-                logger.error(f'\n{" " * 10} {line}')
-                sys.exit(1)
-
-    # Check if there are taxa designated as both ingroup AND outgroup:
-    if len(set(ingroups) & set(outgroups)) > 0:
-        logger.error(f'{"[ERROR]:":10} Taxon ID {set(ingroups)} & {set(outgroups)} are in both ingroup and outgroup!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} There are {len(ingroups)} ingroup taxa and {len(outgroups)} outgroup taxa on the'
-                f' {os.path.basename(in_out_file)} file provided')
-
-    return ingroups, outgroups
 
 
 def write_mo_report(treefile_directory,
@@ -465,6 +319,7 @@ def write_mo_report(treefile_directory,
                             f'{tree_names_with_mo_output_file_below_minimum_taxa_joined}\t'
                             f'\n')
 
+
 def main(args):
     """
     Entry point for the resolve_paralogs.py script
@@ -494,8 +349,8 @@ def main(args):
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
-    ingroups, outgroups = parse_ingroup_and_outgroup_file(args.in_and_outgroup_list,
-                                                          logger=logger)
+    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(args.in_and_outgroup_list,
+                                                                logger=logger)
 
     # Create dicts for report file:
     trees_with_fewer_than_minimum_taxa = {}
@@ -511,7 +366,7 @@ def main(args):
     # Iterate over tree and prune with MO algorithm:
     for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
         treefile_basename = os.path.basename(treefile)
-        outout_file_id = f'{output_folder}/{get_cluster_id(treefile_basename)}'
+        output_file_id = f'{output_folder}/{tree_utils.get_cluster_id(treefile_basename)}'
 
         logger.info(f'{"[INFO]:":10} Analysing tree {treefile_basename}...')
 
@@ -519,7 +374,7 @@ def main(args):
         with open(treefile, "r") as infile:
             intree = newick3.parse(infile.readline())
             curroot = intree
-            names = get_front_names(curroot)
+            names = tree_utils.get_front_names(curroot)
             num_tips, num_taxa = len(names), len(set(names))
 
             # Check for unrecognised tip names and skip tree if present:
@@ -537,9 +392,7 @@ def main(args):
             if num_taxa < args.minimum_taxa:
                 logger.warning(f'{"[WARNING]:":10} Tree {treefile_basename} contains {num_taxa} taxa; minimum_taxa '
                                f'required is {args.minimum_taxa}. Skipping tree...')
-
                 trees_with_fewer_than_minimum_taxa[treefile_basename] = newick3.tostring(curroot)
-
                 continue  # Not enough taxa, skip tree
 
         # If the tree has no taxon duplication, no cutting is needed:
@@ -549,8 +402,8 @@ def main(args):
             trees_with_1to1_orthologs[treefile_basename] = newick3.tostring(curroot)
 
             if not args.ignore_1to1_orthologs:
-                logger.info(f'{"[INFO]:":10} Writing tree {treefile_basename} to {outout_file_id}.1to1ortho.tre')
-                shutil.copy(treefile, f'{outout_file_id}.1to1ortho.tre')
+                logger.info(f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre')
+                shutil.copy(treefile, f'{output_file_id}.1to1ortho.tre')
             else:
                 logger.info(f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided: skipping tree'
                             f' {treefile_basename}')
@@ -559,7 +412,7 @@ def main(args):
             # set correctly:
             logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contains paralogs...')
 
-            outgroup_names = get_front_outgroup_names(curroot, outgroups)
+            outgroup_names = tree_utils.get_front_outgroup_names(curroot, outgroups)
 
             # If no outgroup at all, do not attempt to resolve paralogs:
             if len(outgroup_names) == 0:
@@ -574,7 +427,7 @@ def main(args):
 
             else:  # At least one outgroup present and there's no outgroup duplication
                 if curroot.nchildren == 2:  # need to reroot
-                    temp, curroot = remove_kink(curroot, curroot)
+                    temp, curroot = tree_utils.remove_kink(curroot, curroot)
 
                 # Check if the outgroup sequenes are monophyletic:
                 curroot = reroot_with_monophyletic_outgroups(curroot,
@@ -587,30 +440,32 @@ def main(args):
                     trees_with_monophyletic_outgroups[treefile_basename] = newick3.tostring(curroot)
 
                     # Write re-rooted trees with monophyletic outgroup to file:
-                    with open(f'{outout_file_id}.reroot', "w") as outfile:
+                    with open(f'{output_file_id}.reroot', "w") as outfile:
                         outfile.write(newick3.tostring(curroot) + ";\n")
 
                     # Prune the re-rooted tree with the MO algorith:
-                    logger.info(f'{"[INFO]:":10} Applying Monophyletic Outgroup algorithm to tree {treefile_basename}...')
+                    logger.info(f'{"[INFO]:":10} Applying Monophyletic Outgroup algorithm to tree'
+                                f' {treefile_basename}...')
                     ortho = prune_paralogs_from_rerooted_homotree(curroot,
                                                                   outgroups,
                                                                   logger=logger)
 
                     # Filter out pruned trees that have fewer than the minimum_taxa value:
                     # CJJ the filter below counts outgroup taxa - surely just want to count ingroup taxa?
-                    if len(set(get_front_names(curroot))) >= args.minimum_taxa:
-                        with open(f'{outout_file_id}.ortho.tre', "w") as outfile:
+                    if len(set(tree_utils.get_front_names(curroot))) >= args.minimum_taxa:
+                        with open(f'{output_file_id}.ortho.tre', "w") as outfile:
                             outfile.write(newick3.tostring(ortho) + ";\n")
                             trees_with_mo_output_file_above_minimum_taxa[treefile_basename] = newick3.tostring(curroot)
                     else:
                         logger.warning(f'{"[WARNING]:":10} After pruning with MO algorith, tree {treefile_basename} '
-                                       f'contains {len(set(get_front_names(curroot)))} taxa; parameter --minimum_taxa is'
-                                       f' {args.minimum_taxa}. No tree file will be written.')
+                                       f'contains {len(set(tree_utils.get_front_names(curroot)))} taxa; parameter '
+                                       f'--minimum_taxa is {args.minimum_taxa}. No tree file will be written.')
                         trees_with_mo_output_file_below_minimum_taxa[treefile_basename] = newick3.tostring(curroot)
                 else:
                     logger.info(f'{"[INFO]:":10} Outgroup non-monophyletic for tree {treefile_basename}')
                     trees_with_non_monophyletic_outgroups[treefile_basename] = newick3.tostring(curroot)
 
+    # Write a *.tsv report file:
     write_mo_report(args.treefile_directory,
                     trees_with_fewer_than_minimum_taxa,
                     trees_with_1to1_orthologs,

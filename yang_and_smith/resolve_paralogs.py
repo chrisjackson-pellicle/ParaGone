@@ -8,24 +8,7 @@ Author: Chris Jackson chris.jackson@rbg.vic.gov.au
 """
 
 import argparse
-import os
 import sys
-import shutil
-import subprocess
-import glob
-import logging
-import logging.handlers
-from collections import defaultdict
-import re
-import textwrap
-import datetime
-import multiprocessing
-from multiprocessing import Manager
-from concurrent.futures import wait, as_completed, TimeoutError, CancelledError
-import pkg_resources
-import time
-import signal
-
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'HybPiper requires Python 3.6 or higher.'
@@ -58,6 +41,8 @@ from yang_and_smith import cut_deep_paralogs
 from yang_and_smith import fasta_from_tree
 from yang_and_smith import align_selected_and_tree
 from yang_and_smith import prune_paralogs_mo
+from yang_and_smith import prune_paralogs_rt
+from yang_and_smith import prune_paralogs_mi
 from yang_and_smith import newick3
 from yang_and_smith import phylo3
 from yang_and_smith import tree_utils
@@ -169,6 +154,28 @@ def prune_paralogs_mo_main(args):
     prune_paralogs_mo.main(args)
 
 
+def prune_paralogs_rt_main(args):
+    """
+    Calls the function main() from module prune_paralogs_rt
+
+    :param args: argparse namespace with subparser options for function prune_paralogs_rt.main()
+    :return: None: no return value specified; default is None
+    """
+
+    prune_paralogs_rt.main(args)
+
+
+def prune_paralogs_mi_main(args):
+    """
+    Calls the function main() from module prune_paralogs_mi
+
+    :param args: argparse namespace with subparser options for function prune_paralogs_mi.main()
+    :return: None: no return value specified; default is None
+    """
+
+    prune_paralogs_mi.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -198,6 +205,8 @@ def parse_arguments():
     parser_fasta_from_tree = paralogy_subparsers.add_fasta_from_tree_parser(subparsers)
     parser_align_selected_and_tree = paralogy_subparsers.add_align_selected_and_tree_parser(subparsers)
     parser_prune_paralogs_mo = paralogy_subparsers.add_prune_paralogs_mo_parser(subparsers)
+    parser_prune_paralogs_rt = paralogy_subparsers.add_prune_paralogs_rt_parser(subparsers)
+    # parser_prune_paralogs_mi = paralogy_subparsers.add_prune_paralogs_mi_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
@@ -209,6 +218,8 @@ def parse_arguments():
     parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
+    parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
+    # parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
@@ -224,16 +235,6 @@ def main():
 
     # Create a directory for logs for each step of the pipeline:
     utils.createfolder('logs_resolve_paralogs')
-
-    # Initialise logger:
-    # logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/resolve_paralogs')
-
-    # check for external dependencies:
-    # if utils.check_dependencies(logger=logger):
-    #     logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    # else:
-    #     logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-    #     sys.exit(1)
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()

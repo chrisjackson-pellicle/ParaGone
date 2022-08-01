@@ -368,3 +368,32 @@ def add_prune_paralogs_mo_parser(subparsers):
                                                'default)s')
 
     return parser_prune_paralogs_mo
+
+
+def add_prune_paralogs_rt_parser(subparsers):
+    """
+    Parser for fasta_from_tree
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_prune_paralogs_mo = subparsers.add_parser('prune_paralogs_rt',
+                                                     help='Prune paralogs from tree using RooTed ingroups (RT) '
+                                                     'algorithm')
+    parser_prune_paralogs_mo.add_argument('treefile_directory',
+                                          type=str,
+                                          help='directory containing tree newick files')
+    parser_prune_paralogs_mo.add_argument('in_and_outgroup_list',
+                                          type=str,
+                                          help='Text file listing in- and out-group taxa')
+    parser_prune_paralogs_mo.add_argument('--tree_file_suffix',
+                                          type=str,
+                                          default='.treefile',
+                                          help='Suffix for newick tree files. Default is: %(default)s')
+    parser_prune_paralogs_mo.add_argument('--minimum_taxa',
+                                          type=int,
+                                          default=2,
+                                          help='Minimum number of taxa required. Default is: %(default)s')
+
+    return parser_prune_paralogs_mo
