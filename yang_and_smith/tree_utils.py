@@ -306,3 +306,87 @@ def extract_rooted_ingroup_clades(root,
             break
 
     return inclades_list, inclades_with_fewer_than_min_ingroup_taxa_list
+
+
+def get_front_score(node):
+    """
+    Recovers all front (from current node) tip  names from a tree, and checks whether there are duplicate names. If so,
+    return -1, else return number of tips in front child clade (outgroups included if present).
+
+    :param phylo3.Node node: tree object parsed by newick3.parse
+    :return int: -1 if duplicate tip names detected, else number of tips in tree (outgroups included if present)
+    """
+
+    front_labels = get_front_labels(node)
+    num_labels = len(front_labels)
+    num_taxa = len(set([get_name(i) for i in front_labels]))  # i.e. the number of non-duplicated leaf names.
+    if num_taxa == num_labels:  # i.e. there are no paralogs
+        return num_taxa
+
+    return -1  # if there are duplicate leaf names (i.e. there are paralogs), return this value
+
+
+def get_back_score(node, root):
+    """
+    Recovers all back (from current node) tip  names from a tree, and checks whether there are duplicate names. If so,
+    return -1, else return number of tips back child clade (outgroups included if present).
+
+    :param phylo3.Node node: tree object parsed by newick3.parse
+    :param phylo3.Node root: tree object parsed by newick3.parse
+    :return int: -1 if duplicate tip names detected, else number of tips in tree (outgroups included if present)
+    """
+
+    back_labels = get_back_labels(node, root)
+    num_labels = len(back_labels)
+    num_taxa = len(set([get_name(i) for i in back_labels]))
+    if num_taxa == num_labels:
+        return num_taxa
+
+    return -1
+
+
+def prune(score_tuple,
+          node,
+          root,
+          pruned_clades,
+          logger=None):
+    """
+    Prunes a clade containing the largest number of non-repeating taxa from a given tree.
+
+
+    :param tuple score_tuple: (front_score, back_score) for current node
+    phylo3.Node node: tree object parsed by newick3.parse
+    phylo3.Node root: tree object parsed by newick3.parse
+    :param list pruned_clades: list for pruned nodes
+    :param logging.Logger logger: a logger object
+    :return phylo3.Node, bool:
+    """
+
+    # If more non-repeated taxa in front group of current node, prune front:
+    if score_tuple[0] > score_tuple[1]:
+        pruned_clades.append(node)
+        par = node.prune()  # CJJ: par is parent, presumably...
+
+        # if par != None and len(root.leaves()) >= 3:
+        if par and len(root.leaves()) >= 3:
+            par, root = remove_kink(par, root)
+
+        return root, node == root  # Latter can be True or False
+
+    # If more non-repeated taxa in back group of current node and current node is not root, prune back:
+    else:
+        if node != root:
+            par = node.parent  # par--node<
+            par.remove_child(node)
+            if par.parent:
+                par, root = remove_kink(par, root)
+
+        node.prune()
+        pruned_clades.append(root)
+
+        if len(node.leaves()) >= 3:
+            node, newroot = remove_kink(node, node)
+        else:
+            newroot = node
+
+        return newroot, False  # original root was cutoff, not done yet

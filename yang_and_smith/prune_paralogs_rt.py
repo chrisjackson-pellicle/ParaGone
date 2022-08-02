@@ -87,96 +87,6 @@ def prune_paralogs_rt(curroot,
     return inclades_list, inclades_with_fewer_than_min_ingroup_taxa, ortho_dict, ortho_dict_fewer_than_min_taxa
 
 
-# def write_rt_report(treefile_directory,
-#                     trees_with_fewer_than_minimum_taxa,
-#                     trees_with_no_outgroup_taxa_1to1_orthologs,
-#                     trees_with_no_outgroup_taxa_paralogs,
-#                     trees_with_unrecognised_taxon_names,
-#                     inclades_dict_all,
-#                     inclades_with_fewer_than_min_ingroup_taxa_all,
-#                     ortho_dict_all,
-#                     ortho_dict_fewer_than_min_taxa_all,
-#                     logger=None):
-#     """
-#     Writes a *.tsv report detailing for Monophyletic Ourgroup pruning process.
-#
-#     :param str treefile_directory: name of tree file directory for report filename
-#     :param trees_with_fewer_than_minimum_taxa: dictionary of treename:newick
-#     :param trees_with_no_outgroup_taxa_1to1_orthologs: dictionary of treename:newick
-#     :param trees_with_no_outgroup_taxa_paralogs: dictionary of treename:newick
-#     :param trees_with_unrecognised_taxon_names: dictionary of treename: list of unrecognised taxa
-#     :param inclades_dict_all: dictionary of treename:[list of newick inclades]
-#     :param inclades_with_fewer_than_min_ingroup_taxa_all: dictionary of treename:newick
-#     :param ortho_dict_all:
-#     :param ortho_dict_fewer_than_min_taxa_all:
-#     :param logging.Logger logger: a logger object
-#     :return:
-#     """
-#
-#     basename = os.path.basename(treefile_directory)
-#     report_filename = f'{basename}_RT_report.tsv'
-#
-#     logger.info(f'{"[INFO]:":10} Writing RooTed outgroup (RT) report to file {report_filename}')
-#
-#     with open(report_filename, 'w') as report_handle:
-#         report_handle.write(f'\t'
-#                             f'Input trees with unrecognised taxa (skipped)\t'
-#                             f'Input trees with fewer than minimum taxa (skipped)\t'
-#                             f'Input trees with no outgroup taxa and putative paralogs (skipped)\t'
-#                             f'Input trees with no outgroup taxa but 1to1 orthologs\t'
-#                             f'Trees with rooted inclades from input tree\t'
-#                             f'Trees with rooted inclades from input tree < minimum taxa\t'
-#                             f'Trees with ortholog groups recovered from rooted inclades\t'
-#                             f'Trees with ortholog groups recovered from rooted inclades < minimum taxa'
-#                             f'\n')
-#
-#         report_handle.write(f'Number of trees\t'
-#                             f'{len(trees_with_unrecognised_taxon_names)}\t'
-#                             f'{len(trees_with_fewer_than_minimum_taxa)}\t'
-#                             f'{len(trees_with_no_outgroup_taxa_1to1_orthologs)}\t'
-#                             f'{len(trees_with_no_outgroup_taxa_paralogs)}\t'
-#                             f'{len(inclades_dict_all)}\t'
-#                             f'{len(inclades_with_fewer_than_min_ingroup_taxa_all)}\t'
-#                             f'{len(ortho_dict_all)}\t'
-#                             f'{len(ortho_dict_fewer_than_min_taxa_all)}'
-#                             f'\n')
-#
-#         if trees_with_unrecognised_taxon_names:
-#             tree_names_with_unrecognised_taxon_names = ''
-#             for treename, unrecognised_taxon_names_list in trees_with_unrecognised_taxon_names.items():
-#                 unrecognised_taxon_names_joined = ', '.join(unrecognised_taxon_names_list)
-#                 tree_names_with_unrecognised_taxon_names = f'{tree_names_with_unrecognised_taxon_names} {treename}:' \
-#                                                            f' {unrecognised_taxon_names_joined}, '
-#         else:
-#             tree_names_with_unrecognised_taxon_names = 'None'
-#
-#         if trees_with_fewer_than_minimum_taxa:
-#             tree_names_minimum_taxa_joined = ', '.join(trees_with_fewer_than_minimum_taxa.keys())
-#         else:
-#             tree_names_minimum_taxa_joined = 'None'
-#
-#         if trees_with_no_outgroup_taxa_paralogs:
-#             trees_with_no_outgroup_taxa_and_putative_paralogs = ', '.join(trees_with_no_outgroup_taxa_paralogs.keys())
-#         else:
-#             trees_with_no_outgroup_taxa_and_putative_paralogs = 'None'
-#
-#         if trees_with_no_outgroup_taxa_1to1_orthologs:
-#             trees_with_no_outgroup_taxa_but_1to1_orthologs = \
-#                 ', '.join(trees_with_no_outgroup_taxa_1to1_orthologs.keys())
-#         else:
-#             trees_with_no_outgroup_taxa_but_1to1_orthologs = 'None'
-#
-#         if inclades_dict_all:
-#             tree_names_with_num_rooted_inclades = ''
-#             for treename, list_of_rooted_inclades in inclades_dict_all.items():
-#                 # list_of_rooted_inclades_joined = '| '.join(list_of_rooted_inclades)
-#                 tree_names_with_num_rooted_inclades = f'{tree_names_with_num_rooted_inclades} {treename}:' \
-#                                                       f' {len(list_of_rooted_inclades)}, '
-#         else:
-#             tree_names_with_num_rooted_inclades = 'None'
-#
-#         # print(tree_names_with_num_rooted_inclades)
-
 def write_rt_report(treefile_directory,
                     tree_stats_collated_dict,
                     logger=None):
@@ -208,9 +118,6 @@ def write_rt_report(treefile_directory,
     for tree_name, dictionaries in tree_stats_collated_dict.items():
 
         tree_stats = [tree_name]
-
-        # print(tree_name)
-        # print(dictionaries)
 
         try:
             check = dictionaries['unrecognised_names']
@@ -317,7 +224,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/08_align_selected_and_tree')
+    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/10_prune_paralogs_RT')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -326,7 +233,7 @@ def main(args):
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand align_selected_and_tree was called with these arguments:')
+    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_rt was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
@@ -388,7 +295,7 @@ def main(args):
             if len(outgroup_names) == 0 and len(names) == num_taxa:
                 outfile_filename = f'{output_folder}/{output_file_id}.unrooted-ortho.tre'
 
-                logger.info(f'{"[WARNING]:":10} Tree {treefile_basename} contains no outgroup taxa, but no putative '
+                logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contains no outgroup taxa, but no putative '
                             f'paralogs detected. Writing tree to {outfile_filename}')
                 with open(f'{outfile_filename}', 'w') as outfile:
                     outfile.write(newick3.tostring(curroot) + ";\n")

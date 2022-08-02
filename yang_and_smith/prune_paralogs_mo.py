@@ -344,7 +344,7 @@ def main(args):
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_MO was called with these arguments:')
+    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_mo was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
@@ -412,7 +412,7 @@ def main(args):
                 logger.info(f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre')
                 shutil.copy(treefile, f'{output_file_id}.1to1ortho.tre')
             else:
-                logger.info(f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided: skipping tree'
+                logger.info(f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided. Skipping tree...'
                             f' {treefile_basename}')
         else:
             # Now need to deal with taxon duplications. Check to make sure that the ingroup and outgroup names were

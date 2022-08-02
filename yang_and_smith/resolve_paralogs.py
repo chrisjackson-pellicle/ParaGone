@@ -206,7 +206,7 @@ def parse_arguments():
     parser_align_selected_and_tree = paralogy_subparsers.add_align_selected_and_tree_parser(subparsers)
     parser_prune_paralogs_mo = paralogy_subparsers.add_prune_paralogs_mo_parser(subparsers)
     parser_prune_paralogs_rt = paralogy_subparsers.add_prune_paralogs_rt_parser(subparsers)
-    # parser_prune_paralogs_mi = paralogy_subparsers.add_prune_paralogs_mi_parser(subparsers)
+    parser_prune_paralogs_mi = paralogy_subparsers.add_prune_paralogs_mi_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
@@ -219,7 +219,7 @@ def parse_arguments():
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
     parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
-    # parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
+    parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
