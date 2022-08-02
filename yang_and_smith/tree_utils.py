@@ -106,6 +106,19 @@ def get_front_outgroup_names(node, outgroups):
     return [i for i in names if i in outgroups]
 
 
+def get_front_ingroup_names(node, ingroups):
+    """
+    Recovers taxon names in tree, and returns a list of the names that are also present in the ingroups list.
+
+    :param phylo3.Node node: tree object parsed by newick3.parse
+    :param list ingroups: list of ingroup names recovered from in_and_outgroup_list file
+    :return list: a list of taxon names in the provided tree, if they are present in the ingroups list
+    """
+
+    names = get_front_names(node)
+    return [i for i in names if i in ingroups]
+
+
 def remove_kink(node, curroot):
     """
     Smooth the kink created by pruning to prevent creating orphaned tips after pruning twice at the same node.
