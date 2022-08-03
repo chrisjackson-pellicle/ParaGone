@@ -80,8 +80,8 @@ def remove_a_tip(root, tip_node, tree_name=None, logger=None):
         node, root = remove_kink(node, root)
         return root
     else:
-        logger.warning(f'{"[WARNING]:":10} After removing tip {tip_node.label}, tree {tree_name} has less than four '
-                       f'tips left.')
+        logger.warning(f'{"[WARNING]:":10} After removing tip {tip_node.label}, tree {tree_name} has fewer than '
+                       f'four tips left.')
         return None
 
 
@@ -100,9 +100,11 @@ def trim(curroot, relative_cutoff, absolute_cutoff, tree_name=None, logger=None)
     if curroot.nchildren == 2:
         print('YEAH')
         temp, root = remove_kink(curroot, curroot)  # CJJ not used?
+
     going = True
     nodes_above_absolute_cutoff = defaultdict(list)
     nodes_above_relative_cutoff = defaultdict(list)
+
     while going and curroot and len(curroot.leaves()) > 3:
         going = False
         for node in curroot.iternodes(order=1):  # POSTORDER
@@ -110,11 +112,17 @@ def trim(curroot, relative_cutoff, absolute_cutoff, tree_name=None, logger=None)
             # Check if node is a tip, and remove it if branch length is greater than absolute cutoff:
             if node.nchildren == 0:  # at the tip
                 node.data['len'] = node.length
+                # print(f'node.length is; {node.length}')
+                # print(f'absolute_cutoff is: {absolute_cutoff}')
                 if node.length > absolute_cutoff:
                     logger.debug(f'Tip {node.label} is on a branch with length {node.length}. Absolute cutoff is '
                                  f'{absolute_cutoff}. This tip will be removed.')
                     nodes_above_absolute_cutoff[node.label].extend([node.length, absolute_cutoff])
-                    curroot = remove_a_tip(curroot, node)
+                    # print(nodes_above_absolute_cutoff)
+                    curroot = remove_a_tip(curroot,
+                                           node,
+                                           tree_name=tree_name,
+                                           logger=logger)
                     going = True
                     break
             elif node.nchildren == 1:  # kink in tree

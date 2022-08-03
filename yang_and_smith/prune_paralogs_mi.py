@@ -7,12 +7,8 @@
 Input: homolog trees
 Output: individual orthologs trees
 
-if a tip is longer than the LONG_TIP_CUTOFF
-and also long than 10 times its sister, cut it off
-This is to fix the leftover trees that frequently has some long tips in it
-
-If not to output 1-to-1 orthologs, for example, already analysed these
-set OUTPUT_1to1_ORTHOLOGS to False
+If a tip is longer than the LONG_TIP_CUTOFF and also longer than 10 times its sister, cut it off. This is to fix the
+leftover trees that frequently has some long tips in it.
 """
 
 import os
@@ -50,13 +46,10 @@ def write_mi_report(treefile_directory,
     trees_with_1to1_orthologs_count = 0
     trees_with_clades_with_fewer_than_min_ingroup_taxa = 0
     trees_with_clades_with_greater_than_min_ingroup_taxa = 0
-    trees_with_pruned_ortholog_nodes_above_trim_cutoffs = 0  # need two counts, one for relative and one for absolute?
-    trees_with_pruned_ortholog_nodes_below_trim_cutoffs = 0
+    trees_with_pruned_ortholog_nodes_above_trim_relative_cutoff = 0
+    trees_with_pruned_ortholog_nodes_above_trim_absolute_cutoff = 0
     trees_with_pruned_ortholog_above_min_taxa = 0
     trees_with_pruned_ortholog_below_min_taxa = 0
-
-    # pruned_orthologs_absolute_and_relative_cutoffs[tree] = \
-    #     (nodes_above_absolute_cutoff, nodes_above_relative_cutoff)
 
     all_tree_stats_for_report = []
 
@@ -87,7 +80,6 @@ def write_mi_report(treefile_directory,
 
         try:
             check = dictionaries['clades_with_fewer_than_min_taxa']
-            # print(check)
             if len(check) != 0:
                 trees_with_clades_with_fewer_than_min_ingroup_taxa += 1
                 tree_stats.append(len(check))
@@ -98,7 +90,6 @@ def write_mi_report(treefile_directory,
 
         try:
             check = dictionaries['clades_with_greater_than_min_taxa']
-            # print(check)
             if len(check) != 0:
                 trees_with_clades_with_greater_than_min_ingroup_taxa += 1
                 tree_stats.append(len(check))
@@ -108,90 +99,100 @@ def write_mi_report(treefile_directory,
             tree_stats.append('0')
 
         try:
-            check = dictionaries['pruned_ortholog_nodes_above_trim_cutoffs']
-            print(check)
-            trees_with_pruned_ortholog_nodes_above_trim_cutoffs += 1
-            tree_stats.append('Y')
+            check = dictionaries['pruned_ortholog_nodes_above_trim_relative_cutoff']
+            tips_trimmed = False
+            for ortho, tip_dict in check.items():
+                if len(tip_dict) != 0:
+                    tips_trimmed = True
+                    break
+
+            if tips_trimmed:
+                print(check)
+                trees_with_pruned_ortholog_nodes_above_trim_relative_cutoff += 1
+                ortho_suffix = 1
+                ortho_stats = []
+                for ortho, tip_dict in check.items():
+                    ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
+                    ortho_suffix += 1
+                tree_stats.append(' '.join(ortho_stats).rstrip(';'))
+
+            else:
+                tree_stats.append('0')
         except KeyError:
-            raise
-            tree_stats.append('N')
+            tree_stats.append('0')
 
+        try:
+            check = dictionaries['pruned_ortholog_nodes_above_trim_absolute_cutoff']
+            tips_trimmed = False
+            for ortho, tip_dict in check.items():
+                if len(tip_dict) != 0:
+                    tips_trimmed = True
+                    break
 
-        # try:
-        #     check = dictionaries['clades_with_fewer_than_min_taxa']
-        #     assert len(check) > 0
-        #     trees_with_clades_with_fewer_than_min_ingroup_taxa += 1
-        #     tree_stats.append(len(check))
-        #     print(check)
-        # except AssertionError:
-        #     tree_stats.append('0')
+            if tips_trimmed:
+                trees_with_pruned_ortholog_nodes_above_trim_absolute_cutoff += 1
+                ortho_suffix = 1
+                ortho_stats = []
+                for ortho, tip_dict in check.items():
+                    ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
+                    ortho_suffix += 1
+                tree_stats.append(' '.join(ortho_stats).rstrip(';'))
 
+            else:
+                tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('0')
 
-    #     try:
-    #         check = dictionaries['duplicate_taxa_in_outgroup']
-    #         tree_with_duplicate_taxa_in_outgroup_count += 1
-    #         tree_stats.append('Y')
-    #     except KeyError:
-    #         tree_stats.append('N')
-    #
-    #     try:
-    #         check = dictionaries['monophyletic_outgroups']
-    #         trees_with_monophyletic_outgroups_count += 1
-    #         tree_stats.append('Y')
-    #     except KeyError:
-    #         tree_stats.append('N')
-    #
-    #     try:
-    #         check = dictionaries['non_monophyletic_outgroups']
-    #         trees_with_non_monophyletic_outgroups_count += 1
-    #         tree_stats.append('Y')
-    #     except KeyError:
-    #         tree_stats.append('N')
-    #
-    #     try:
-    #         check = dictionaries['mo_output_file_above_minimum_taxa']
-    #         trees_with_mo_output_file_above_minimum_taxa_count += 1
-    #         tree_stats.append('Y')
-    #     except KeyError:
-    #         tree_stats.append('N')
-    #
-    #     try:
-    #         check = dictionaries['mo_output_file_below_minimum_taxa']
-    #         trees_with_mo_output_file_below_minimum_taxa_count += 1
-    #         tree_stats.append('Y')
-    #     except KeyError:
-    #         tree_stats.append('N')
-    #
-    #     all_tree_stats_for_report.append(tree_stats)
-    #
-    # with open(report_filename, 'w') as report_handle:
-    #     report_handle.write(f'\t'
-    #                         f'Unrecognised taxa (tree skipped)\t'
-    #                         f'< than minimum ingroup taxa (tree skipped)\t'
-    #                         f'1-to-1 orthologs\t'
-    #                         f'No outgroup taxa\t'
-    #                         f'Duplicate taxa in the outgroup\t'
-    #                         f'Pputative paralogs and monophyletic outgroup\t'
-    #                         f'Putative paralogs and non-monophyletic outgroup\t'
-    #                         f'MO pruned trees > than minimum taxa\t'
-    #                         f'MO pruned trees < than minimum taxa'
-    #                         f'\n')
-    #
-    #     report_handle.write(f'Number of trees\t'
-    #                         f'{trees_with_unrecognised_names_count}\t'
-    #                         f'{trees_with_fewer_than_min_ingroup_taxa_count}\t'
-    #                         f'{trees_with_1to1_orthologs_count}\t'
-    #                         f'{trees_with_no_outgroup_taxa_count}\t'
-    #                         f'{tree_with_duplicate_taxa_in_outgroup_count}\t'
-    #                         f'{trees_with_monophyletic_outgroups_count}\t'
-    #                         f'{trees_with_non_monophyletic_outgroups_count}\t'
-    #                         f'{trees_with_mo_output_file_above_minimum_taxa_count}\t'
-    #                         f'{trees_with_mo_output_file_below_minimum_taxa_count}'
-    #                         f'\n')
-    #
-    #     for stats in all_tree_stats_for_report:
-    #         stats_joined = '\t'.join([str(stat) for stat in stats])
-    #         report_handle.write(f'{stats_joined}\n')
+        try:
+            check = dictionaries['pruned_ortholog_above_min_taxa']
+            assert len(check) > 0
+            trees_with_pruned_ortholog_above_min_taxa += 1
+            tree_stats.append(len(check))
+        except AssertionError:
+            tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('0')
+
+        try:
+            check = dictionaries['pruned_ortholog_below_min_taxa']
+            assert len(check) > 0
+            trees_with_pruned_ortholog_below_min_taxa += 1
+            tree_stats.append(len(check))
+        except AssertionError:
+            tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('0')
+
+        all_tree_stats_for_report.append(tree_stats)
+
+    with open(report_filename, 'w') as report_handle:
+        report_handle.write(f'\t'
+                            f'Unrecognised taxa (tree skipped)\t'
+                            f'< than minimum ingroup taxa (tree skipped)\t'
+                            f'1-to-1 orthologs\t'
+                            f'Ortholog clades < minimum ingroup taxa\t'
+                            f'Ortholog clades > minimum ingroup taxa\t'
+                            f'Pruned orthologs with tips > relative cutoff\t'
+                            f'Pruned orthologs with tips > absolute cutoff\t'
+                            f'Pruned orthologs > than minimum taxa\t'
+                            f'Pruned orthologs < than minimum taxa'
+                            f'\n')
+
+        report_handle.write(f'Number of trees\t'
+                            f'{trees_with_unrecognised_names_count}\t'
+                            f'{trees_with_fewer_than_min_ingroup_taxa_count}\t'
+                            f'{trees_with_1to1_orthologs_count}\t'
+                            f'{trees_with_clades_with_fewer_than_min_ingroup_taxa}\t'
+                            f'{trees_with_clades_with_greater_than_min_ingroup_taxa}\t'
+                            f'{trees_with_pruned_ortholog_nodes_above_trim_relative_cutoff}\t'
+                            f'{trees_with_pruned_ortholog_nodes_above_trim_absolute_cutoff}\t'
+                            f'{trees_with_pruned_ortholog_above_min_taxa}\t'
+                            f'{trees_with_pruned_ortholog_below_min_taxa}'
+                            f'\n')
+
+        for stats in all_tree_stats_for_report:
+            stats_joined = '\t'.join([str(stat) for stat in stats])
+            report_handle.write(f'{stats_joined}\n')
 
 
 def main(args):
@@ -308,30 +309,14 @@ def main(args):
                         # number of non-duplicated leaf names.
 
                 # We've now identified the node in the tree with the greatest number of non-repeating taxa in either
-                # the front or back clade, but this number include any outgroup sequences. We need to determine which
+                # the front or back clade, but this number includes any outgroup sequences. We need to determine which
                 # clade (front or back) and count ingroup taxa only:
-
-                # print(f'newick3.tostring(curroot) for {treefile_basename} is:\n{newick3.tostring(curroot)}')
-                # print(highest_node)
-                # print(f'highest is: {highest}')
-                # print(f'tree_utils.get_front_score(highest_node) is: {tree_utils.get_front_score(highest_node)}')
-                # print(f'tree_utils.get_back_score(highest_node, curroot) is: '
-                #       f'{tree_utils.get_back_score(highest_node, curroot)}')
-
                 highest_front, highest_back = scores_dict[highest_node]
 
                 if highest_front > highest_back:
                     highest_ingroup_names_mi = tree_utils.get_front_ingroup_names(highest_node, ingroups)
                 else:
                     highest_ingroup_names_mi = tree_utils.get_back_ingroup_names(highest_node, curroot, ingroups)
-
-                # print(f'highest_ingroup_names_mi is: {highest_ingroup_names_mi}, length {len(highest_ingroup_names_mi)}')
-
-                # However, as the code is written below, we run the risk of failing a 'if len(
-                # highest_ingroup_names_mi) > args.minimum_taxa check for the current clade (i.e. if it's mainly
-                # outgroup sequences and so the len(highest_ingroup_names_mi) value is small) and breaking out of the
-                # while loop, even if there might be other clades remaining with fewer overall non-repeating taxa but a
-                # greater number (above args.minimum_taxa ) of ingroup sequences. What to do?
 
                 if highest >= args.minimum_taxa:  # prune
 
@@ -352,7 +337,6 @@ def main(args):
                         break
 
                     elif len(tree_utils.get_front_ingroup_names(curroot, ingroups)) < args.minimum_taxa:
-                    # elif len(curroot.leaves()) < args.minimum_taxa:
                         clades_with_fewer_than_min_taxa.append(newick3.tostring(curroot))
                         going = False
                         break
@@ -370,10 +354,10 @@ def main(args):
             if len(pruned_clades) > 0:
                 logger.info(f'{"[INFO]:":10} {len(pruned_clades)} pruned clades recovered for tree {treefile_basename}')
 
-                # tree_stats_collated[treefile_basename]['trees_with_pruned_clades'] = pruned_clades
                 count = 1
 
-                pruned_orthologs_absolute_and_relative_cutoffs = {}
+                pruned_orthologs_relative_cutoffs = {}
+                pruned_orthologs_absolute_cutoffs = {}
                 pruned_orthologs_above_minimum_taxa = []
                 pruned_orthologs_below_minimum_taxa = []
 
@@ -389,14 +373,13 @@ def main(args):
                                             tree_name=treefile_basename,
                                             logger=logger)
 
-                    pruned_orthologs_absolute_and_relative_cutoffs[tree] = \
-                        (nodes_above_absolute_cutoff, nodes_above_relative_cutoff)
+                    pruned_orthologs_relative_cutoffs[tree] = nodes_above_relative_cutoff
+                    pruned_orthologs_absolute_cutoffs[tree] = nodes_above_absolute_cutoff
 
                     # Write pruned ortholog trees if above minimum taxa:
                     if tree:
                         ingroup_names_mi = tree_utils.get_front_ingroup_names(tree, ingroups)
                         logger.debug(f'Ingroup taxa in ortho after MI pruning: {ingroup_names_mi}')
-                        # print(f'Ingroup taxa in ortho after MI pruning: {ingroup_names_mi}')
 
                         if len(ingroup_names_mi) >= args.minimum_taxa:
                             tree_output_filename = f'{output_file_id}.MIortho{str(count)}.tre'
@@ -415,8 +398,11 @@ def main(args):
                             pruned_orthologs_below_minimum_taxa.append(tree)
 
                 # Recover stats in dictionary for report:
-                tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_cutoffs'] = \
-                    pruned_orthologs_absolute_and_relative_cutoffs
+                tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_relative_cutoff'] = \
+                    pruned_orthologs_relative_cutoffs
+
+                tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_absolute_cutoff'] = \
+                    pruned_orthologs_absolute_cutoffs
 
                 tree_stats_collated[treefile_basename]['pruned_ortholog_above_min_taxa'] = \
                     pruned_orthologs_above_minimum_taxa
