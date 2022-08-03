@@ -219,7 +219,7 @@ def add_cut_deep_paralogs_parser(subparsers):
     parser_cut_deep_paralogs.add_argument('--minimum_number_taxa',
                                           type=int,
                                           default=4,
-                                          help='Minimum number of taxa in tree for tree to be reatined. Default is: %('
+                                          help='Minimum number of taxa in tree for tree to be retained. Default is: %('
                                                'default)s')
     parser_cut_deep_paralogs.add_argument('--output_folder',
                                           default='tree_files_trimmed_and_masked_and_cut',
@@ -439,3 +439,44 @@ def add_prune_paralogs_mi_parser(subparsers):
                                                'default)s')
 
     return parser_prune_paralogs_mi
+
+
+def add_strip_names_and_align_parser(subparsers):
+    """
+    Parser for strip_names_and_align
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_align_selected_and_tree = subparsers.add_parser('strip_names_and_align',
+                                                           help='XXX')
+    parser_align_selected_and_tree.add_argument('selected_alignment_directory',
+                                                type=str,
+                                                help='directory containing selected alignment files corresponding to '
+                                                     'pruned trees from one of MO, RT, MI algorithms.')
+    parser_align_selected_and_tree.add_argument('--pool',
+                                                type=int,
+                                                default=1,
+                                                help='Number of alignments to run concurrently. Default is: %('
+                                                     'default)s')
+    parser_align_selected_and_tree.add_argument('--threads',
+                                                type=int,
+                                                default=1,
+                                                help='Number of threads to use for each concurrent alignment. Default '
+                                                     'is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--no_stitched_contigs',
+                                                action='store_true',
+                                                default=False,
+                                                help='If specified, realign mafft alignments with clustal omega. '
+                                                     'Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--use_muscle',
+                                                action='store_true',
+                                                default=False,
+                                                help='If specified, use muscle rather than mafft for initial '
+                                                     'alignments. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--mafft_algorithm',
+                                                default='auto',
+                                                help='Algorithm to use for mafft alignments. Default is: %(default)s')
+
+    return parser_align_selected_and_tree

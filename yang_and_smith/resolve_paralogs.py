@@ -43,6 +43,7 @@ from yang_and_smith import align_selected_and_tree
 from yang_and_smith import prune_paralogs_mo
 from yang_and_smith import prune_paralogs_rt
 from yang_and_smith import prune_paralogs_mi
+from yang_and_smith import strip_names_and_align
 from yang_and_smith import newick3
 from yang_and_smith import phylo3
 from yang_and_smith import tree_utils
@@ -176,6 +177,17 @@ def prune_paralogs_mi_main(args):
     prune_paralogs_mi.main(args)
 
 
+def strip_names_and_align_main(args):
+    """
+    Calls the function main() from module strip_names_and_align
+
+    :param args: argparse namespace with subparser options for function strip_names_and_align.main()
+    :return: None: no return value specified; default is None
+    """
+
+    strip_names_and_align.main(args)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -207,6 +219,7 @@ def parse_arguments():
     parser_prune_paralogs_mo = paralogy_subparsers.add_prune_paralogs_mo_parser(subparsers)
     parser_prune_paralogs_rt = paralogy_subparsers.add_prune_paralogs_rt_parser(subparsers)
     parser_prune_paralogs_mi = paralogy_subparsers.add_prune_paralogs_mi_parser(subparsers)
+    parser_strip_names_and_align = paralogy_subparsers.add_strip_names_and_align_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
@@ -220,6 +233,7 @@ def parse_arguments():
     parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
     parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
     parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
+    parser_strip_names_and_align.set_defaults(func=strip_names_and_align_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()

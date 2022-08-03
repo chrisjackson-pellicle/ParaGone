@@ -47,22 +47,17 @@ def subsample_alignments(treefile_directory,
     for tree in glob.glob(f'{treefile_directory}/*{tree_suffix}'):
         read_tree = Phylo.read(tree, "newick")
         tree_terminals = read_tree.get_terminals()
-        # print(len(tree_terminals))
         tree_basename = os.path.basename(tree)
 
         # Derive the matching alignment file name depending on input tree file name:
         if from_cut_deep_paralogs:  # e.g. 4471_1.subtree
             alignment_prefix = '_'.join(tree_basename.split('_')[0:-1])
             output_alignment_prefix = tree_basename.split('.')[0]
-            # print(f'alignment_prefix is: {alignment_prefix}')
             matching_alignment = f'{alignment_directory}/{alignment_prefix}.paralogs.aln.hmm.trimmed.fasta'
-            # print(matching_alignment)
         else:  # e.g. 4691_1.1to1ortho.tre, 4471_1.inclade1.ortho1.tre, 4527_1.MIortho1.tre. etc
             alignment_prefix = tree_basename.split('.')[0]
             output_alignment_prefix = '.'.join(tree_basename.split('.')[0:-1])
-            # print(f'alignment_prefix is: {alignment_prefix}')
             matching_alignment = f'{alignment_directory}/{alignment_prefix}.outgroup_added.aln.trimmed.fasta'
-            # print(f'matching_alignment is: {matching_alignment}')
 
         # Read in original alignments and select seqs matching tree termini:
         alignment = AlignIO.read(matching_alignment, "fasta")
@@ -106,7 +101,6 @@ def batch_input_files(gene_fasta_directory,
             yield lst[i:i + n]
 
     batches = list(chunks(fasta_file_list, batch_size))
-    # logger.info(f'Batches are: {batches}')
     batch_num = 1
     for batch in batches:
         utils.createfolder(f'{output_directory}/batch_{batch_num}')
@@ -158,7 +152,7 @@ def main(args):
     if args.from_cut_deep_paralogs:
         logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/07_fasta_from_tree_cut')
     else:
-        logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/07_fasta_from_tree_final')
+        logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/12_fasta_from_tree_final')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

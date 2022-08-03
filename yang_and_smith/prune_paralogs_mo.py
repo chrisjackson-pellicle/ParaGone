@@ -303,7 +303,7 @@ def write_mo_report(treefile_directory,
                             f'1-to-1 orthologs\t'
                             f'No outgroup taxa\t'
                             f'Duplicate taxa in the outgroup\t'
-                            f'Pputative paralogs and monophyletic outgroup\t'
+                            f'Putative paralogs and monophyletic outgroup\t'
                             f'Putative paralogs and non-monophyletic outgroup\t'
                             f'MO pruned trees > than minimum taxa\t'
                             f'MO pruned trees < than minimum taxa'

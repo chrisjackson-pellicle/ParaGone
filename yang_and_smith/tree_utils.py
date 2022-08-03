@@ -108,14 +108,32 @@ def get_front_outgroup_names(node, outgroups):
 
 def get_front_ingroup_names(node, ingroups):
     """
-    Recovers taxon names in tree, and returns a list of the names that are also present in the ingroups list.
+    Recovers taxon names in front clade of given node in tree, and returns a list of the names that are also present in
+    the ingroups list.
 
     :param phylo3.Node node: tree object parsed by newick3.parse
     :param list ingroups: list of ingroup names recovered from in_and_outgroup_list file
-    :return list: a list of taxon names in the provided tree, if they are present in the ingroups list
+    :return list: a list of taxon names in the front clade of given node in tree, if they are present in the
+    ingroups list
     """
 
     names = get_front_names(node)
+    return [i for i in names if i in ingroups]
+
+
+def get_back_ingroup_names(node, root, ingroups):
+    """
+    Recovers taxon names in back clade of given node in tree, and returns a list of the names that are also present in
+    the ingroups list.
+
+    :param phylo3.Node node: tree object parsed by newick3.parse
+    :param phylo3.Node root: tree object parsed by newick3.parse
+    :param list ingroups: list of ingroup names recovered from in_and_outgroup_list file
+    :return list: a list of taxon names in the back clade of goiven node in tree, if they are present in the
+    ingroups list
+    """
+
+    names = get_back_names(node, root)
     return [i for i in names if i in ingroups]
 
 
@@ -318,6 +336,7 @@ def get_front_score(node):
     """
 
     front_labels = get_front_labels(node)
+    # print(f'front_labels: {front_labels}')
     num_labels = len(front_labels)
     num_taxa = len(set([get_name(i) for i in front_labels]))  # i.e. the number of non-duplicated leaf names.
     if num_taxa == num_labels:  # i.e. there are no paralogs
@@ -337,6 +356,7 @@ def get_back_score(node, root):
     """
 
     back_labels = get_back_labels(node, root)
+    # print(f'back_labels: {back_labels}')
     num_labels = len(back_labels)
     num_taxa = len(set([get_name(i) for i in back_labels]))
     if num_taxa == num_labels:
@@ -349,6 +369,8 @@ def prune(score_tuple,
           node,
           root,
           pruned_clades,
+          highest_ingroup_names_mi,
+          minimum_taxa,
           logger=None):
     """
     Prunes a clade containing the largest number of non-repeating taxa from a given tree.
@@ -364,7 +386,14 @@ def prune(score_tuple,
 
     # If more non-repeated taxa in front group of current node, prune front:
     if score_tuple[0] > score_tuple[1]:
-        pruned_clades.append(node)
+        # print('prune_front')
+        if len(highest_ingroup_names_mi) >= minimum_taxa:
+            pruned_clades.append(node)
+        else:
+            logger.info(f'{"[INFO]:":10} Ortho clade {newick3.tostring(node)} contains fewer ingroup taxa than '
+                        f'args.minimum_taxa value {minimum_taxa}. Skipping ortho clade.')
+            print(f'{"[INFO]:":10} Ortho clade {newick3.tostring(node)} contains fewer ingroup taxa than '
+                  f'args.minimum_taxa value {minimum_taxa}. Skipping ortho clade.')
         par = node.prune()  # CJJ: par is parent, presumably...
 
         # if par != None and len(root.leaves()) >= 3:
@@ -375,6 +404,7 @@ def prune(score_tuple,
 
     # If more non-repeated taxa in back group of current node and current node is not root, prune back:
     else:
+        # print('prune_back')
         if node != root:
             par = node.parent  # par--node<
             par.remove_child(node)
@@ -382,7 +412,16 @@ def prune(score_tuple,
                 par, root = remove_kink(par, root)
 
         node.prune()
-        pruned_clades.append(root)
+
+        if len(highest_ingroup_names_mi) >= minimum_taxa:
+            pruned_clades.append(root)
+        else:
+            logger.info(f'{"[INFO]:":10} Ortho clade {newick3.tostring(root)} contains fewer ingroup taxa than '
+                        f'args.minimum_taxa value {minimum_taxa}. Skipping ortho clade.')
+            print(f'{"[INFO]:":10} Ortho clade {newick3.tostring(root)} contains fewer ingroup taxa than '
+                  f'args.minimum_taxa value {minimum_taxa}. Skipping ortho clade.')
+
+        # pruned_clades.append(root)
 
         if len(node.leaves()) >= 3:
             node, newroot = remove_kink(node, node)
