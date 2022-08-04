@@ -347,8 +347,12 @@ def main(args):
                       args.treefile_directory,
                       logger=logger)
 
-    assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
-                                       f' {args.treefile_directory}')
+    try:
+        assert filecount > 0
+    except AssertionError:
+        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
+                     f' {args.treefile_directory}.')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Finished masking tree tips.')
 
