@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
 - Checks gene names in paralog files and the external outgroup file (if provided) for dots, and converts them to
   underscores.
-- Checks if there an outgroup (internal or external) for each gene paralog file.
+- Checks if there is an outgroup (internal or external) for each gene paralog file.
 - Takes a folder of fasta files, and splits them in to batch folders according to the number provided by parameter
   batch_size.
 """
@@ -23,7 +23,9 @@ import textwrap
 from yang_and_smith import utils
 
 
-def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None):
+def sanitise_gene_names(paralogs_folder,
+                        file_of_external_outgroups,
+                        logger=None):
     """
     Checks gene names in paralog files and the external outgroup file (if the latter is provided) for periods/dots,
     and converts them to underscores.
@@ -35,12 +37,22 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
     """
 
     # Create folder for input fasta files with sanitised names:
-    sanitised_input_folder = f'paralogs_with_sanitised_gene_names'
-
+    sanitised_input_folder = f'01_input_paralog_fasta_with_sanitised_filenames'
     utils.createfolder(sanitised_input_folder)
 
+    input_fasta_count = 0
+
     # Sanitise filenames in input paralogs folder:
-    for file in glob.glob(f'{paralogs_folder}/*'):
+    fill = textwrap.fill(f'{"[INFO]:":10} Sanitising input paralog fasta filenames. Any dots/periods (".") in the '
+                         f'gene name component of the filename will be replaced with underscores ("_"). Sanitised '
+                         f'files will be written to directory: "{sanitised_input_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
+
+    for file in glob.glob(f'{paralogs_folder}/*.fasta'):
+        input_fasta_count += 1
         basename = os.path.basename(file)
         if not re.search('.paralogs.fasta', basename):
             logger.error(f'{"[ERROR]:":10} File "{basename}" appears not to follow the expected naming convention '
@@ -50,6 +62,8 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
         gene_name_sanitised = re.sub('[.]', '_', gene_name)
         paralog_filename_sanitised = f'{gene_name_sanitised}.paralogs.fasta'
         shutil.copy(file, f'{sanitised_input_folder}/{paralog_filename_sanitised}')
+
+    logger.info(f'{"[INFO]:":10} Number of input fasta file: {input_fasta_count}')
 
     # Sanitise gene names in the external outgroup fasta file, if provided:
     if file_of_external_outgroups:
@@ -63,8 +77,19 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
 
         basename = os.path.basename(file_of_external_outgroups)
         filename, extension = os.path.splitext(basename)
+        sanitised_external_outgroups_filename = f'{filename}_sanitised{extension}'
+
+        fill = textwrap.fill(f'{"[INFO]:":10} Sanitising outgroup fasta file. Any dots/periods (".") in the gene name '
+                             f'component of the sequence fasta headers will be replaced with underscores ("_").  '
+                             f'Sanitised file will be written to: "{sanitised_external_outgroups_filename}"',
+                             width=90, subsequent_indent=' ' * 11,
+                             break_on_hyphens=False)
+
+        logger.info(f'{fill}')
+
         sanitised_seqs_to_write = []
         seqs = SeqIO.parse(file_of_external_outgroups, 'fasta')
+
         for seq in seqs:
             gene_name = seq.id.split('-')[-1]
             sample_name = seq.id.split('-')[0]
@@ -77,7 +102,7 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
             seq.description = seq_name_sanitised
 
             sanitised_seqs_to_write.append(seq)
-        sanitised_external_outgroups_filename = f'{filename}_sanitised{extension}'
+
         with open(sanitised_external_outgroups_filename, 'w') as sanitised_outgroups_files:
             SeqIO.write(sanitised_seqs_to_write, sanitised_outgroups_files, 'fasta')
 
@@ -86,8 +111,11 @@ def sanitise_gene_names(paralogs_folder, file_of_external_outgroups, logger=None
     return sanitised_input_folder, None
 
 
-def check_outgroup_coverage(folder_of_paralog_files, list_of_internal_outgroups, file_of_external_outgroups,
-                            list_of_external_outgroups=None, logger=None):
+def check_outgroup_coverage(folder_of_paralog_files,
+                            list_of_internal_outgroups,
+                            file_of_external_outgroups,
+                            list_of_external_outgroups=None,
+                            logger=None):
     """
     Check the number of input genes that have an outgroup sequence in either the list_of_internal_outgroups (i.e.
     corresponding to samples within the existing paralog fasta file), or within a file of external outgroup sequences
@@ -101,12 +129,14 @@ def check_outgroup_coverage(folder_of_paralog_files, list_of_internal_outgroups,
     :return:
     """
 
+    logger.info(f'{"[INFO]:":10} Checking outgroup coverage...')
+
     logger.debug(f'list_of_internal_outgroups is: {list_of_internal_outgroups}')
     logger.debug(f'list_of_external_outgroups to select from external outgroup file is: {list_of_external_outgroups}')
 
     # Read in paralog fasta files, and create a dictionary of gene_id:list_of_seq_names:
     paralog_dict = defaultdict(list)
-    for fasta in glob.glob(f'{folder_of_paralog_files}/*'):
+    for fasta in glob.glob(f'{folder_of_paralog_files}/*.fasta'):
         gene_id = os.path.basename(fasta).split('.')[0]  # get prefix e.g. '4471'
         seqs = SeqIO.parse(fasta, 'fasta')
         for seq in seqs:
@@ -161,6 +191,7 @@ def check_outgroup_coverage(folder_of_paralog_files, list_of_internal_outgroups,
 
     # Iterate over all genes from paralogs dict, and check for internal and/or external outgroups. Write a tsv file
     # of results:
+
     with open(f'outgroup_coverage_report.tsv', 'w') as tsv_report:
         number_of_paralog_files = len(paralog_dict)
         num_paralog_files_with_internal_outgroup = 0
@@ -179,29 +210,49 @@ def check_outgroup_coverage(folder_of_paralog_files, list_of_internal_outgroups,
                 num_paralog_files_with_both_internal_and_external_outgroup += 1
             tsv_report.write(f'{gene}\t{";".join(internal_outgroups)}\t{";".join(external_outgroups)}\n')
 
+        fill_1 = textwrap.fill(f'{"[INFO]:":10} Input paralog fasta files with >= one internal outgroup sequence:'
+                               f' {num_paralog_files_with_internal_outgroup} of {number_of_paralog_files}',
+                               width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+        fill_2 = textwrap.fill(f'{"[INFO]:":10} Input paralog fasta files with >= one external outgroup sequence:'
+                               f' {num_paralog_files_with_external_outgroup} of {number_of_paralog_files}',
+                               width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+        fill_3 = textwrap.fill(f'{"[INFO]:":10} Input paralog fasta files with >= one internal AND '
+                               f'external outgroup sequence:'
+                               f' {num_paralog_files_with_both_internal_and_external_outgroup} of'
+                               f' {number_of_paralog_files}',
+                               width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+        fill_4 = textwrap.fill(f'{"[INFO]:":10} An outgroup coverage report has been written to file '
+                               f'"outgroup_coverage_report.tsv".',
+                               width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
         # Log to stderr, to be captured by Nextflow process to e.g. print a warning
-        logger.info(f'{"[INFO]:":10} *** OUTGROUP COVERAGE STATISTICS ***')
-        logger.info(f'{"[INFO]:":10} Number of input paralog fasta files with at least one internal outgroup sequence: '
-                    f'{num_paralog_files_with_internal_outgroup} of {number_of_paralog_files}')
-        logger.info(f'{"[INFO]:":10} Number of input paralog fasta files with at least one external outgroup sequence: '
-                    f'{num_paralog_files_with_external_outgroup} of {number_of_paralog_files}')
-        logger.info(f'{"[INFO]:":10} Number of input paralog fasta files with at least one internal AND external '
-                    f'outgroup sequence: '
-                    f'{num_paralog_files_with_both_internal_and_external_outgroup} of {number_of_paralog_files}\n')
+        logger.info(fill_1)
+        logger.info(fill_2)
+        logger.info(fill_3)
+        logger.info(fill_4)
 
 
-def batch_input_files(gene_fasta_directory, batch_size=20):
+def batch_input_files(gene_fasta_directory,
+                      batch_size=20,
+                      logger=None):
     """
     Takes a folder of fasta files, and splits them in to batch folders according to the number provided by
     parameter batch_size.
 
     :param str gene_fasta_directory: path to input fasta files with sanitised filenames
     :param int batch_size: number of fasta files per batch; default is 20
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    output_directory_for_batch_folders = f'batch_paralog_folders'
+    output_directory_for_batch_folders = f'02_batch_sanitised_paralog_folders'
     utils.createfolder(output_directory_for_batch_folders)
+
+    fill = textwrap.fill(f'{"[INFO]:":10} Sanitised paralog fasta files will be split in to batches of size'
+                         f' {batch_size}. Batch folders will be written to directory: '
+                         f'"{output_directory_for_batch_folders}".',
+                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.info(fill)
 
     fasta_file_list = glob.glob(f'{gene_fasta_directory}/*.fasta')
 
@@ -221,7 +272,6 @@ def batch_input_files(gene_fasta_directory, batch_size=20):
 
 ########################################################################################################################
 ########################################################################################################################
-# Run script:
 
 def main(args):
     """
@@ -232,7 +282,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/01_check_and_batch')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/01_check_and_batch')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -262,4 +312,7 @@ def main(args):
 
     # Batch files into separate folders:
     batch_input_files(paralogs_folder_sanitised,
-                      batch_size=args.batch_size)
+                      batch_size=args.batch_size,
+                      logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished checking and batching input files.')

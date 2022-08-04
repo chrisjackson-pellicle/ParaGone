@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+
 """
 Contains argument subparsers
 """
-
-import textwrap
-import logging
-import sys
 
 
 def add_check_and_batch_parser(subparsers):

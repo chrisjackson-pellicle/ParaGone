@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au
 
 """
-Strip names ready for concatentation and aligns each fasta file using mafft/clustalo.
+Strip names ready for concatenation and aligns each fasta file using mafft/clustalo.
 
 """
 

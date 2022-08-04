@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 
-"""
-Adapted Yang and Smith paralogy resolution pipeline version 1.0.0 release candidate (July 2022)
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
-Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+"""
+Paralogy resolution pipeline version 1.0.0 release candidate (August 2022)
+
+Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
+
+Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
+
+For a list of available subcommand, run:
+
+    resolve_paralogs --help
 
 """
 
@@ -44,10 +52,6 @@ from yang_and_smith import prune_paralogs_mo
 from yang_and_smith import prune_paralogs_rt
 from yang_and_smith import prune_paralogs_mi
 from yang_and_smith import strip_names_and_align
-from yang_and_smith import newick3
-from yang_and_smith import phylo3
-from yang_and_smith import tree_utils
-from yang_and_smith import seq
 from yang_and_smith import utils
 
 
@@ -248,7 +252,7 @@ def main():
         sys.exit(1)
 
     # Create a directory for logs for each step of the pipeline:
-    utils.createfolder('logs_resolve_paralogs')
+    utils.createfolder('00_logs_resolve_paralogs')
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
