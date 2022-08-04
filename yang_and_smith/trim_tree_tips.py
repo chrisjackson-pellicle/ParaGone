@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Adapted from Yang and Smith by Chris Jackson chris.jackson@rbg.vic.gov.au
+# Adapted from Yang and Smith (2014) by Chris Jackson chris.jackson@rbg.vic.gov.au
+# https://github.com/chrisjackson-pellicle
 
 """
 Trim tips that sticking out (> relative_cutoff and >10 times longer than sister)
@@ -8,11 +9,8 @@ Also trim any tips that are > absolute_cutoff
 """
 
 import os
-import sys
 import textwrap
 import glob
-from collections import defaultdict
-import newick3
 import phylo3
 from tree_utils import *
 
@@ -41,7 +39,7 @@ def check_contrast_outlier(node0,
     """
 
     if node0.istip and above0_branch_length > relative_cutoff:
-        # CJJ I DON'T UNDERSTAND THIS - WHY COMPARE TO ZERO BRANCH LENGTH, IS THIS IF KINKS HAVE BEEN INTRODUCED?
+        # CJJ I DON'T UNDERSTAND THIS - WHY COMPARE TO ZERO BRANCH LENGTH: IS THIS IF KINKS HAVE BEEN INTRODUCED?
         if above1_branch_length == 0.0:
             return node0, f'Branch length {above0_branch_length} is above relative cut-off value of ' \
                           f'{relative_cutoff}, and sister branch length is {above1_branch_length}'
@@ -63,7 +61,10 @@ def check_contrast_outlier(node0,
     return None, None
 
 
-def remove_a_tip(root, tip_node, tree_name=None, logger=None):
+def remove_a_tip(root,
+                 tip_node,
+                 tree_name=None,
+                 logger=None):
     """
     Remove a given tip from a tree, and remove the 'kink' that this produces.
 
@@ -85,7 +86,11 @@ def remove_a_tip(root, tip_node, tree_name=None, logger=None):
         return None
 
 
-def trim(curroot, relative_cutoff, absolute_cutoff, tree_name=None, logger=None):
+def trim(curroot,
+         relative_cutoff,
+         absolute_cutoff,
+         tree_name=None,
+         logger=None):
     """
     Removes tree tips longer than specified cutoffs
 
@@ -185,7 +190,9 @@ def trim(curroot, relative_cutoff, absolute_cutoff, tree_name=None, logger=None)
     return curroot, nodes_above_absolute_cutoff, nodes_above_relative_cutoff
 
 
-def write_trim_report(collated_trim_report_dict, treefile_directory, logger=None):
+def write_trim_report(collated_trim_report_dict,
+                      treefile_directory,
+                      logger=None):
     """
     Writes a *.tsv report detailing which tips were trimmed from each tree, and why.
 
@@ -196,7 +203,7 @@ def write_trim_report(collated_trim_report_dict, treefile_directory, logger=None
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_trimmed_report.tsv'
+    report_filename = f'06_{basename.lstrip("05_")}_trimmed_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing trim tips report to file {report_filename}')
 
@@ -228,7 +235,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/04_trim_tree_tips')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/04_trim_tree_tips')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -250,7 +257,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'{treefile_directory_basename}_trimmed'
+    output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_trimmed'
     utils.createfolder(output_folder)
 
     collated_trim_report_dict = dict()
@@ -277,7 +284,14 @@ def main(args):
             with open(f'{output_folder}/{basename}.tt', 'w') as outfile_handle:
                 outfile_handle.write(newick3.tostring(trimmed_tree) + ";\n")
         else:
-            logger.warning(f'No trimmed tree produced for {basename}!')
+            logger.warning(f'{"[WARNING]:":10} No trimmed tree produced for {basename}!')
+
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished trimming tips of input trees. Trimmed trees have been written to '
+                         f'directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
 
     # Write a report of tips trimmed from each tree, and why:
     write_trim_report(collated_trim_report_dict,
@@ -286,3 +300,5 @@ def main(args):
 
     assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
                                        f' {args.treefile_directory}')
+
+    logger.info(f'{"[INFO]:":10} Finished trimming tree tips.')
