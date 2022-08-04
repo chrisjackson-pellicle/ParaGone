@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Adapted from Yang and Smith by Chris Jackson chris.jackson@rbg.vic.gov.au
+# Adapted from Yang and Smith (2014) by Chris Jackson chris.jackson@rbg.vic.gov.au
+# https://github.com/chrisjackson-pellicle
 
 """
 - Cut internal branches longer than a specified length, and output subtrees as .subtree files
@@ -128,7 +129,7 @@ def write_cut_report(collated_subtree_data,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_cut_report.tsv'
+    report_filename = f'08_{basename.lstrip("07_")}_cut_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing cut internal branches report to file {report_filename}')
 
@@ -139,6 +140,7 @@ def write_cut_report(collated_subtree_data,
                             f'Num subtrees retained after cutting\t'
                             f'Num subtrees discarded after cutting\t'
                             f'Number of subtrees discarded after cutting as < min taxa\n')
+
         for input_tree, dictionaries in collated_subtree_data.items():
 
             subtrees_dict = dictionaries['subtrees']
@@ -183,7 +185,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/06_cut_deep_paralogs')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/06_cut_deep_paralogs')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -200,7 +202,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'{treefile_directory_basename}_cut'
+    output_folder = f'08_{treefile_directory_basename.lstrip("07_")}_cut'
     utils.createfolder(output_folder)
     filecount = 0
 
@@ -281,10 +283,13 @@ def main(args):
                      args.treefile_directory,
                      logger=logger)
 
-    assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
-                                       f' {args.treefile_directory}')
+    try:
+        assert filecount > 0
+    except AssertionError:
+        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}')
+        sys.exit(1)
 
-
+    logger.info(f'{"[INFO]:":10} Finished cutting putative deep paralogs.')
 
 
 

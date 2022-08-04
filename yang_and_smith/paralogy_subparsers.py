@@ -150,9 +150,6 @@ def add_trim_tree_tips_parser(subparsers):
                                        type=float,
                                        default=0.4,
                                        help='Absolute cutoff for removing tree tips. Default is: %(default)s')
-    # parser_trim_tree_tips.add_argument('--output_folder',
-    #                                    default='tree_files_trimmed',
-    #                                    help='Directory name for output trees. Default is: %(default)s')
 
     return parser_trim_tree_tips
 
@@ -185,9 +182,6 @@ def add_mask_tree_tips_parser(subparsers):
                                        action='store_true',
                                        default=False,
                                        help='Remove paraphyletic tree tips. Default is: %(default)s')
-    parser_mask_tree_tips.add_argument('--output_folder',
-                                       default='tree_files_trimmed_and_masked',
-                                       help='Directory name for output trees. Default is: %(default)s')
 
     return parser_mask_tree_tips
 
@@ -219,9 +213,6 @@ def add_cut_deep_paralogs_parser(subparsers):
                                           default=4,
                                           help='Minimum number of taxa in tree for tree to be retained. Default is: %('
                                                'default)s')
-    parser_cut_deep_paralogs.add_argument('--output_folder',
-                                          default='tree_files_trimmed_and_masked_and_cut',
-                                          help='Directory name for output trees. Default is: %(default)s')
 
     return parser_cut_deep_paralogs
 
