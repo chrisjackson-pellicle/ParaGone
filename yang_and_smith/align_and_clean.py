@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-- Aligns the paralog fasta file using mafft, and if the option -no_supercontigs is provided, realigns using Clustal
-  Omega (which can do a better job when alignment contains contigs from different regions of the full-length
-  reference e.g. split between 5' and 3' halves).
+- Aligns the paralog fasta file using mafft or muscle, and if the option -no_striched_contigs is provided,
+  realigns using Clustal Omega (which can do a better job when alignment contains contigs from different regions of
+  the full-length reference e.g. split between 5' and 3' halves).
 - Trims alignments with Trimal.
 - Runs HmmCleaner.pl on the alignments.
 """
 
 import logging
 import sys
-import datetime
 import textwrap
 import os
 import socket
@@ -50,7 +49,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_alignments'
+    output_folder = f'03_{input_folder_basename}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -64,7 +63,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
         with open(fasta_file, 'r') as input_fasta_handle:
             seqs = list(SeqIO.parse(input_fasta_handle, 'fasta'))
             if len(seqs) < 4:
-                logger.info(f'{"[INFO]:":10} Skipping file {fasta_file} as it contains fewer than 4 sequences!')
+                logger.warning(f'{"[WARNING]:":10} Skipping file {fasta_file} as it contains fewer than 4 sequences!')
                 continue
             else:
                 target_genes.append(fasta_file)
@@ -241,16 +240,20 @@ def run_hmm_cleaner(input_folder, logger=None):
     """
 
     input_folder_basename = os.path.basename(input_folder)
-    output_folder = f'{input_folder_basename}_hmmcleaned'
+    output_folder = f'04_{input_folder_basename.lstrip("03_")}_hmmcleaned'
     utils.createfolder(output_folder)
 
-    logger.info(f'\n{"[INFO]:":10} Running HmmCleaner.pl on trimmed alignments...')
+    logger.info('')
+    fill = textwrap.fill(f'{"[INFO]:":10} Running HmmCleaner.pl on trimmed alignments. Cleaned alignments will be '
+                         f'written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.info(fill)
 
     for alignment in glob.glob(f'{input_folder}/*.aln.trimmed.fasta'):
         command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
 
         host = socket.gethostname()
-        if host == '192-168-1-102.tpgi.com.au' or host == 'RBGs-MacBook-Air.local':
+        if host == '192-168-1-102.tpgi.com.au' or host == 'RBGs-MacBook-Air.local' or host == '192-168-1-113.tpgi.com.au':
             command = f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/perl ' \
                       f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/HmmCleaner.pl {alignment}'
 
@@ -334,7 +337,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_clustal'
+    output_folder = f'03_{input_folder_basename}_clustal'
     utils.createfolder(output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -451,7 +454,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/02_align_and_clean')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/02_align_and_clean')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -497,4 +500,6 @@ def main(args):
             logger=logger)
 
         run_hmm_cleaner(clustal_alignment_output_folder, logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished aligning and cleaning input files.')
 
