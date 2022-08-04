@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Takes a trimmed, hmmcleaned alignment and produces a tree via FastTreeMP or IQTree
+Takes a trimmed, Hmmcleaned alignment, and produces a tree via FastTreeMP or IQTree
 """
 
 import logging
@@ -36,11 +36,17 @@ def fasttree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename.rstrip("alignments_hmmcleaned")}_tree_files'
+    output_folder = f'05_{input_folder_basename.lstrip("04_").rstrip("alignments_hmmcleaned")}_trees'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed.fasta'))]
+    fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using FastTreeMP. Tree files will be '
+                         f'written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
+
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -153,11 +159,17 @@ def iqtree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename.rstrip("alignments_hmmcleaned")}_tree_files'
+    output_folder = f'05_{input_folder_basename.lstrip("04_").rstrip("alignments_hmmcleaned")}_tree_files'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed.fasta'))]
+    fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using IQTREE. Tree files will be '
+                         f'written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
+
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -262,7 +274,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/03_alignment_to_tree')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/03_alignment_to_tree')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -293,5 +305,7 @@ def main(args):
                                               bootstraps=args.generate_bootstraps,
                                               logger=logger)
 
-        utils.resolve_polytomies(trees_folder, logger=logger)  # CJJ test this!
+        utils.resolve_polytomies(trees_folder, logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished generating trees from alignments.')
 

@@ -135,6 +135,8 @@ def resolve_polytomies(treefile_directory, logger=None):
     :return:
     """
 
+    logger.info(f'\n{"[INFO]:":10} Resolving any polytomies in trees...')
+
     for treefile in glob.glob(f'{treefile_directory}/*.treefile'):
         tree_basename = os.path.basename(treefile)
         logger.debug(f'Examining tree {tree_basename} for polytomies...')
