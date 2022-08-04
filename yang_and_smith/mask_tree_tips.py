@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-# Adapted from Yang and Smith by Chris Jackson chris.jackson@rbg.vic.gov.au
+# Adapted from Yang and Smith (2014) by Chris Jackson chris.jackson@rbg.vic.gov.au
+# https://github.com/chrisjackson-pellicle
 
 """
 Input is a directory of trees that end with ".tt". This can be changed.
 
-- Mask both mono- and paraphyletic (optional) tips that belong to the same taxon
-- Keeps the tip that has the most unambiguous characters in the QC'd alignment
+- Mask both mono- and paraphyletic (the latter optional) tips that belong to the same taxon
+- Keeps the tip that has the greatest number of unambiguous characters in the QC'd alignment
 """
 
 import os
@@ -35,12 +36,13 @@ def mask_monophyletic_tips(curroot,
     :param str tree_name: file name of the tree being examined
     :param logging.Logger logger: a logger object
     :return phylo3.Node/None,collections.defaultdict  curroot/None,pruned_monophyletic_tips_dict : pruned tree object of more than four tips,
-    else None, default dictionary (list) of removed tips and associate data
+    else None, default dictionary (list) of removed tips and associated data
     """
 
     going = True
 
     pruned_monophyletic_tips_dict = defaultdict(list)
+    trees_with_fewer_than_four_tips_dict = {}
 
     while going and len(curroot.leaves()) >= 4:
         going = False
@@ -73,12 +75,13 @@ def mask_monophyletic_tips(curroot,
                     else:
                         logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than four tips after removal of '
                                        f'monophyletic tips!')
-                        return None, pruned_monophyletic_tips_dict
+                        trees_with_fewer_than_four_tips_dict[tree_name] = curroot
+                        return None, pruned_monophyletic_tips_dict, trees_with_fewer_than_four_tips_dict
 
                     going = True
                     break
 
-    return curroot, pruned_monophyletic_tips_dict
+    return curroot, pruned_monophyletic_tips_dict, trees_with_fewer_than_four_tips_dict
 
 
 def mask_paraphyletic_tips(curroot,
@@ -99,6 +102,7 @@ def mask_paraphyletic_tips(curroot,
     going = True
 
     pruned_paraphyletic_tips_dict = defaultdict(list)
+    trees_with_fewer_than_four_tips_dict = {}
 
     while going and len(curroot.leaves()) >= 4:
         going = False
@@ -136,7 +140,8 @@ def mask_paraphyletic_tips(curroot,
                     else:
                         logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than four tips after removal of '
                                        f'paraphyletic tips!')
-                        return None, pruned_paraphyletic_tips_dict
+                        trees_with_fewer_than_four_tips_dict[tree_name] = curroot
+                        return None, pruned_paraphyletic_tips_dict, trees_with_fewer_than_four_tips_dict
 
                     going = True
                     break
@@ -144,7 +149,9 @@ def mask_paraphyletic_tips(curroot,
     return curroot, pruned_paraphyletic_tips_dict
 
 
-def write_mask_report(collated_mask_report_dict, treefile_directory, logger=None):
+def write_mask_report(collated_mask_report_dict,
+                      treefile_directory,
+                      logger=None):
     """
     Writes a *.tsv report detailing which tips were masked (removed) from each tree, and why.
 
@@ -156,45 +163,70 @@ def write_mask_report(collated_mask_report_dict, treefile_directory, logger=None
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_masked_report.tsv'
+    report_filename = f'07_{basename.lstrip("06_")}_masked_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing mask tips report to file {report_filename}')
 
+    all_tree_stats_for_report = []
+
+    for tree_name, dictionaries in collated_mask_report_dict.items():
+
+        tree_stats = [tree_name]
+
+        try:
+            check = dictionaries['monophyletic_tips']
+            assert len(check) != 0
+            tree_stats.append(len(check))  # This doesn't record actual unambiguous character counts
+            tips = [key for key in check.keys()]
+            tree_stats.append('; '.join(tips))
+        except AssertionError:
+            tree_stats.append('0')
+            tree_stats.append('N/A')
+
+        try:
+            check = dictionaries['paraphyletic_tips']
+            assert len(check) != 0
+            tree_stats.append(len(check))  # This doesn't record actual unambiguous character counts
+            tips = [key for key in check.keys()]
+            tree_stats.append('; '.join(tips))
+        except KeyError:
+            tree_stats.append('0')
+            tree_stats.append('N/A')
+        except AssertionError:
+            tree_stats.append('0')
+            tree_stats.append('N/A')
+
+        try:
+            check = dictionaries['less_than_four_taxa_after_masking_mono']
+            assert len(check) != 0
+            tree_stats.append('Y')
+        except AssertionError:
+            tree_stats.append('N')
+
+        try:
+            check = dictionaries['less_than_four_taxa_after_masking_para']
+            assert len(check) != 0
+            tree_stats.append('Y')
+        except KeyError:
+            tree_stats.append('N')
+        except AssertionError:
+            tree_stats.append('N')
+
+        all_tree_stats_for_report.append(tree_stats)
+
     with open(report_filename, 'w') as report_handle:
-        report_handle.write(f'Tree_name\tTips_removed\tTip_name\tReason_for_removal\tFrom_node_type\n')
-        for tree_name, dictionaries in collated_mask_report_dict.items():
-            monophyletic_dict = dictionaries['monophyletic_tips']
-            try:
-                paraphyletic_dict = dictionaries['paraphyletic_tips']
-            except KeyError:
-                logger.debug(f'No paraphyletic tips dictionary found in {dictionaries}')
-                paraphyletic_dict = None
+        report_handle.write(f'Tree name\t'
+                            f'Monophyletic tips removed ("masked")\t'
+                            f'Retained tip names\t'
+                            f'Paraphyletic tips removed ("masked")\t'
+                            f'Retained tip names\t'
+                            f'Masked trees < four taxa after masking mono\t'
+                            f'Masked trees < four taxa after masking para'
+                            f'\n')
 
-            if not monophyletic_dict and not paraphyletic_dict:
-                report_handle.write(f'{tree_name}\tN\tN/A\tN/A\tN/A\n')
-
-            for trimmed_tip, data in monophyletic_dict.items():
-                monopyletic_sister_retained,\
-                monopyletic_sister_retained_character_count,\
-                trimmed_tip_character_count \
-                    = data
-
-                report_handle.write(f'{tree_name}\tY\t{trimmed_tip}\tMonophyletic sister '
-                                    f'{monopyletic_sister_retained} unambiguous character count is'
-                                    f' {monopyletic_sister_retained_character_count}, whereas {trimmed_tip} '
-                                    f'unambiguous character count is {trimmed_tip_character_count}\tMonophyletic\n')
-
-            if paraphyletic_dict:
-                for trimmed_tip, data in paraphyletic_dict.items():
-                    parapyletic_sister_retained, \
-                    parapyletic_sister_retained_character_count, \
-                    trimmed_tip_character_count \
-                        = data
-
-                    report_handle.write(f'{tree_name}\tY\t{trimmed_tip}\tParaphyletic sister '
-                                        f'{parapyletic_sister_retained} unambiguous character count is'
-                                        f' {parapyletic_sister_retained_character_count}, whereas {trimmed_tip} '
-                                        f'unambiguous character count is {trimmed_tip_character_count}\tParaphyletic\n')
+        for stats in all_tree_stats_for_report:
+            stats_joined = '\t'.join([str(stat) for stat in stats])
+            report_handle.write(f'{stats_joined}\n')
 
 
 def main(args):
@@ -206,7 +238,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/05_mask_tree_tips')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/05_mask_tree_tips')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -223,7 +255,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'{treefile_directory_basename}_masked'
+    output_folder = f'07_{treefile_directory_basename.lstrip("06_")}_masked'
     utils.createfolder(output_folder)
 
     filecount = 0
@@ -241,7 +273,7 @@ def main(args):
         except:
             raise
 
-    collated_mask_report_dict = dict()
+    collated_mask_report_dict = defaultdict(lambda: defaultdict())
 
     for tree_file in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
         tree_file_basename = os.path.basename(tree_file)
@@ -264,12 +296,17 @@ def main(args):
 
         # Remove ('mask' in Yang and Smith terminology) all but one tip for monophyletic clades from same taxon name.
         # This is designed to filter alleles or close paralogs:
-        curroot, pruned_monophyletic_tips_dict = mask_monophyletic_tips(intree,
-                                                                        unamiguous_characters_dict,
-                                                                        tree_name=tree_file_basename,
-                                                                        logger=logger)
+        curroot, \
+        pruned_monophyletic_tips_dict, \
+        trees_with_fewer_than_four_tips_mono_dict = \
+            mask_monophyletic_tips(intree,
+                                   unamiguous_characters_dict,
+                                   tree_name=tree_file_basename,
+                                   logger=logger)
 
-        collated_mask_report_dict[tree_file_basename] = {'monophyletic_tips': pruned_monophyletic_tips_dict}
+        collated_mask_report_dict[tree_file_basename]['monophyletic_tips'] = pruned_monophyletic_tips_dict
+        collated_mask_report_dict[tree_file_basename]['less_than_four_taxa_after_masking_mono'] = \
+            trees_with_fewer_than_four_tips_mono_dict
 
         if not curroot:
             logger.warning(f'No masked tree produced for {tree_file_basename}!')
@@ -278,12 +315,16 @@ def main(args):
         # Optionally, remove ('mask' in Yang and Smith terminology) all but one tip for paraphyletic clades
         # from same taxon name:
         if args.remove_paraphyletic_tips:
-            curroot, pruned_paraphyletic_tips_dict = mask_paraphyletic_tips(curroot,
-                                                                            unamiguous_characters_dict,
-                                                                            tree_name=tree_file_basename,
-                                                                            logger=logger)
+            curroot, \
+            pruned_paraphyletic_tips_dict, trees_with_fewer_than_four_tips_para_dict\
+                = mask_paraphyletic_tips(curroot,
+                                         unamiguous_characters_dict,
+                                         tree_name=tree_file_basename,
+                                         logger=logger)
 
             collated_mask_report_dict[tree_file_basename]['paraphyletic_tips'] = pruned_paraphyletic_tips_dict
+            collated_mask_report_dict[tree_file_basename]['less_than_four_taxa_after_masking_para'] = \
+                trees_with_fewer_than_four_tips_para_dict
 
         if not curroot:
             logger.warning(f'No masked tree produced for {tree_file_basename}!')
@@ -294,6 +335,13 @@ def main(args):
         with open(tree_to_write, "w") as tree_outfile:
             tree_outfile.write(newick3.tostring(curroot) + ";\n")
 
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished masking tips of input trees. Masked trees have been written to '
+                         f'directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
+
     # Write a report of tips trimmed from each tree, and why:
     write_mask_report(collated_mask_report_dict,
                       args.treefile_directory,
@@ -302,4 +350,5 @@ def main(args):
     assert filecount > 0, logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
                                        f' {args.treefile_directory}')
 
+    logger.info(f'{"[INFO]:":10} Finished masking tree tips.')
 

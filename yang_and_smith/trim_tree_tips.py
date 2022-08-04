@@ -207,23 +207,59 @@ def write_trim_report(collated_trim_report_dict,
 
     logger.info(f'{"[INFO]:":10} Writing trim tips report to file {report_filename}')
 
+    all_tree_stats_for_report = []
+
+    for tree_name, dictionaries in collated_trim_report_dict.items():
+
+        tree_stats = [tree_name]
+
+        try:
+            check = dictionaries['absolute_cutoff']
+            assert len(check) != 0
+            tree_stats.append(len(check))  # This doesn't record actual lengths
+            tips = [key for key in check.keys()]
+            tree_stats.append('; '.join(tips))
+        except AssertionError:
+            tree_stats.append('0')
+            tree_stats.append('N/A')
+
+        try:
+            check = dictionaries['relative_cutoff']
+            assert len(check) != 0
+            tree_stats.append(len(check))  # This doesn't record actual lengths
+            tips = [key for key in check.keys()]
+            tree_stats.append('; '.join(tips))
+        except AssertionError:
+            tree_stats.append('0')
+            tree_stats.append('N/A')
+
+        try:
+            check = dictionaries['trimmed_trees_greater_than_four_taxa']
+            tree_stats.append('Y')
+        except KeyError:
+            tree_stats.append('N')
+
+        try:
+            check = dictionaries['trimmed_trees_fewer_than_four_taxa']
+            tree_stats.append('Y')
+        except KeyError:
+            tree_stats.append('N')
+
+        all_tree_stats_for_report.append(tree_stats)
+
     with open(report_filename, 'w') as report_handle:
-        report_handle.write(f'Tree_name\tTips_removed\tTip_name\tReason_for_removal\tFrom_node_type\n')
-        for tree_name, dictionaries in collated_trim_report_dict.items():
-            absolute_dict = dictionaries['absolute_cutoff']
-            relative_dict = dictionaries['relative_cutoff']
+        report_handle.write(f'Tree name\t'
+                            f'Tips removed > absolute cutoff\t'
+                            f'Tip names\t'
+                            f'Tips removed > relative cutoff\t'
+                            f'Tip names\t'
+                            f'Trimmed trees > four taxa\t'
+                            f'Trimmed trees < four taxa'
+                            f'\n')
 
-            if not absolute_dict and not relative_dict:
-                report_handle.write(f'{tree_name}\tN\tN/A\tN/A\tN/A\n')
-
-            for trimmed_tip, data in absolute_dict.items():
-                branch_length, absolute_cutoff = data
-                report_handle.write(f'{tree_name}\tY\t{trimmed_tip}\tBranch length {branch_length} above absolute '
-                                    f'cut-off value {absolute_cutoff}\tN/A\n')
-
-            for trimmed_tip, data in relative_dict.items():
-                reason, node_type = data
-                report_handle.write(f'{tree_name}\tY\t{trimmed_tip}\t{reason}\t{node_type}\n')
+        for stats in all_tree_stats_for_report:
+            stats_joined = '\t'.join([str(stat) for stat in stats])
+            report_handle.write(f'{stats_joined}\n')
 
 
 def main(args):
@@ -260,7 +296,7 @@ def main(args):
     output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_trimmed'
     utils.createfolder(output_folder)
 
-    collated_trim_report_dict = dict()
+    collated_trim_report_dict = defaultdict(lambda: defaultdict())
 
     for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
         basename = os.path.basename(treefile)
@@ -277,13 +313,15 @@ def main(args):
                  tree_name=basename,
                  logger=logger)
 
-        collated_trim_report_dict[basename] = {'absolute_cutoff': nodes_above_absolute_cutoff,
-                                               'relative_cutoff': nodes_above_relative_cutoff}
+        collated_trim_report_dict[basename]['absolute_cutoff'] = nodes_above_absolute_cutoff
+        collated_trim_report_dict[basename]['relative_cutoff'] = nodes_above_relative_cutoff
 
         if trimmed_tree:
+            collated_trim_report_dict[basename]['trimmed_trees_greater_than_four_taxa'] = trimmed_tree
             with open(f'{output_folder}/{basename}.tt', 'w') as outfile_handle:
                 outfile_handle.write(newick3.tostring(trimmed_tree) + ";\n")
         else:
+            collated_trim_report_dict[basename]['trimmed_trees_fewer_than_four_taxa'] = trimmed_tree
             logger.warning(f'{"[WARNING]:":10} No trimmed tree produced for {basename}!')
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished trimming tips of input trees. Trimmed trees have been written to '
