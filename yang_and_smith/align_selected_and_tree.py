@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
 Input is fasta files that have undergone QC processes; this QC may have removed internal outgroups (if specified).
@@ -72,7 +72,7 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
         logger.warning(f'{"[WARNING]:":10} No external or internal outgroups supplied!')
 
     input_folder_basename = os.path.basename(selected_alignment_directory)
-    output_folder = f'{input_folder_basename}_selected_alignments_outgroups_added'
+    output_folder = f'11_{input_folder_basename}_selected_alignments_outgroups_added'
     utils.createfolder(output_folder)  # for the outgroups added fasta files
 
     # Read in original paralog fasta files, and create a dictionary of gene_id:list_of_seq_names for taxa in
@@ -256,7 +256,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_alignments'
+    output_folder = f'12_{input_folder_basename.lstrip("11_")}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -418,7 +418,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_clustal'
+    output_folder = f'12_{input_folder_basename}_clustal'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -538,7 +538,7 @@ def fasttree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename}_tree_files'
+    output_folder = f'13_{input_folder_basename.lstrip("12_")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
@@ -655,7 +655,7 @@ def iqtree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'{input_folder_basename}_tree_files'
+    output_folder = f'13_{input_folder_basename.lstrip("12_")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
@@ -764,7 +764,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/08_align_selected_and_tree')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/08_align_selected_and_tree')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -856,3 +856,4 @@ def main(args):
 
             utils.resolve_polytomies(trees_folder, logger=logger)
 
+    logger.info(f'{"[INFO]:":10} Finished aligning selected fasta sequences generating trees.')

@@ -1,7 +1,8 @@
 # Author: Alexander Schmidt-Lebuhn (modified by Chris Jackson July 2021 chris.jackson@rbg.vic.gov.au)
+# https://github.com/chrisjackson-pellicle
 
 """
-Takes a newick tree and a fasta aligmment as input. Returns a fasta alignment containing only the sequences
+Takes a newick tree and a fasta alignment as input. Returns a fasta alignment containing only the sequences
 corresponding to the tree tip names.
 """
 
@@ -38,7 +39,7 @@ def subsample_alignments(treefile_directory,
     logger.info(f'{"[INFO]:":10} Recovering alignment sequences corresponding to tree tip names...')
 
     treefile_directory_basename = os.path.basename(treefile_directory)
-    output_folder = f'{treefile_directory_basename}_alignments'
+    output_folder = f'09_{treefile_directory_basename.lstrip("08_")}_alignments'
     utils.createfolder(output_folder)
 
     # Capture number of sequences pre and post filtering in a dictionary for report:
@@ -93,6 +94,12 @@ def batch_input_files(gene_fasta_directory,
 
     utils.createfolder(output_directory)
 
+    fill = textwrap.fill(f'{"[INFO]:":10} Fasta files of selected sequences will be split in to batches of size'
+                         f' {batch_size}. Batch folders will be written to directory: '
+                         f'"{output_directory}".',
+                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.info(fill)
+
     fasta_file_list = glob.glob(f'{gene_fasta_directory}/*.fasta')
 
     def chunks(lst, n):
@@ -126,7 +133,7 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
     basename = os.path.basename(treefile_directory)
     if from_cut_deep_paralogs:
-        report_filename = f'{basename}_fasta_from_tree_report_cut.tsv'
+        report_filename = f'10_{basename.lstrip("08_")}_fasta_from_tree_report.tsv'
     else:
         report_filename = f'{basename}_fasta_from_tree_report_final.tsv'
 
@@ -150,9 +157,9 @@ def main(args):
 
     # Initialise logger:
     if args.from_cut_deep_paralogs:
-        logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/07_fasta_from_tree_cut')
+        logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/07_fasta_from_tree_cut')
     else:
-        logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/12_fasta_from_tree_final')
+        logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/12_fasta_from_tree_final')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -169,7 +176,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'{treefile_directory_basename}_alignments_batches'
+    output_folder = f'10_{treefile_directory_basename.lstrip("08_")}_alignments_batches'
     utils.createfolder(output_folder)
 
     # Recover alignments with sequences corresponding to tree tip names:
@@ -191,3 +198,5 @@ def main(args):
                                  args.treefile_directory,
                                  args.from_cut_deep_paralogs,
                                  logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished extracting fasta sequences corresponding to tree tips.')
