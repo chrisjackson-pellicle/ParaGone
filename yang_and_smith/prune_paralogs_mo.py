@@ -27,8 +27,6 @@ If not to output 1-to-1 orthologs, for example, already analysed these
 set OUTPUT_1to1_ORTHOLOGS to False
 """
 
-import phylo3
-import newick3
 import os
 import sys
 from collections import defaultdict
@@ -38,6 +36,9 @@ import textwrap
 
 from yang_and_smith import utils
 from yang_and_smith import tree_utils
+from yang_and_smith import phylo3
+from yang_and_smith import newick3
+
 
 
 def reroot_with_monophyletic_outgroups(root,
