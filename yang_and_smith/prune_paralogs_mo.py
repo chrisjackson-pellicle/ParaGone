@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# Author: Yang and Smith, modified by Alexander Schmidt-Lebuhn
+# Author: Yang and Smith (2014), modified by Alexander Schmidt-Lebuhn
 
-# Modified by: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Modified by: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
 Taxon duplication? --No--> output one-to-one orthologs
@@ -211,7 +211,7 @@ def write_mo_report(treefile_directory,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_MO_report.tsv'
+    report_filename = f'14_{basename.lstrip("13_")}_MO_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing Monophyletic Outgroup (MO) report to file {report_filename}')
 
@@ -335,7 +335,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/09_prune_paralogs_MO')
+    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/09_prune_paralogs_MO')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -351,7 +351,7 @@ def main(args):
     logger.debug(args)
 
     # Create output folder for pruned trees:
-    output_folder = f'{os.path.basename(args.treefile_directory)}_pruned_MO'
+    output_folder = f'14_{os.path.basename(args.treefile_directory).lstrip("13_")}_pruned_MO'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
@@ -485,3 +485,7 @@ def main(args):
     write_mo_report(args.treefile_directory,
                     tree_stats_collated,
                     logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Monophyletic Outgroups (MO) '
+                f'algorithm.')
+

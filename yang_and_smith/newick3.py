@@ -1,7 +1,9 @@
-import string, sys
+import string
+import sys
 from shlex import shlex
-from phylo3 import Node
 from io import StringIO
+
+from yang_and_smith.phylo3 import Node
 
 
 class Tokenizer(shlex):

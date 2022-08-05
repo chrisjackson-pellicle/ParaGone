@@ -415,3 +415,5 @@ def main(args):
                     tree_stats_collated,
                     logger=logger)
 
+    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Maximum Inclusion (MI) '
+                f'algorithm.')

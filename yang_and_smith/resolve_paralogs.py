@@ -252,7 +252,9 @@ def main():
         sys.exit(1)
 
     # Create a directory for logs for each step of the pipeline:
-    utils.createfolder('00_logs_resolve_paralogs')
+    utils.createfolder('00_logs_and_reports_resolve_paralogs')
+    utils.createfolder('00_logs_and_reports_resolve_paralogs/logs')
+    utils.createfolder('00_logs_and_reports_resolve_paralogs/reports')
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()

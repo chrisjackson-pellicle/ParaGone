@@ -335,3 +335,6 @@ def main(args):
     write_rt_report(args.treefile_directory,
                     tree_stats_collated,
                     logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the RooTed outgroups (RT) '
+                f'algorithm.')

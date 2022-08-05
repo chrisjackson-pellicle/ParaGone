@@ -13,11 +13,10 @@ import sys
 import textwrap
 from collections import defaultdict
 import glob
-import newick3
-import phylo3
 
-from tree_utils import get_front_names, remove_kink, get_front_labels
-
+from yang_and_smith import newick3
+from yang_and_smith import phylo3
+from yang_and_smith.tree_utils import get_front_names, remove_kink, get_front_labels
 from yang_and_smith import utils
 
 

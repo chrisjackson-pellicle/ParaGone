@@ -5,9 +5,10 @@
 
 from collections import defaultdict
 
-import phylo3
-import newick3
 import sys
+
+from yang_and_smith import phylo3
+from yang_and_smith import newick3
 
 
 def get_cluster_id(filename):

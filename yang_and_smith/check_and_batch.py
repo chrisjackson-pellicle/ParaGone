@@ -192,7 +192,9 @@ def check_outgroup_coverage(folder_of_paralog_files,
     # Iterate over all genes from paralogs dict, and check for internal and/or external outgroups. Write a tsv file
     # of results:
 
-    with open(f'outgroup_coverage_report.tsv', 'w') as tsv_report:
+    outgroup_coverage_report = f'00_logs_and_reports_resolve_paralogs/reports/outgroup_coverage_report.tsv'
+
+    with open(outgroup_coverage_report, 'w') as tsv_report:
         number_of_paralog_files = len(paralog_dict)
         num_paralog_files_with_internal_outgroup = 0
         num_paralog_files_with_external_outgroup = 0
@@ -222,7 +224,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
                                f' {number_of_paralog_files}',
                                width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
         fill_4 = textwrap.fill(f'{"[INFO]:":10} An outgroup coverage report has been written to file '
-                               f'"outgroup_coverage_report.tsv".',
+                               f'"{outgroup_coverage_report}".',
                                width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
 
         # Log to stderr, to be captured by Nextflow process to e.g. print a warning
@@ -282,7 +284,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/01_check_and_batch')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/01_check_and_batch')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

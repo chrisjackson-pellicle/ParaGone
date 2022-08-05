@@ -15,11 +15,11 @@ import sys
 import textwrap
 import glob
 from collections import defaultdict
-import newick3
-import phylo3
-from tree_utils import get_name, remove_kink
-from seq import read_fasta_file
 
+from yang_and_smith import newick3
+from yang_and_smith import phylo3
+from yang_and_smith.tree_utils import get_name, remove_kink
+from yang_and_smith.seq import read_fasta_file
 from yang_and_smith import utils
 
 

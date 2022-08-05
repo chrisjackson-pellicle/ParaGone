@@ -454,7 +454,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/02_align_and_clean')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/02_align_and_clean')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

@@ -11,9 +11,9 @@ Also trim any tips that are > absolute_cutoff
 import os
 import textwrap
 import glob
-import phylo3
-from tree_utils import *
 
+from yang_and_smith import phylo3
+from yang_and_smith.tree_utils import *
 from yang_and_smith import utils
 
 
