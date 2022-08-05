@@ -110,9 +110,9 @@ def batch_input_files(gene_fasta_directory,
     batches = list(chunks(fasta_file_list, batch_size))
     batch_num = 1
     for batch in batches:
-        utils.createfolder(f'{output_directory}/batch_{batch_num}')
+        utils.createfolder(f'{output_directory}/selected_batch_{batch_num}')
         for fasta_file in batch:
-            shutil.copy(fasta_file, f'{output_directory}/batch_{batch_num}')
+            shutil.copy(fasta_file, f'{output_directory}/selected_batch_{batch_num}')
         batch_num += 1
 
 
@@ -133,7 +133,8 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
     basename = os.path.basename(treefile_directory)
     if from_cut_deep_paralogs:
-        report_filename = f'10_{basename.lstrip("08_")}_fasta_from_tree_report.tsv'
+        report_filename = f'00_logs_and_reports_resolve_paralogs/reports' \
+                          f'/{basename.lstrip("08_")}_fasta_from_tree_report.tsv'
     else:
         report_filename = f'{basename}_fasta_from_tree_report_final.tsv'
 
@@ -157,7 +158,8 @@ def main(args):
 
     # Initialise logger:
     if args.from_cut_deep_paralogs:
-        logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/07_fasta_from_tree_cut')
+        logger = utils.setup_logger(__name__,
+                                    '00_logs_and_reports_resolve_paralogs/logs/07_fasta_from_tree')
     else:
         logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/12_fasta_from_tree_final')
 

@@ -125,6 +125,32 @@ def add_alignment_to_tree_parser(subparsers):
     return parser_alignment_to_tree
 
 
+def add_collate_alignments_and_trees_parser(subparsers):
+    """
+    Parser for collate_alignments_and_trees
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_collate_alignments_and_trees = subparsers.add_parser(
+        'collate_alignments_and_trees',
+        help='Collates all HmmCleaned alignments into a single folder. Collates all corresponding trees into a '
+             'single folder')
+    # parser_collate_alignments_and_trees.add_argument('alignment_directory',
+    #                                                  type=str,
+    #                                                  help='directory containing fasta alignment files')
+    # parser_collate_alignments_and_trees.add_argument('treefile_directory',
+    #                                                  type=str,
+    #                                                  help='directory containing tree newick files')
+    parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
+                                                     type=str,
+                                                     default='.treefile',
+                                                     help='Suffix for newick tree files. Default is: %(default)s')
+
+    return parser_collate_alignments_and_trees
+
+
 def add_trim_tree_tips_parser(subparsers):
     """
     Parser for trim_tree_tips

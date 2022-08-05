@@ -43,6 +43,7 @@ from yang_and_smith import paralogy_subparsers
 from yang_and_smith import check_and_batch
 from yang_and_smith import align_and_clean
 from yang_and_smith import alignment_to_tree
+from yang_and_smith import collate_alignments_and_trees
 from yang_and_smith import trim_tree_tips
 from yang_and_smith import mask_tree_tips
 from yang_and_smith import cut_deep_paralogs
@@ -91,6 +92,17 @@ def alignment_to_tree_main(args):
     """
 
     alignment_to_tree.main(args)
+
+
+def collate_alignments_and_trees_main(args):
+    """
+    Calls the function main() from module collate_alignments_and_trees
+
+    :param args: argparse namespace with subparser options for function collate_alignments_and_trees.main()
+    :return: None: no return value specified; default is None
+    """
+
+    collate_alignments_and_trees.main(args)
 
 
 def trim_tree_tips_main(args):
@@ -215,6 +227,8 @@ def parse_arguments():
     parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
     parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
     parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)
+    parser_collate_alignments_and_trees = paralogy_subparsers.add_collate_alignments_and_trees_parser(subparsers)
+
     parser_trim_tree_tips = paralogy_subparsers.add_trim_tree_tips_parser(subparsers)
     parser_mask_tree_tips = paralogy_subparsers.add_mask_tree_tips_parser(subparsers)
     parser_cut_deep_paralogs = paralogy_subparsers.add_cut_deep_paralogs_parser(subparsers)
@@ -229,6 +243,7 @@ def parse_arguments():
     parser_check_and_batch.set_defaults(func=check_and_batch_main)
     parser_align_and_clean.set_defaults(func=align_and_clean_main)
     parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
+    parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
     parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
     parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
     parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
