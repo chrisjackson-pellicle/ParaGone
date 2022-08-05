@@ -274,7 +274,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/03_alignment_to_tree')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/03_alignment_to_tree')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

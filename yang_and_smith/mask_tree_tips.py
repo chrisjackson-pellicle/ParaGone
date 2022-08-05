@@ -163,7 +163,7 @@ def write_mask_report(collated_mask_report_dict,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'07_{basename.lstrip("06_")}_masked_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("06_")}_masked_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing mask tips report to file {report_filename}')
 
@@ -238,7 +238,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/05_mask_tree_tips')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/05_mask_tree_tips')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
