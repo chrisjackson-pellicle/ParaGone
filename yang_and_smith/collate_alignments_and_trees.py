@@ -24,7 +24,12 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/04_collate_alignments_and_trees')
+    if args.from_alignment_to_tree:
+        logger = utils.setup_logger(__name__,
+                                    '00_logs_and_reports_resolve_paralogs/logs/04_collate_alignments_and_trees')
+    elif args.from_align_selected_and_tree:
+        logger = utils.setup_logger(__name__,
+                                    '00_logs_and_reports_resolve_paralogs/logs/10_collate_alignments_and_trees')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -39,34 +44,66 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
-    # Create output folders:
-    output_alignment_directory = f'06_all_hmmcleaned_alignments'
-    utils.createfolder(output_alignment_directory)
-
-    output_treefile_directory = f'07_all_hmmcleaned_alignment_trees'
-    utils.createfolder(output_treefile_directory)
-
     directory_contents = os.listdir('.')
-    alignment_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
-                             directory.startswith('04_batch')]
-    treefile_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
-                            directory.startswith('05_batch')]
+
+    # Create output folders:
+    if args.from_alignment_to_tree:
+
+        output_alignment_directory = f'06_all_hmmcleaned_alignments'
+        utils.createfolder(output_alignment_directory)
+
+        output_treefile_directory = f'07_all_hmmcleaned_alignment_trees'
+        utils.createfolder(output_treefile_directory)
+
+        alignment_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
+                                 directory.startswith('04_batch')]
+
+        treefile_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
+                                directory.startswith('05_batch')]
+
+        for alignment_directory in alignment_directories:
+            for alignment_file in glob.glob(f'{alignment_directory}/*.aln.hmm.trimmed.fasta'):
+                shutil.copy(alignment_file, output_alignment_directory)
+
+        logger.info(f'{"[INFO]:":10} All HmmCleaned alignments have been copied to the directory: '
+                    f'"{output_alignment_directory}"')
+
+        for treefile_directory in treefile_directories:
+            for treefile in glob.glob(f'{treefile_directory}/*.treefile'):
+                shutil.copy(treefile, output_treefile_directory)
+
+        logger.info(f'{"[INFO]:":10} All trees from HmmCleaned alignments have been copied to the directory: '
+                    f'"{output_treefile_directory}"')
+
+    elif args.from_align_selected_and_tree:
+
+        output_alignment_directory = f'16_all_trimmed_masked_cut_selected_alignments'
+        utils.createfolder(output_alignment_directory)
+
+        output_treefile_directory = f'17_all_trimmed_masked_cut_selected_alignments_trees'
+        utils.createfolder(output_treefile_directory)
+
+        alignment_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
+                                 directory.startswith('14_selected_batch')]
+
+        treefile_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
+                                directory.startswith('15_selected_batch')]
+
+        for alignment_directory in alignment_directories:
+            for alignment_file in glob.glob(f'{alignment_directory}/*.aln.trimmed.fasta'):
+                shutil.copy(alignment_file, output_alignment_directory)
+
+        logger.info(f'{"[INFO]:":10} All trimmed/masked/cut selected alignments have been copied to the directory: '
+                    f'"{output_alignment_directory}"')
+
+        for treefile_directory in treefile_directories:
+            for treefile in glob.glob(f'{treefile_directory}/*.treefile'):
+                shutil.copy(treefile, output_treefile_directory)
+
+        logger.info(f'{"[INFO]:":10} All trees from trimmed/masked/cut selected alignments have been copied to the '
+                    f'directory: "{output_treefile_directory}"')
 
     logger.debug(f'alignment_directories are: {alignment_directories}')
     logger.debug(f'treefile_directories are {treefile_directories}')
 
-    for alignment_directory in alignment_directories:
-        for alignment_file in glob.glob(f'{alignment_directory}/*.aln.hmm.trimmed.fasta'):
-            shutil.copy(alignment_file, output_alignment_directory)
-
-    logger.info(f'{"[INFO]:":10} All HmmCleaned alignments have been copied to the directory: '
-                f'"{output_alignment_directory}"')
-
-    for treefile_directory in treefile_directories:
-        for treefile in glob.glob(f'{treefile_directory}/*.treefile'):
-            shutil.copy(treefile, output_treefile_directory)
-
-    logger.info(f'{"[INFO]:":10} All trees from HmmCleaned alignments have been copied to the directory: '
-                f'"{output_treefile_directory}"')
-
-    logger.info(f'{"[INFO]:":10} Finished collating cleaned alignments and corresponding trees.')
+    logger.info(f'{"[INFO]:":10} Finished collating alignments and corresponding trees.')

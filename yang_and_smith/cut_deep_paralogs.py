@@ -128,7 +128,7 @@ def write_cut_report(collated_subtree_data,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("07_")}_cut_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("09_")}_cut_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing cut internal branches report to file {report_filename}')
 
@@ -184,7 +184,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/06_cut_deep_paralogs')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/07_cut_deep_paralogs')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -201,7 +201,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'08_{treefile_directory_basename.lstrip("07_")}_cut'
+    output_folder = f'10_{treefile_directory_basename.lstrip("09_")}_cut'
     utils.createfolder(output_folder)
     filecount = 0
 

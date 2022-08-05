@@ -72,7 +72,7 @@ def add_outgroup_seqs(hmmcleaned_alignment_directory,
         logger.warning(f'{"[WARNING]:":10} No external or internal outgroups supplied!')
 
     input_folder_basename = os.path.basename(selected_alignment_directory)
-    output_folder = f'11_{input_folder_basename.lstrip("10_")}_selected_alignments_outgroups_added'
+    output_folder = f'13_{input_folder_basename.lstrip("12_")}_selected_alignments_outgroups_added'
     utils.createfolder(output_folder)  # for the outgroups added fasta files
 
     # Read in original paralog fasta files, and create a dictionary of gene_id:list_of_seq_names for taxa in
@@ -256,7 +256,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'12_{input_folder_basename.lstrip("11_")}_alignments'
+    output_folder = f'14_{input_folder_basename.lstrip("13_")}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -538,7 +538,7 @@ def fasttree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'13_{input_folder_basename.lstrip("12_")}_tree_files'
+    output_folder = f'15_{input_folder_basename.lstrip("14_")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
@@ -655,7 +655,7 @@ def iqtree_multiprocessing(alignments_folder,
     """
 
     input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'12_{input_folder_basename.lstrip("11_")}_tree_files'
+    output_folder = f'15_{input_folder_basename.lstrip("14_")}_tree_files'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
@@ -764,7 +764,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/08_align_selected_and_tree')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/09_align_selected_and_tree')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

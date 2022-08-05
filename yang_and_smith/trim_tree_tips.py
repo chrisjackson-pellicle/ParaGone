@@ -203,7 +203,7 @@ def write_trim_report(collated_trim_report_dict,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("05_")}_trimmed_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("07_")}_trimmed_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing trim tips report to file {report_filename}')
 
@@ -271,7 +271,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/04_trim_tree_tips')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/05_trim_tree_tips')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -293,7 +293,7 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_trimmed'
+    output_folder = f'08_{treefile_directory_basename.lstrip("07_")}_trimmed'
     utils.createfolder(output_folder)
 
     collated_trim_report_dict = defaultdict(lambda: defaultdict())
@@ -339,6 +339,8 @@ def main(args):
     try:
         assert filecount > 0
     except AssertionError:
-        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}')
+        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in '
+                     f'{args.treefile_directory}!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Finished trimming tree tips.')

@@ -137,12 +137,18 @@ def add_collate_alignments_and_trees_parser(subparsers):
         'collate_alignments_and_trees',
         help='Collates all HmmCleaned alignments into a single folder. Collates all corresponding trees into a '
              'single folder')
-    # parser_collate_alignments_and_trees.add_argument('alignment_directory',
-    #                                                  type=str,
-    #                                                  help='directory containing fasta alignment files')
-    # parser_collate_alignments_and_trees.add_argument('treefile_directory',
-    #                                                  type=str,
-    #                                                  help='directory containing tree newick files')
+    group_1 = parser_collate_alignments_and_trees.add_mutually_exclusive_group(required=True)
+    group_1.add_argument('--from_alignment_to_tree',
+                         action='store_true',
+                         dest='from_alignment_to_tree',
+                         default=False,
+                         help='If set, trees are from step "alignment_to_tree".')
+    group_1.add_argument('--from_align_selected_and_tree',
+                         action='store_true',
+                         dest='from_align_selected_and_tree',
+                         default=False,
+                         help='If set, trees are from step "align_selected_and_tree".')
+
     parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
                                                      type=str,
                                                      default='.treefile',
@@ -263,11 +269,18 @@ def add_fasta_from_tree_parser(subparsers):
                                         type=str,
                                         default='.subtree',
                                         help='Suffix for newick tree files. Default is: %(default)s')
-    parser_fasta_from_tree.add_argument('--from_cut_deep_paralogs',
-                                        action='store_true',
-                                        default=False,
-                                        help='If set, trees are from QC step "cut_deep_paralogs". Default is: %('
-                                             'default)s')
+    group_1 = parser_fasta_from_tree.add_mutually_exclusive_group(required=True)
+    group_1.add_argument('--from_cut_deep_paralogs',
+                         action='store_true',
+                         dest='from_cut_deep_paralogs',
+                         default=False,
+                         help='If set, trees are from QC step "cut_deep_paralogs".')
+    group_1.add_argument('--from_prune_paralogs',
+                         action='store_true',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, trees are from paralog pruning step "prune_paralogs_mo", "prune_paralogs_rt", '
+                              'or "prune_paralogs_mi".')
     parser_fasta_from_tree.add_argument('--batch_size',
                                         type=int,
                                         default=20,
