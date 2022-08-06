@@ -100,7 +100,7 @@ def write_rt_report(treefile_directory,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_RT_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_RT_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing RooTed outgroup (RT) report to file {report_filename}')
 
@@ -154,6 +154,8 @@ def write_rt_report(treefile_directory,
             tree_stats.append(len(check))
         except AssertionError:
             tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('N/A')
 
         try:
             check = dictionaries['inclades_below_min_taxa']
@@ -162,6 +164,8 @@ def write_rt_report(treefile_directory,
             tree_stats.append(len(check))
         except AssertionError:
             tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('N/A')
 
         try:
             check = dictionaries['inclade_to_ortho_above_min_taxa_dict']
@@ -173,6 +177,8 @@ def write_rt_report(treefile_directory,
             tree_stats.append(ortho_count)
         except AssertionError:
             tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('N/A')
 
         try:
             check = dictionaries['inclade_to_ortho_below_min_taxa_dict']
@@ -184,6 +190,8 @@ def write_rt_report(treefile_directory,
             tree_stats.append(ortho_count)
         except AssertionError:
             tree_stats.append('0')
+        except KeyError:
+            tree_stats.append('N/A')
 
         all_tree_stats_for_report.append(tree_stats)
 
@@ -224,7 +232,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/10_prune_paralogs_RT')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/12_prune_paralogs_RT')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -239,8 +247,19 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    file_list = []
+
+    if args.in_and_outgroup_list:
+        file_list.append(args.in_and_outgroup_list)
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Create output folder for pruned trees:
-    output_folder = f'{os.path.basename(args.treefile_directory)}_pruned_RT'
+    output_folder = f'19_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_RT'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
@@ -293,7 +312,7 @@ def main(args):
 
             # If no outgroup at all, but no putative paralogs, write unrooted tree to file:
             if len(outgroup_names) == 0 and len(names) == num_taxa:
-                outfile_filename = f'{output_folder}/{output_file_id}.unrooted-ortho.tre'
+                outfile_filename = f'{output_file_id}.unrooted-ortho.tre'
 
                 logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contains no outgroup taxa, but no putative '
                             f'paralogs detected. Writing tree to {outfile_filename}')

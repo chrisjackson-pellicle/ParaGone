@@ -40,7 +40,6 @@ from yang_and_smith import phylo3
 from yang_and_smith import newick3
 
 
-
 def reroot_with_monophyletic_outgroups(root,
                                        outgroups,
                                        logger=None):
@@ -212,7 +211,7 @@ def write_mo_report(treefile_directory,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'14_{basename.lstrip("13_")}_MO_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_MO_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing Monophyletic Outgroup (MO) report to file {report_filename}')
 
@@ -336,7 +335,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_resolve_paralogs/09_prune_paralogs_MO')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/11_prune_paralogs_MO')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -351,8 +350,19 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    file_list = []
+
+    if args.in_and_outgroup_list:
+        file_list.append(args.in_and_outgroup_list)
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Create output folder for pruned trees:
-    output_folder = f'14_{os.path.basename(args.treefile_directory).lstrip("13_")}_pruned_MO'
+    output_folder = f'18_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_MO'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:

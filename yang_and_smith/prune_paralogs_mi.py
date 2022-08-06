@@ -37,7 +37,7 @@ def write_mi_report(treefile_directory,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'{basename}_MI_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_MI_report.tsv'
 
     logger.info(f'{"[INFO]:":10} Writing Maximum Inclusion (MI) report to file {report_filename}')
 
@@ -204,7 +204,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/11_prune_paralogs_MI')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/13_prune_paralogs_MI')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -219,8 +219,19 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    file_list = []
+
+    if args.in_and_outgroup_list:
+        file_list.append(args.in_and_outgroup_list)
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Create output folder for pruned trees:
-    output_folder = f'{os.path.basename(args.treefile_directory)}_pruned_MI'
+    output_folder = f'20_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_MI'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
