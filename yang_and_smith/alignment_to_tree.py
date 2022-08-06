@@ -289,6 +289,14 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.alignment_directory: '.trimmed.fasta'}
+    file_list = []
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     if args.use_fasttree:
         trees_folder = fasttree_multiprocessing(args.alignment_directory,
                                                 pool=args.pool,

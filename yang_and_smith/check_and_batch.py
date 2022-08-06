@@ -299,6 +299,17 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.gene_fasta_directory: '.fasta'}
+    file_list = []
+
+    if args.external_outgroups_file:
+        file_list.append(args.external_outgroups_file)
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Check gene names in input paralog files, and the external outgroup file (if provided), for periods/dots,
     # and convert them to underscores:
     paralogs_folder_sanitised, external_outgroups_file_sanitised = sanitise_gene_names(args.gene_fasta_directory,

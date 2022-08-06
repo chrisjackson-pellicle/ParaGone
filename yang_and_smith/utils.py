@@ -15,6 +15,60 @@ import glob
 from ete3 import Tree
 
 
+def check_inputs(directory_suffix_dict,
+                 file_list,
+                 logger=None):
+    """
+    Checks that provided directories and files both exist and are not empty.
+
+    :param directory_suffix_dict:
+    :param file_list:
+    :param logging.Logger logger: a logger object
+    :return:
+    """
+
+    # Check that inpout directories exist, contains files with the expected suffix, and the files are not empty:
+    for directory, expected_file_suffix in directory_suffix_dict.items():
+        if not os.path.isdir(directory):
+            logger.error(f'{"[ERROR]:":10} Directory not found: {directory}')
+            sys.exit(1)
+
+        expected_files = glob.glob(f'{directory}/*{expected_file_suffix}')
+        if not expected_files:
+            logger.error(f'{"[ERROR]:":10} Directory "{directory}" contains no files with suffix:'
+                         f' {expected_file_suffix}')
+            sys.exit(1)
+
+        empty_files = []
+        for item in expected_files:
+            if not file_exists_and_not_empty(item):
+                empty_files.append(os.path.basename(item))
+
+        if empty_files:
+            joined = ', '.join(empty_files)
+            logger.error(f'{"[ERROR]:":10} The following file(s) in directory "{directory}" are empty: {joined}')
+            sys.exit(1)
+
+    # Check that any files provided exist, and are not empty:
+    missing_files = []
+    empty_files = []
+    for item in file_list:
+        if not os.path.isfile(item):
+            missing_files.append(item)
+        elif not file_exists_and_not_empty(item):
+            empty_files.append(item)
+
+    if missing_files:
+        joined = ', '.join(missing_files)
+        logger.error(f'{"[ERROR]:":10} The following file(s) do not exist: {joined}')
+        sys.exit(1)
+
+    if empty_files:
+        joined = ', '.join(empty_files)
+        logger.error(f'{"[ERROR]:":10} The following file(s) are empty: {joined}')
+        sys.exit(1)
+
+
 def setup_logger(name, log_file, console_level=logging.INFO, file_level=logging.DEBUG,
                  logger_object_level=logging.DEBUG):
     """

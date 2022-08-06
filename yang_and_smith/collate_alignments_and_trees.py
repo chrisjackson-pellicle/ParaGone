@@ -61,6 +61,28 @@ def main(args):
         treefile_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
                                 directory.startswith('05_batch')]
 
+        if not alignment_directories:
+            logger.error(f'{"[ERROR]:":10} No alignment directories with names beginning "04_batch" found!')
+            sys.exit(1)
+
+        if not treefile_directories:
+            logger.error(f'{"[ERROR]:":10} No tree file directories with names beginning "05_batch" found!')
+            sys.exit(1)
+
+        # Checking input directories and files:
+        directory_suffix_dict = {}
+        file_list = []
+        for alignment_directory in alignment_directories:
+            directory_suffix_dict[alignment_directory] = '.aln.hmm.trimmed.fasta'
+
+        for treefile_directory in treefile_directories:
+            directory_suffix_dict[treefile_directory] = '.treefile'
+
+        utils.check_inputs(directory_suffix_dict,
+                           file_list,
+                           logger=logger)
+
+        # Copy files to new directories:
         for alignment_directory in alignment_directories:
             for alignment_file in glob.glob(f'{alignment_directory}/*.aln.hmm.trimmed.fasta'):
                 shutil.copy(alignment_file, output_alignment_directory)
@@ -89,6 +111,28 @@ def main(args):
         treefile_directories = [directory for directory in directory_contents if os.path.isdir(directory) and
                                 directory.startswith('15_selected_batch')]
 
+        if not alignment_directories:
+            logger.error(f'{"[ERROR]:":10} No alignment directories with names beginning "04_batch" found!')
+            sys.exit(1)
+
+        if not treefile_directories:
+            logger.error(f'{"[ERROR]:":10} No tree file directories with names beginning "05_batch" found!')
+            sys.exit(1)
+
+        # Checking input directories and files:
+        directory_suffix_dict = {}
+        file_list = []
+        for alignment_directory in alignment_directories:
+            directory_suffix_dict[alignment_directory] = '.aln.trimmed.fasta'
+
+        for treefile_directory in treefile_directories:
+            directory_suffix_dict[treefile_directory] = '.treefile'
+
+        utils.check_inputs(directory_suffix_dict,
+                           file_list,
+                           logger=logger)
+
+        # Copy files to new directories:
         for alignment_directory in alignment_directories:
             for alignment_file in glob.glob(f'{alignment_directory}/*.aln.trimmed.fasta'):
                 shutil.copy(alignment_file, output_alignment_directory)

@@ -469,6 +469,14 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.gene_fasta_directory: '.fasta'}
+    file_list = []
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
