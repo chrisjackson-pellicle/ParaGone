@@ -286,6 +286,14 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    file_list = []
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     logger.info(f'{"[INFO]:":10} Relative cutoff value: {args.relative_cutoff}')
     logger.info(f'{"[INFO]:":10} Absolute cutoff value: {args.absolute_cutoff}')
 

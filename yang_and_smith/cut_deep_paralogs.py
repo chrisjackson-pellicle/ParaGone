@@ -199,6 +199,14 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    file_list = []
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Create output folder:
     treefile_directory_basename = os.path.basename(args.treefile_directory)
     output_folder = f'10_{treefile_directory_basename.lstrip("09_")}_cut'

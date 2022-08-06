@@ -779,6 +779,18 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.selected_alignment_directory: '.selected.fasta',
+                             args.hmmcleaned_alignment_directory: 'aln.hmm.trimmed.fasta'}
+    file_list = []
+
+    if args.external_outgroups_file:
+        file_list.append(args.external_outgroups_file)
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Add outgroup sequences, both internal (if removed by the tree QC steps) and external (if a fasta file of
     # external outgroup sequences is provided).
     outgroups_added_folder = add_outgroup_seqs(args.hmmcleaned_alignment_directory,

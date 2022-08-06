@@ -29,20 +29,27 @@ def check_inputs(directory_suffix_dict,
 
     # Check that inpout directories exist, contains files with the expected suffix, and the files are not empty:
     for directory, expected_file_suffix in directory_suffix_dict.items():
+        logger.debug(f'Checking directory {directory} for files with suffix {expected_file_suffix}')
         if not os.path.isdir(directory):
             logger.error(f'{"[ERROR]:":10} Directory not found: {directory}')
             sys.exit(1)
+        else:
+            logger.debug(f'Directory {directory} exists, proceeding...')
 
         expected_files = glob.glob(f'{directory}/*{expected_file_suffix}')
         if not expected_files:
             logger.error(f'{"[ERROR]:":10} Directory "{directory}" contains no files with suffix:'
                          f' {expected_file_suffix}')
             sys.exit(1)
+        else:
+            logger.debug(f'Expected_files are {expected_files}, proceeding...')
 
         empty_files = []
         for item in expected_files:
             if not file_exists_and_not_empty(item):
                 empty_files.append(os.path.basename(item))
+            else:
+                logger.debug(f'Expected file {item} is not empty, proceeding...')
 
         if empty_files:
             joined = ', '.join(empty_files)
@@ -55,8 +62,14 @@ def check_inputs(directory_suffix_dict,
     for item in file_list:
         if not os.path.isfile(item):
             missing_files.append(item)
-        elif not file_exists_and_not_empty(item):
+        else:
+            logger.debug(f'Expected file {item} exists, proceeding...')
+
+    for item in file_list:
+        if item not in missing_files and not file_exists_and_not_empty(item):
             empty_files.append(item)
+        else:
+            logger.debug(f'Expected file {item} is not empty, proceeding...')
 
     if missing_files:
         joined = ', '.join(missing_files)
