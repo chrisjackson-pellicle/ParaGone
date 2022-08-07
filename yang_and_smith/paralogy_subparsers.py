@@ -148,6 +148,21 @@ def add_collate_alignments_and_trees_parser(subparsers):
                          dest='from_align_selected_and_tree',
                          default=False,
                          help='If set, trees are from step "align_selected_and_tree".')
+    group_1.add_argument('--from_prune_paralogs_mo',
+                         action='store_const', const='mo',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
+    group_1.add_argument('--from_prune_paralogs_rt',
+                         action='store_const', const='rt',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step "prune_paralogs_rt".')
+    group_1.add_argument('--from_prune_paralogs_mi',
+                         action='store_const', const='mi',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
 
     parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
                                                      type=str,
@@ -275,12 +290,21 @@ def add_fasta_from_tree_parser(subparsers):
                          dest='from_cut_deep_paralogs',
                          default=False,
                          help='If set, trees are from QC step "cut_deep_paralogs".')
-    group_1.add_argument('--from_prune_paralogs',
-                         action='store_true',
+    group_1.add_argument('--from_prune_paralogs_mo',
+                         action='store_const', const='mo',
                          dest='from_prune_paralogs',
                          default=False,
-                         help='If set, trees are from paralog pruning step "prune_paralogs_mo", "prune_paralogs_rt", '
-                              'or "prune_paralogs_mi".')
+                         help='If set, trees are from paralog pruning step "prune_paralogs_mo".')
+    group_1.add_argument('--from_prune_paralogs_rt',
+                         action='store_const', const='rt',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, trees are from paralog pruning step ="prune_paralogs_rt".')
+    group_1.add_argument('--from_prune_paralogs_mi',
+                         action='store_const', const='mi',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, trees are from paralog pruning step "prune_paralogs_mi".')
     parser_fasta_from_tree.add_argument('--batch_size',
                                         type=int,
                                         default=20,
@@ -478,11 +502,28 @@ def add_strip_names_and_align_parser(subparsers):
     """
 
     parser_align_selected_and_tree = subparsers.add_parser('strip_names_and_align',
-                                                           help='XXX')
+                                                           help='Strip names of paralog designations (e.g. .main, .0, '
+                                                                '.1 etc), and performs a final alignment step')
     parser_align_selected_and_tree.add_argument('selected_alignment_directory',
                                                 type=str,
                                                 help='directory containing selected alignment files corresponding to '
                                                      'pruned trees from one of MO, RT, MI algorithms.')
+    group_1 = parser_align_selected_and_tree.add_mutually_exclusive_group(required=True)
+    group_1.add_argument('--from_prune_paralogs_mo',
+                         action='store_const', const='mo',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
+    group_1.add_argument('--from_prune_paralogs_rt',
+                         action='store_const', const='rt',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step ="prune_paralogs_rt".')
+    group_1.add_argument('--from_prune_paralogs_mi',
+                         action='store_const', const='mi',
+                         dest='from_prune_paralogs',
+                         default=False,
+                         help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
     parser_align_selected_and_tree.add_argument('--pool',
                                                 type=int,
                                                 default=1,

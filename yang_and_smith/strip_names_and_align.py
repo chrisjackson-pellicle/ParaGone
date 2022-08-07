@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-# Author: Chris Jackson chris.jackson@rbg.vic.gov.au
+# Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Strip names ready for concatenation and aligns each fasta file using mafft/clustalo.
-
+Strip sequence names, ready for concatenation, and aligns each fasta file using mafft/clustalo.
 """
 
 import sys
@@ -142,7 +141,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_alignments'
+    output_folder = f'24_{input_folder_basename.lstrip("_23")}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -318,7 +317,7 @@ def strip_names_for_concat(selected_alignment_directory):
     """
 
     input_folder_basename = os.path.basename(selected_alignment_directory)
-    output_folder = f'{input_folder_basename}_stripped_names'
+    output_folder = f'23_{input_folder_basename}_stripped_names'
     utils.createfolder(output_folder)
 
     for alignment in glob.glob(f'{selected_alignment_directory}/*.fasta'):
@@ -343,7 +342,7 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, 'logs_resolve_paralogs/13_strip_names_and_align')
+    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/15_strip_names_and_align')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -358,16 +357,24 @@ def main(args):
     logger.info(f'{fill}\n')
     logger.debug(args)
 
+    # Checking input directories and files:
+    directory_suffix_dict = {args.selected_alignment_directory: '.fasta'}
+    file_list = []
+
+    utils.check_inputs(directory_suffix_dict,
+                       file_list,
+                       logger=logger)
+
     # Create output folder for pruned trees:
     # output_folder = f'{os.path.basename(args.selected_alignment_directory)}_stripped_names'
     # utils.createfolder(output_folder)
 
-    output_folder = strip_names_for_concat(args.selected_alignment_directory)
+    stripped_names_output_folder = strip_names_for_concat(args.selected_alignment_directory)
 
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            args.selected_alignment_directory,
+            stripped_names_output_folder,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
@@ -378,7 +385,7 @@ def main(args):
     elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            args.selected_alignment_directory,
+            stripped_names_output_folder,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
@@ -391,3 +398,5 @@ def main(args):
             pool_threads=args.pool,
             clustalo_threads=args.threads,
             logger=logger)
+
+    logger.info(f'\n{"[INFO]:":10} Finished stripping fasta sequence names and final alignments.')
