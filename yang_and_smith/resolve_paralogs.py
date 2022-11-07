@@ -219,7 +219,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 1.0.0rc build 1',
+                         version='%(prog)s 1.0.0rc build 2',
                          help='Print the resolve_paralogs version number.')
 
     # Add subparsers:
