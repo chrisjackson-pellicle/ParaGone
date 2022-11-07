@@ -342,7 +342,10 @@ def main(args):
     """
 
     # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/15_strip_names_and_align')
+    # logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/15_strip_names_and_align')
+
+    logger = utils.setup_logger(__name__, f'00_logs_and_reports_resolve_paralogs/logs/15_strip_names_and_align'
+                                          f'_{args.from_prune_paralogs}')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):

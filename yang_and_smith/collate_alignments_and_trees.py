@@ -320,10 +320,10 @@ def main(args):
     #     logger.info(f'{"[INFO]:":10} All trees from trimmed/masked/cut selected alignments have been copied to the '
     #                 f'directory: "{output_treefile_directory}"')
     #
-    # elif args.from_prune_paralogs:
-    #     collate_pruned_alignments(args.from_prune_paralogs,
-    #                               directory_contents,
-    #                               logger=logger)
+    elif args.from_prune_paralogs:
+        collate_pruned_alignments(args.from_prune_paralogs,
+                                  directory_contents,
+                                  logger=logger)
 
 
     # logger.debug(f'alignment_directories are: {alignment_directories}')
