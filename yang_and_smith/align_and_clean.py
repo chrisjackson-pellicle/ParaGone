@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-- Aligns the paralog fasta file using mafft or muscle, and if the option -no_striched_contigs is provided,
+- Aligns the paralog fasta files using mafft or muscle, and if the option -no_stitched_contigs is provided,
   realigns using Clustal Omega (which can do a better job when alignment contains contigs from different regions of
   the full-length reference e.g. split between 5' and 3' halves).
 - Trims alignments with Trimal.
@@ -201,10 +201,12 @@ def mafft_or_muscle_align(fasta_file,
 
 def remove_r_prefix(alignment, logger=None):
     """
-    Takes a fasta alignment, removes any '_R_' prefix in fasta headers (inserted by mafft if a sequences was
-    reversed) and writes a new alignment to the same filename (i.e overwrites the original file).
+    Takes a fasta alignment, removes any '_R_' prefix in fasta headers (inserted by mafft if a sequence was
+    reversed) and writes a new alignment to the same filename (i.e overwrites the original file). Note that it is
+    expected that mafft might reverse some sequences for correct alignment, as the paralog fasta files output by
+    HybPiper can contain revcomp sequences.
 
-    :param str alignment: oath to untrimmed alignment fasta file
+    :param str alignment: path to untrimmed alignment fasta file
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -219,6 +221,7 @@ def remove_r_prefix(alignment, logger=None):
                 seq.id = seq.id.lstrip('_R_')
         with open(alignment, 'w') as new_alignment_handle:
             AlignIO.write(alignment_obj, new_alignment_handle, 'fasta')
+
     if seqs_renamed:
         sequence_names = ', '.join(seqs_renamed)
 

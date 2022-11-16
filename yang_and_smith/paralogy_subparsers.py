@@ -46,6 +46,12 @@ def add_check_and_batch_parser(subparsers):
                                         default=20,
                                         help='Number of fasta files for each batch of input paralog fasta files. '
                                              'Default is: %(default)s')
+    parser_check_and_batch.add_argument('--run_profiler',
+                                        action='store_true',
+                                        dest='run_profiler',
+                                        default=False,
+                                        help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                             'results')
 
     return parser_check_and_batch
 
@@ -86,6 +92,12 @@ def add_align_and_clean_parser(subparsers):
     parser_align_and_clean.add_argument('--mafft_algorithm',
                                         default='auto',
                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_align_and_clean.add_argument('--run_profiler',
+                                        action='store_true',
+                                        dest='run_profiler',
+                                        default=False,
+                                        help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                             'results')
 
     return parser_align_and_clean
 
@@ -121,6 +133,12 @@ def add_alignment_to_tree_parser(subparsers):
                                           action='store_true',
                                           default=False,
                                           help='Use FastTree instead of IQTREE. Default is: %(default)s')
+    parser_alignment_to_tree.add_argument('--run_profiler',
+                                          action='store_true',
+                                          dest='run_profiler',
+                                          default=False,
+                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                               'results')
 
     return parser_alignment_to_tree
 
@@ -168,6 +186,12 @@ def add_collate_alignments_and_trees_parser(subparsers):
                                                      type=str,
                                                      default='.treefile',
                                                      help='Suffix for newick tree files. Default is: %(default)s')
+    parser_collate_alignments_and_trees.add_argument('--run_profiler',
+                                                     action='store_true',
+                                                     dest='run_profiler',
+                                                     default=False,
+                                                     help='If supplied, run the subcommand using cProfile. Saves a '
+                                                          '*.csv file of results')
 
     return parser_collate_alignments_and_trees
 
@@ -197,6 +221,12 @@ def add_trim_tree_tips_parser(subparsers):
                                        type=float,
                                        default=0.4,
                                        help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+    parser_trim_tree_tips.add_argument('--run_profiler',
+                                       action='store_true',
+                                       dest='run_profiler',
+                                       default=False,
+                                       help='If supplied, run the subcommand using cProfile. Saves a '
+                                            '*.csv file of results')
 
     return parser_trim_tree_tips
 
@@ -229,6 +259,12 @@ def add_mask_tree_tips_parser(subparsers):
                                        action='store_true',
                                        default=False,
                                        help='Remove paraphyletic tree tips. Default is: %(default)s')
+    parser_mask_tree_tips.add_argument('--run_profiler',
+                                       action='store_true',
+                                       dest='run_profiler',
+                                       default=False,
+                                       help='If supplied, run the subcommand using cProfile. Saves a '
+                                            '*.csv file of results')
 
     return parser_mask_tree_tips
 
@@ -260,6 +296,12 @@ def add_cut_deep_paralogs_parser(subparsers):
                                           default=4,
                                           help='Minimum number of taxa in tree for tree to be retained. Default is: %('
                                                'default)s')
+    parser_cut_deep_paralogs.add_argument('--run_profiler',
+                                          action='store_true',
+                                          dest='run_profiler',
+                                          default=False,
+                                          help='If supplied, run the subcommand using cProfile. Saves a '
+                                               '*.csv file of results')
 
     return parser_cut_deep_paralogs
 
@@ -310,6 +352,12 @@ def add_fasta_from_tree_parser(subparsers):
                                         default=20,
                                         help='Number of fasta files in each batch, from input paralog fasta files. '
                                              'Default is: %(default)s')
+    parser_fasta_from_tree.add_argument('--run_profiler',
+                                        action='store_true',
+                                        dest='run_profiler',
+                                        default=False,
+                                        help='If supplied, run the subcommand using cProfile. Saves a '
+                                             '*.csv file of results')
 
     return parser_fasta_from_tree
 
@@ -384,6 +432,12 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 action='store_true',
                                                 default=False,
                                                 help='Use FastTree instead of IQTREE. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--run_profiler',
+                                                action='store_true',
+                                                dest='run_profiler',
+                                                default=False,
+                                                help='If supplied, run the subcommand using cProfile. Saves a '
+                                                     '*.csv file of results')
 
     return parser_align_selected_and_tree
 
@@ -418,6 +472,12 @@ def add_prune_paralogs_mo_parser(subparsers):
                                           default=False,
                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
                                                'default)s')
+    parser_prune_paralogs_mo.add_argument('--run_profiler',
+                                          action='store_true',
+                                          dest='run_profiler',
+                                          default=False,
+                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                               'results')
 
     return parser_prune_paralogs_mo
 
@@ -447,6 +507,12 @@ def add_prune_paralogs_rt_parser(subparsers):
                                           type=int,
                                           default=2,
                                           help='Minimum number of taxa required. Default is: %(default)s')
+    parser_prune_paralogs_rt.add_argument('--run_profiler',
+                                          action='store_true',
+                                          dest='run_profiler',
+                                          default=False,
+                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                               'results')
 
     return parser_prune_paralogs_rt
 
@@ -489,6 +555,12 @@ def add_prune_paralogs_mi_parser(subparsers):
                                           default=False,
                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
                                                'default)s')
+    parser_prune_paralogs_mi.add_argument('--run_profiler',
+                                          action='store_true',
+                                          dest='run_profiler',
+                                          default=False,
+                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                               'results')
 
     return parser_prune_paralogs_mi
 
@@ -547,5 +619,11 @@ def add_strip_names_and_align_parser(subparsers):
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
                                                 help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--run_profiler',
+                                                action='store_true',
+                                                dest='run_profiler',
+                                                default=False,
+                                                help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+                                                     'file of results')
 
     return parser_align_selected_and_tree

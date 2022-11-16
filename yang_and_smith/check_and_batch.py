@@ -3,11 +3,11 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-- Checks gene names in paralog files and the external outgroup file (if provided) for dots, and converts them to
+- Checks gene names in paralog files and the external outgroup file (if provided) for period/dots, and converts them to
   underscores.
-- Checks if there is an outgroup (internal or external) for each gene paralog file.
+- Checks if there is an outgroup (internal or external) for each gene paralog fasta file.
 - Takes a folder of fasta files, and splits them in to batch folders according to the number provided by parameter
-  batch_size.
+  --batch_size.
 """
 
 import logging
@@ -63,7 +63,7 @@ def sanitise_gene_names(paralogs_folder,
         paralog_filename_sanitised = f'{gene_name_sanitised}.paralogs.fasta'
         shutil.copy(file, f'{sanitised_input_folder}/{paralog_filename_sanitised}')
 
-    logger.info(f'{"[INFO]:":10} Number of input fasta file: {input_fasta_count}')
+    logger.info(f'{"[INFO]:":10} Number of input fasta files: {input_fasta_count}')
 
     # Sanitise gene names in the external outgroup fasta file, if provided:
     if file_of_external_outgroups:

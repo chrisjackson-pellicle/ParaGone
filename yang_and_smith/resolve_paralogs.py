@@ -3,13 +3,13 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Paralogy resolution pipeline version 1.0.0 release candidate (August 2022)
+Paralogy resolution pipeline version 1.0.0 release candidate (November 2022)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
 Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
-For a list of available subcommand, run:
+For a list of available subcommands, run:
 
     resolve_paralogs --help
 
@@ -17,6 +17,7 @@ For a list of available subcommand, run:
 
 import argparse
 import sys
+import cProfile
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'HybPiper requires Python 3.6 or higher.'
@@ -219,7 +220,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 1.0.0rc build 2',
+                         version='%(prog)s 1.0.1rc',
                          help='Print the resolve_paralogs version number.')
 
     # Add subparsers:
@@ -228,7 +229,6 @@ def parse_arguments():
     parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
     parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)
     parser_collate_alignments_and_trees = paralogy_subparsers.add_collate_alignments_and_trees_parser(subparsers)
-
     parser_trim_tree_tips = paralogy_subparsers.add_trim_tree_tips_parser(subparsers)
     parser_mask_tree_tips = paralogy_subparsers.add_mask_tree_tips_parser(subparsers)
     parser_cut_deep_paralogs = paralogy_subparsers.add_cut_deep_paralogs_parser(subparsers)
@@ -274,8 +274,18 @@ def main():
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
 
-    # Run the function associated with the subcommand:
-    args.func(args)
+    # Run the function associated with the subcommand, with or without cProfile:
+    if args.run_profiler:
+        profiler = cProfile.Profile()
+        profiler.enable()
+        args.func(args)
+        profiler.disable()
+        csv = utils.cprofile_to_csv(profiler)
+
+        with open(f'{sys.argv[1]}_cprofile.csv', 'w+') as cprofile_handle:
+            cprofile_handle.write(csv)
+    else:
+        args.func(args)
 
 
 ########################################################################################################################
@@ -283,13 +293,5 @@ def main():
 #######################################################################################################################
 if __name__ == '__main__':
     main()
-    # import pstats
-    # import cProfile
-    # profiler = cProfile.Profile()
-    # profiler.enable()
-    # main()
-    # profiler.disable()
-    # stats = pstats.Stats(profiler).sort_stats('cumtime')
-    # stats.print_stats()
 
 ################################################## END OF SCRIPT #######################################################
