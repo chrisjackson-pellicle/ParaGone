@@ -1,5 +1,7 @@
 # ParalogGrouper
 
+Documentation in progress...
+
 Current version: 1.0.1 (November 2022)
 
 ### Purpose
