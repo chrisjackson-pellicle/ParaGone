@@ -16,7 +16,7 @@ from concurrent.futures import wait
 import subprocess
 import textwrap
 
-from yang_and_smith import utils
+from paragone import utils
 
 
 def fasttree_multiprocessing(alignments_folder,
@@ -267,7 +267,7 @@ def iqtree(alignment_file,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

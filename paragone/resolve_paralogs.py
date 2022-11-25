@@ -11,7 +11,7 @@ Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjacks
 
 For a list of available subcommands, run:
 
-    resolve_paralogs --help
+    paragone --help
 
 """
 
@@ -37,24 +37,24 @@ except ImportError:
 if unsuccessful_imports:
     package_list = '\n'.join(unsuccessful_imports)
     sys.exit(f'The required Python packages are not found:\n\n{package_list}\n\nAre they installed for the Python '
-             f'installation used to run resolve_paralogs?')
+             f'installation used to run paragone?')
 
 # Import program modules:
-from yang_and_smith import paralogy_subparsers
-from yang_and_smith import check_and_batch
-from yang_and_smith import align_and_clean
-from yang_and_smith import alignment_to_tree
-from yang_and_smith import collate_alignments_and_trees
-from yang_and_smith import trim_tree_tips
-from yang_and_smith import mask_tree_tips
-from yang_and_smith import cut_deep_paralogs
-from yang_and_smith import fasta_from_tree
-from yang_and_smith import align_selected_and_tree
-from yang_and_smith import prune_paralogs_mo
-from yang_and_smith import prune_paralogs_rt
-from yang_and_smith import prune_paralogs_mi
-from yang_and_smith import strip_names_and_align
-from yang_and_smith import utils
+from paragone import paralogy_subparsers
+from paragone import check_and_batch
+from paragone import align_and_clean
+from paragone import alignment_to_tree
+from paragone import collate_alignments_and_trees
+from paragone import trim_tree_tips
+from paragone import mask_tree_tips
+from paragone import cut_deep_paralogs
+from paragone import fasta_from_tree
+from paragone import align_selected_and_tree
+from paragone import prune_paralogs_mo
+from paragone import prune_paralogs_rt
+from paragone import prune_paralogs_mi
+from paragone import strip_names_and_align
+from paragone import utils
 
 
 ########################################################################################################################
@@ -212,7 +212,7 @@ def parse_arguments():
     :return argparse.Namespace arguments: arguments for the given command/subcommand
     """
 
-    parser = argparse.ArgumentParser(prog='resolve_paralogs', description=__doc__,
+    parser = argparse.ArgumentParser(prog='paragone', description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter,
                                      epilog='To view parameters and help for a subcommand, use e.g. "check_and_batch '
                                             '--help"')
@@ -221,10 +221,10 @@ def parse_arguments():
                          dest='version',
                          action='version',
                          version='%(prog)s 1.0.1rc',
-                         help='Print the resolve_paralogs version number.')
+                         help='Print the paragone version number.')
 
     # Add subparsers:
-    subparsers = parser.add_subparsers(title='Subcommands for resolve_paralogs', description='Valid subcommands:')
+    subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
     parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
     parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
     parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)

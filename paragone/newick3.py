@@ -3,7 +3,7 @@ import sys
 from shlex import shlex
 from io import StringIO
 
-from yang_and_smith.phylo3 import Node
+from paragone.phylo3 import Node
 
 
 class Tokenizer(shlex):

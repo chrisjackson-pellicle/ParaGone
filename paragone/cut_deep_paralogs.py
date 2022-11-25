@@ -14,10 +14,10 @@ import textwrap
 from collections import defaultdict
 import glob
 
-from yang_and_smith import newick3
-from yang_and_smith import phylo3
-from yang_and_smith.tree_utils import get_front_names, remove_kink, get_front_labels
-from yang_and_smith import utils
+from paragone import newick3
+from paragone import phylo3
+from paragone.tree_utils import get_front_names, remove_kink, get_front_labels
+from paragone import utils
 
 
 def count_taxa(node):
@@ -177,7 +177,7 @@ def write_cut_report(collated_subtree_data,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

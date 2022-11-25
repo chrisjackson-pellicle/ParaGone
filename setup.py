@@ -2,12 +2,12 @@
 
 import setuptools
 
-resolve_paralogs_scripts = ['resolve_paralogs']
+resolve_paralogs_scripts = ['paragone']
 resolve_paralogs_description = 'Paralogy resolution using Yang and Smith algorithms'
 resolve_paralogs_url = 'https://github.com/chrisjackson-pellicle/yang_and_smith_paralogy_resolution'
-resolve_paralogs_entry_points = {'console_scripts': ['resolve_paralogs = yang_and_smith.resolve_paralogs:main']}
+resolve_paralogs_entry_points = {'console_scripts': ['paragone = paragone.paragone:main']}
 
-setuptools.setup(name='resolve_paralogs',
+setuptools.setup(name='paragone',
                  version='1.0.0',
                  packages=setuptools.find_packages(),
                  author='Chris Jackson',

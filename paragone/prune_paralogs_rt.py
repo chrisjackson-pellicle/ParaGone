@@ -19,9 +19,9 @@ import sys
 import textwrap
 from collections import defaultdict
 
-from yang_and_smith import tree_utils
-from yang_and_smith import newick3
-from yang_and_smith import utils
+from paragone import tree_utils
+from paragone import newick3
+from paragone import utils
 
 
 def prune_paralogs_rt(curroot,
@@ -225,7 +225,7 @@ def write_rt_report(treefile_directory,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

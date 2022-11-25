@@ -16,7 +16,7 @@ import textwrap
 import shutil
 import re
 
-from yang_and_smith import utils
+from paragone import utils
 
 
 def subsample_alignments(treefile_directory,
@@ -172,7 +172,7 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

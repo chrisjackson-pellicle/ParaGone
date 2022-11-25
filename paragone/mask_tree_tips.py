@@ -16,11 +16,11 @@ import textwrap
 import glob
 from collections import defaultdict
 
-from yang_and_smith import newick3
-from yang_and_smith import phylo3
-from yang_and_smith.tree_utils import get_name, remove_kink
-from yang_and_smith.seq import read_fasta_file
-from yang_and_smith import utils
+from paragone import newick3
+from paragone import phylo3
+from paragone.tree_utils import get_name, remove_kink
+from paragone.seq import read_fasta_file
+from paragone import utils
 
 
 def mask_monophyletic_tips(curroot,
@@ -231,7 +231,7 @@ def write_mask_report(collated_mask_report_dict,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

@@ -34,10 +34,10 @@ import glob
 import shutil
 import textwrap
 
-from yang_and_smith import utils
-from yang_and_smith import tree_utils
-from yang_and_smith import phylo3
-from yang_and_smith import newick3
+from paragone import utils
+from paragone import tree_utils
+from paragone import phylo3
+from paragone import newick3
 
 
 def reroot_with_monophyletic_outgroups(root,
@@ -328,7 +328,7 @@ def write_mo_report(treefile_directory,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

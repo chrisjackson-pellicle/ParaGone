@@ -20,7 +20,7 @@ from collections import defaultdict
 from Bio import SeqIO
 import textwrap
 
-from yang_and_smith import utils
+from paragone import utils
 
 
 def sanitise_gene_names(paralogs_folder,
@@ -277,7 +277,7 @@ def batch_input_files(gene_fasta_directory,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script.
+    Entry point for the paragone.py script.
 
     :param args: argparse namespace with subparser options for function main()
     :return:

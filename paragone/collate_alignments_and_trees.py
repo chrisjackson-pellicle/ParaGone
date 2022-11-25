@@ -13,7 +13,7 @@ import sys
 import os
 import re
 
-from yang_and_smith import utils
+from paragone import utils
 
 
 def collate_alignment_to_tree(directory_contents,
@@ -180,7 +180,7 @@ def collate_pruned_alignments(algorithm_suffix,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

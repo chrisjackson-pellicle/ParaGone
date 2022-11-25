@@ -18,10 +18,10 @@ import glob
 from collections import defaultdict
 import shutil
 
-from yang_and_smith import newick3
-from yang_and_smith import tree_utils
-from yang_and_smith import utils
-from yang_and_smith import trim_tree_tips
+from paragone import newick3
+from paragone import tree_utils
+from paragone import utils
+from paragone import trim_tree_tips
 
 
 def write_mi_report(treefile_directory,
@@ -197,7 +197,7 @@ def write_mi_report(treefile_directory,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

@@ -12,9 +12,9 @@ import os
 import textwrap
 import glob
 
-from yang_and_smith import phylo3
-from yang_and_smith.tree_utils import *
-from yang_and_smith import utils
+from paragone import phylo3
+from paragone.tree_utils import *
+from paragone import utils
 
 
 # return the outlier tip, with abnormal high contrast and long branch
@@ -264,7 +264,7 @@ def write_trim_report(collated_trim_report_dict,
 
 def main(args):
     """
-    Entry point for the resolve_paralogs.py script
+    Entry point for the paragone.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

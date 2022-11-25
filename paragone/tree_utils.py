@@ -7,8 +7,8 @@ from collections import defaultdict
 
 import sys
 
-from yang_and_smith import phylo3
-from yang_and_smith import newick3
+from paragone import phylo3
+from paragone import newick3
 
 
 def get_cluster_id(filename):
