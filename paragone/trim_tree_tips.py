@@ -264,7 +264,7 @@ def write_trim_report(collated_trim_report_dict,
 
 def main(args):
     """
-    Entry point for the paragone.py script
+    Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

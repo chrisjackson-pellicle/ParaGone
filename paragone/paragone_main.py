@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Paralogy resolution pipeline version 1.0.0 release candidate (November 2022)
+ParaGone: paralogy resolution pipeline version 1.0.0 release candidate (November 2022)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -20,7 +20,7 @@ import sys
 import cProfile
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
-f'HybPiper requires Python 3.6 or higher.'
+f'ParaGone requires Python 3.6 or higher.'
 
 # Import non-standard-library modules:
 unsuccessful_imports = []
@@ -40,8 +40,8 @@ if unsuccessful_imports:
              f'installation used to run paragone?')
 
 # Import program modules:
-from paragone import paralogy_subparsers
-from paragone import check_and_batch
+from paragone import paragone_subparsers
+from paragone import check_inputs
 from paragone import align_and_clean
 from paragone import alignment_to_tree
 from paragone import collate_alignments_and_trees
@@ -62,25 +62,15 @@ from paragone import utils
 ########################################################################################################################
 
 
-def check_and_batch_main(args):
+def check_and_align_main(args):
     """
-    Calls the function main() from module check_and_batch
+    Calls the function main() from modules check_inputs followed by align_and_clean
 
-    :param args: argparse namespace with subparser options for function check_and_batch.main()
+    :param args: argparse namespace with subparser options for function check_and_align.main()
     :return: None: no return value specified; default is None
     """
 
-    check_and_batch.main(args)
-
-
-def align_and_clean_main(args):
-    """
-    Calls the function main() from module align_and_clean
-
-    :param args: argparse namespace with subparser options for function align_and_clean.main()
-    :return: None: no return value specified; default is None
-    """
-
+    check_inputs.main(args)
     align_and_clean.main(args)
 
 
@@ -214,7 +204,7 @@ def parse_arguments():
 
     parser = argparse.ArgumentParser(prog='paragone', description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter,
-                                     epilog='To view parameters and help for a subcommand, use e.g. "check_and_batch '
+                                     epilog='To view parameters and help for a subcommand, use e.g. "check_and_align '
                                             '--help"')
     group_1 = parser.add_mutually_exclusive_group(required=False)
     group_1.add_argument('--version', '-v',
@@ -225,34 +215,34 @@ def parse_arguments():
 
     # Add subparsers:
     subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
-    parser_check_and_batch = paralogy_subparsers.add_check_and_batch_parser(subparsers)
-    parser_align_and_clean = paralogy_subparsers.add_align_and_clean_parser(subparsers)
-    parser_alignment_to_tree = paralogy_subparsers.add_alignment_to_tree_parser(subparsers)
-    parser_collate_alignments_and_trees = paralogy_subparsers.add_collate_alignments_and_trees_parser(subparsers)
-    parser_trim_tree_tips = paralogy_subparsers.add_trim_tree_tips_parser(subparsers)
-    parser_mask_tree_tips = paralogy_subparsers.add_mask_tree_tips_parser(subparsers)
-    parser_cut_deep_paralogs = paralogy_subparsers.add_cut_deep_paralogs_parser(subparsers)
-    parser_fasta_from_tree = paralogy_subparsers.add_fasta_from_tree_parser(subparsers)
-    parser_align_selected_and_tree = paralogy_subparsers.add_align_selected_and_tree_parser(subparsers)
-    parser_prune_paralogs_mo = paralogy_subparsers.add_prune_paralogs_mo_parser(subparsers)
-    parser_prune_paralogs_rt = paralogy_subparsers.add_prune_paralogs_rt_parser(subparsers)
-    parser_prune_paralogs_mi = paralogy_subparsers.add_prune_paralogs_mi_parser(subparsers)
-    parser_strip_names_and_align = paralogy_subparsers.add_strip_names_and_align_parser(subparsers)
+    parser_check_and_align = paragone_subparsers.add_check_and_align_parser(subparsers)
+    # parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
+    # parser_collate_alignments_and_trees = paragone_subparsers.add_collate_alignments_and_trees_parser(subparsers)
+    # parser_trim_tree_tips = paragone_subparsers.add_trim_tree_tips_parser(subparsers)
+    # parser_mask_tree_tips = paragone_subparsers.add_mask_tree_tips_parser(subparsers)
+    # parser_cut_deep_paralogs = paragone_subparsers.add_cut_deep_paralogs_parser(subparsers)
+    # parser_fasta_from_tree = paragone_subparsers.add_fasta_from_tree_parser(subparsers)
+    # parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
+    # parser_prune_paralogs_mo = paragone_subparsers.add_prune_paralogs_mo_parser(subparsers)
+    # parser_prune_paralogs_rt = paragone_subparsers.add_prune_paralogs_rt_parser(subparsers)
+    # parser_prune_paralogs_mi = paragone_subparsers.add_prune_paralogs_mi_parser(subparsers)
+    # parser_strip_names_and_align = paragone_subparsers.add_strip_names_and_align_parser(subparsers)
 
     # Set functions for subparsers:
-    parser_check_and_batch.set_defaults(func=check_and_batch_main)
-    parser_align_and_clean.set_defaults(func=align_and_clean_main)
-    parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
-    parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
-    parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
-    parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
-    parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
-    parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
-    parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
-    parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
-    parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
-    parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
-    parser_strip_names_and_align.set_defaults(func=strip_names_and_align_main)
+    # parser_check_and_batch.set_defaults(func=check_and_batch_main)
+    # parser_align_and_clean.set_defaults(func=align_and_clean_main)
+    parser_check_and_align.set_defaults(func=check_and_align_main)
+    # parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
+    # parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
+    # parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
+    # parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
+    # parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
+    # parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
+    # parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
+    # parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
+    # parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
+    # parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
+    # parser_strip_names_and_align.set_defaults(func=strip_names_and_align_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()

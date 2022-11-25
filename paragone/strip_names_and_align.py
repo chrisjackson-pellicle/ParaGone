@@ -335,7 +335,7 @@ def strip_names_for_concat(selected_alignment_directory):
 
 def main(args):
     """
-    Entry point for the paragone.py script
+    Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

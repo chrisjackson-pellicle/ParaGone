@@ -53,14 +53,17 @@ def sanitise_gene_names(paralogs_folder,
 
     for file in glob.glob(f'{paralogs_folder}/*.fasta'):
         input_fasta_count += 1
-        basename = os.path.basename(file)
-        if not re.search('.paralogs.fasta', basename):
-            logger.error(f'{"[ERROR]:":10} File "{basename}" appears not to follow the expected naming convention '
-                         f'"geneName.paralogs.fasta". Please check your input files!\n')
-            sys.exit(1)
-        gene_name = basename.split('.paralogs.fasta')[0]
+        # basename = os.path.basename(file)
+        gene_name, ext = os.path.splitext(os.path.basename(file))  # Takes the entire basename as the gene name
+        # if not re.search('.paralogs.fasta', basename):
+        #     logger.error(f'{"[ERROR]:":10} File "{basename}" appears not to follow the expected naming convention '
+        #                  f'"geneName.paralogs.fasta". Please check your input files!\n')
+        #     sys.exit(1)
+        # gene_name = basename.split('.paralogs.fasta')[0]
+        # gene_name = basename.split('.paralogs.fasta')[0]
         gene_name_sanitised = re.sub('[.]', '_', gene_name)
-        paralog_filename_sanitised = f'{gene_name_sanitised}.paralogs.fasta'
+        # paralog_filename_sanitised = f'{gene_name_sanitised}.paralogs.fasta'
+        paralog_filename_sanitised = f'{gene_name_sanitised}{ext}'
         shutil.copy(file, f'{sanitised_input_folder}/{paralog_filename_sanitised}')
 
     logger.info(f'{"[INFO]:":10} Number of input fasta files: {input_fasta_count}')
@@ -277,7 +280,7 @@ def batch_input_files(gene_fasta_directory,
 
 def main(args):
     """
-    Entry point for the paragone.py script.
+    Entry point for the paragone_main.py script.
 
     :param args: argparse namespace with subparser options for function main()
     :return:
@@ -293,7 +296,7 @@ def main(args):
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand check_and_batch was called with these arguments:')
+    logger.info(f'{"[INFO]:":10} Subcommand check_and_align was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
     logger.info(f'{fill}\n')
@@ -323,9 +326,4 @@ def main(args):
                             list_of_external_outgroups=args.external_outgroups,
                             logger=logger)
 
-    # Batch files into separate folders:
-    batch_input_files(paralogs_folder_sanitised,
-                      batch_size=args.batch_size,
-                      logger=logger)
-
-    logger.info(f'{"[INFO]:":10} Finished checking and batching input files.')
+    logger.info(f'{"[INFO]:":10} Finished checking input files.')

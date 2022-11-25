@@ -757,7 +757,7 @@ def iqtree(alignment_file,
 
 def main(args):
     """
-    Entry point for the paragone.py script
+    Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

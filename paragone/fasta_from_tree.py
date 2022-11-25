@@ -172,7 +172,7 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
 def main(args):
     """
-    Entry point for the paragone.py script
+    Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:

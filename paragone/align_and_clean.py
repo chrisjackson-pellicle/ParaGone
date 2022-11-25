@@ -49,7 +49,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'03_{input_folder_basename}_alignments'
+    output_folder = f'02_{input_folder_basename.lstrip("01_")}_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -243,7 +243,7 @@ def run_hmm_cleaner(input_folder, logger=None):
     """
 
     input_folder_basename = os.path.basename(input_folder)
-    output_folder = f'04_{input_folder_basename.lstrip("03_")}_hmmcleaned'
+    output_folder = f'03_{input_folder_basename.lstrip("02_")}_hmmcleaned'
     utils.createfolder(output_folder)
 
     logger.info('')
@@ -450,7 +450,7 @@ def clustalo_align(fasta_file,
 
 def main(args):
     """
-    Entry point for the paragone.py script
+    Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :return:
@@ -459,21 +459,13 @@ def main(args):
     # Initialise logger:
     logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/02_align_and_clean')
 
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand align_and_clean was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
     logger.debug(args)
 
+    gene_fasta_directory = '01_input_paralog_fasta_with_sanitised_filenames'
+
     # Checking input directories and files:
-    directory_suffix_dict = {args.gene_fasta_directory: '.fasta'}
+    # directory_suffix_dict = {args.gene_fasta_directory: '.fasta'}
+    directory_suffix_dict = {gene_fasta_directory: '.fasta'}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
@@ -483,7 +475,7 @@ def main(args):
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            args.gene_fasta_directory,
+            gene_fasta_directory,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
@@ -496,7 +488,7 @@ def main(args):
     elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            args.gene_fasta_directory,
+            gene_fasta_directory,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
