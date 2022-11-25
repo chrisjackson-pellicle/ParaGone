@@ -1,4 +1,4 @@
-# ParalogGrouper
+# ParaGone
 
 Documentation in progress...
 
