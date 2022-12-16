@@ -182,6 +182,8 @@ def main(args):
 
     # Initialise logger:
     if args.from_cut_deep_paralogs:
+        print('YEAH MAN')
+        sys.exit()
         logger = utils.setup_logger(__name__,
                                     '00_logs_and_reports_resolve_paralogs/logs/08_fasta_from_tree')
     elif args.from_prune_paralogs:

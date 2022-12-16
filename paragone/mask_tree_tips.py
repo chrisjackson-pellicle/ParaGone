@@ -163,9 +163,14 @@ def write_mask_report(collated_mask_report_dict,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("08_")}_masked_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("05_")}_masked_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing mask tips report to file {report_filename}')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
+
+    # logger.info(f'{"[INFO]:":10} Writing mask tips report to file {report_filename}')
 
     all_tree_stats_for_report = []
 
@@ -254,8 +259,13 @@ def main(args):
     logger.debug(args)
 
     # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix,
-                             args.alignment_directory: args.alignment_file_suffix}
+    tree_file_directory = '05_trees_pre_quality_control_trimmed'
+    tree_file_suffix = '.tt'
+    alignment_directory = '03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned'
+    alignment_file_suffix = 'fasta'
+
+    directory_suffix_dict = {tree_file_directory: tree_file_suffix,
+                             alignment_directory: alignment_file_suffix}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
@@ -263,38 +273,40 @@ def main(args):
                        logger=logger)
 
     # Create output folder:
-    treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'09_{treefile_directory_basename.lstrip("08_")}_masked'
+    treefile_directory_basename = os.path.basename(tree_file_directory)
+    output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_masked'
     utils.createfolder(output_folder)
 
     filecount = 0
 
     # Create a dictionary of gene name to alignment file name:
     gene_name_to_alignment_dict = {}  # key is gene name, value is the alignment file name
-    for alignment_file in glob.glob(f'{args.alignment_directory}/*{args.alignment_file_suffix}'):
+    for alignment_file in glob.glob(f'{alignment_directory}/*{alignment_file_suffix}'):
         alignment_basename = os.path.basename(alignment_file)
         alignment_gene_name = os.path.basename(alignment_file).split('.')[0]
         try:
             gene_name_to_alignment_dict[alignment_gene_name] = alignment_basename
         except KeyError:
             sys.exit(f'Gene name {alignment_gene_name} occurs more than once in the directory'
-                     f' {args.alignment_directory}')
+                     f' {alignment_directory}')
         except:
             raise
 
     collated_mask_report_dict = defaultdict(lambda: defaultdict())
 
-    for tree_file in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for tree_file in glob.glob(f'{tree_file_directory}/*{tree_file_suffix}'):
         tree_file_basename = os.path.basename(tree_file)
+
         with open(tree_file, 'r') as tree_file_handle:
             intree = newick3.parse(tree_file_handle.readline())
+
         tree_gene_name = os.path.basename(tree_file).split('.')[0]
         filecount += 1
 
         logger.info(f'{"[INFO]:":10} Analysing tree: {tree_file_basename}')
 
         unamiguous_characters_dict = {}  # key is seqid, value is number of unambiguous chrs
-        for seq in read_fasta_file(f'{args.alignment_directory}/{gene_name_to_alignment_dict[tree_gene_name]}'):
+        for seq in read_fasta_file(f'{alignment_directory}/{gene_name_to_alignment_dict[tree_gene_name]}'):
             seq.name = seq.name.split()[0]
             # The line above is necessary to remove extraneous information that otherwise gets captured in the
             # dictionary key below. This wouldn't happen with Biopython...
@@ -323,7 +335,7 @@ def main(args):
 
         # Optionally, remove ('mask' in Yang and Smith terminology) all but one tip for paraphyletic clades
         # from same taxon name:
-        if args.remove_paraphyletic_tips:
+        if args.mask_tips_remove_paraphyletic_tips:
             curroot, \
             pruned_paraphyletic_tips_dict, trees_with_fewer_than_four_tips_para_dict\
                 = mask_paraphyletic_tips(curroot,
@@ -353,15 +365,15 @@ def main(args):
 
     # Write a report of tips trimmed from each tree, and why:
     write_mask_report(collated_mask_report_dict,
-                      args.treefile_directory,
+                      tree_file_directory,
                       logger=logger)
 
-    try:
-        assert filecount > 0
-    except AssertionError:
-        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in'
-                     f' {args.treefile_directory}.')
-        sys.exit(1)
+    # try:
+    #     assert filecount > 0
+    # except AssertionError:
+    #     logger.error(f'{"[ERROR]:":10} No files with suffix {tree_file_suffix} found in'
+    #                  f' {tree_file_directory}.')
+    #     sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Finished masking tree tips.')
 

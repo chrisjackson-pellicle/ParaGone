@@ -128,9 +128,12 @@ def write_cut_report(collated_subtree_data,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("09_")}_cut_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("06_")}_cut_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing cut internal branches report to file {report_filename}')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
 
     with open(report_filename, 'w') as report_handle:
 
@@ -200,7 +203,10 @@ def main(args):
     logger.debug(args)
 
     # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    tree_file_directory = '06_trees_pre_quality_control_trimmed_masked'
+    tree_file_suffix = '.mm'
+
+    directory_suffix_dict = {tree_file_directory: tree_file_suffix}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
@@ -208,16 +214,16 @@ def main(args):
                        logger=logger)
 
     # Create output folder:
-    treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'10_{treefile_directory_basename.lstrip("09_")}_cut'
+    treefile_directory_basename = os.path.basename(tree_file_directory)
+    output_folder = f'07_{treefile_directory_basename.lstrip("06_")}_cut'
     utils.createfolder(output_folder)
     filecount = 0
 
-    logger.info(f'{"[INFO]:":10} Cutting internal branches longer than {args.internal_branch_length_cutoff}')
+    logger.info(f'{"[INFO]:":10} Cutting internal branches longer than {args.cut_deep_paralogs_internal_branch_length_cutoff}')
 
     collated_subtree_data = defaultdict(lambda: defaultdict())
 
-    for tree_file in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for tree_file in glob.glob(f'{tree_file_directory}/*{tree_file_suffix}'):
         tree_file_basename = os.path.basename(tree_file)
         with open(tree_file, 'r') as tree_file_handle:
             intree = newick3.parse(tree_file_handle.readline())
@@ -228,9 +234,10 @@ def main(args):
         raw_tree_size = len(get_front_labels(intree))  # includes paralogs
         num_taxa = count_taxa(intree)  # Unique taxon names only
 
-        if num_taxa < args.minimum_number_taxa:
+        if num_taxa < args.cut_deep_paralogs_minimum_number_taxa:
             logger.warning(f'{"[WARNING]:":10} Tree {tree_file_basename} has {num_taxa} unique taxon name, '
-                           f'less than the minimum number of {args.minimum_number_taxa} specified. Skipping tree...')
+                           f'less than the minimum number of {args.cut_deep_paralogs_minimum_number_taxa} specified. '
+                           f'Skipping tree...')
         else:
             logger.info(f'{"[INFO]:":10} Tree {tree_file_basename} has {raw_tree_size} tips and {num_taxa} unique '
                         f'taxon names...')
@@ -238,7 +245,7 @@ def main(args):
             # Cut long internal branches if present:
             subtrees, subtrees_discarded_during_cutting = \
                 cut_long_internal_branches(intree,
-                                           args.internal_branch_length_cutoff,
+                                           args.cut_deep_paralogs_internal_branch_length_cutoff,
                                            logger=logger)
 
             # Capture data for each tree in dictionary for report writing:
@@ -247,7 +254,8 @@ def main(args):
                 subtrees_discarded_during_cutting
 
             if len(subtrees) == 0:
-                logger.warning(f'{"[WARNING]:":10} No tree with at least {args.minimum_number_taxa} was generated')
+                logger.warning(f'{"[WARNING]:":10} No tree with at least {args.cut_deep_paralogs_minimum_number_taxa} '
+                               f'was generated')
 
             else:
                 count = 0
@@ -255,7 +263,7 @@ def main(args):
                 subtrees_discarded_min_taxa_filtering = {}
 
                 for subtree in subtrees:
-                    if count_taxa(subtree) >= args.minimum_number_taxa:
+                    if count_taxa(subtree) >= args.cut_deep_paralogs_minimum_number_taxa:
                         count += 1
 
                         if subtree.nchildren == 2:  # fix bifurcating roots from cutting
@@ -270,11 +278,11 @@ def main(args):
                         subtree_sizes.append(str(len(subtree.leaves())))
                     else:
                         logger.debug(f'Post cut filtering: subtree {newick3.tostring(subtree)} discarded as fewer '
-                                     f'than minimum_number_taxa value of {args.minimum_number_taxa}')
+                                     f'than minimum_number_taxa value of {args.cut_deep_paralogs_minimum_number_taxa}')
 
                         subtrees_discarded_min_taxa_filtering[newick3.tostring(subtree)] = \
                             f'Post cut filtering: subtree discarded as fewer than minimum_number_taxa value of' \
-                            f' {args.minimum_number_taxa}'
+                            f' {args.cut_deep_paralogs_minimum_number_taxa}'
 
                 # Capture data for each tree in dictionary for report writing:
                 collated_subtree_data[tree_file_basename]['subtrees_discarded_min_taxa_filtering'] = \
@@ -290,11 +298,11 @@ def main(args):
                      args.treefile_directory,
                      logger=logger)
 
-    try:
-        assert filecount > 0
-    except AssertionError:
-        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}')
-        sys.exit(1)
+    # try:
+    #     assert filecount > 0
+    # except AssertionError:
+    #     logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}')
+    #     sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Finished cutting putative deep paralogs.')
 

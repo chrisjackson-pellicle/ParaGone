@@ -24,6 +24,8 @@ from paragone import utils
 
 
 def sanitise_gene_names(paralogs_folder,
+                        gene_name_delimiter,
+                        gene_name_field_num,
                         file_of_external_outgroups,
                         logger=None):
     """
@@ -31,6 +33,8 @@ def sanitise_gene_names(paralogs_folder,
     and converts them to underscores.
 
     :param str paralogs_folder: path to folder containing input fasta files
+    :param str gene_name_delimiter: delimiter in paralog filename to extract gene name. Default is "_".
+    :param int gene_name_field_num: from paralog filename, number of fields to extract gene name. Default is 1
     :param str/None file_of_external_outgroups: path to external outgroups file, or None
     :param logging.Logger logger: a logger object
     :return str, str/None sanitised_paralog_output_folder, sanitised_external_outgroup_file,None:
@@ -43,26 +47,24 @@ def sanitise_gene_names(paralogs_folder,
     input_fasta_count = 0
 
     # Sanitise filenames in input paralogs folder:
-    fill = textwrap.fill(f'{"[INFO]:":10} Sanitising input paralog fasta filenames. Any dots/periods (".") in the '
-                         f'gene name component of the filename will be replaced with underscores ("_"). Sanitised '
-                         f'files will be written to directory: "{sanitised_input_folder}".',
-                         width=90, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
+    fill_1 = textwrap.fill(f'{"[INFO]:":10} Sanitising input paralog fasta filenames. Any dots/periods (".") in the '
+                           f'gene name component of the filename will be replaced with underscores ("_"). Sanitised '
+                           f'files will be written to directory: "{sanitised_input_folder}".',
+                           width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
 
-    logger.info(f'{fill}')
+    fill_2 = textwrap.fill(f'{"[INFO]:":10} Delimiter for gene name extraction: "{gene_name_delimiter}"',
+                           width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+    fill_3 = textwrap.fill(f'{"[INFO]:":10} Fields for gene name extraction: {gene_name_field_num}',
+                           width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+    logger.info(f'{fill_1}\n{fill_2}\n{fill_3}')
 
     for file in glob.glob(f'{paralogs_folder}/*.fasta'):
         input_fasta_count += 1
-        # basename = os.path.basename(file)
-        gene_name, ext = os.path.splitext(os.path.basename(file))  # Takes the entire basename as the gene name
-        # if not re.search('.paralogs.fasta', basename):
-        #     logger.error(f'{"[ERROR]:":10} File "{basename}" appears not to follow the expected naming convention '
-        #                  f'"geneName.paralogs.fasta". Please check your input files!\n')
-        #     sys.exit(1)
-        # gene_name = basename.split('.paralogs.fasta')[0]
-        # gene_name = basename.split('.paralogs.fasta')[0]
+        gene_name_base, ext = os.path.splitext(os.path.basename(file))  # Takes the entire basename as the gene name
+        gene_name = '_'.join(gene_name_base.split(gene_name_delimiter)[0:gene_name_field_num])
         gene_name_sanitised = re.sub('[.]', '_', gene_name)
-        # paralog_filename_sanitised = f'{gene_name_sanitised}.paralogs.fasta'
         paralog_filename_sanitised = f'{gene_name_sanitised}{ext}'
         shutil.copy(file, f'{sanitised_input_folder}/{paralog_filename_sanitised}')
 
@@ -70,23 +72,13 @@ def sanitise_gene_names(paralogs_folder,
 
     # Sanitise gene names in the external outgroup fasta file, if provided:
     if file_of_external_outgroups:
-
-        # Check if file exists and is not empty:
-        if os.path.isfile(file_of_external_outgroups) and not os.path.getsize(file_of_external_outgroups) == 0:
-            logger.debug(f'Input external paralogs file {os.path.basename(file_of_external_outgroups)} exists and is '
-                         f'not empty, proceeding...')
-        else:
-            sys.exit(f'Input target file {os.path.basename(file_of_external_outgroups)} does not exist or is empty!')
-
-        basename = os.path.basename(file_of_external_outgroups)
-        filename, extension = os.path.splitext(basename)
-        sanitised_external_outgroups_filename = f'{filename}_sanitised{extension}'
+        outgroup_file_base, ext = os.path.splitext(os.path.basename(file_of_external_outgroups))
+        sanitised_external_outgroups_filename = f'external_outgroups_sanitised{ext}'
 
         fill = textwrap.fill(f'{"[INFO]:":10} Sanitising outgroup fasta file. Any dots/periods (".") in the gene name '
                              f'component of the sequence fasta headers will be replaced with underscores ("_").  '
                              f'Sanitised file will be written to: "{sanitised_external_outgroups_filename}"',
-                             width=90, subsequent_indent=' ' * 11,
-                             break_on_hyphens=False)
+                             width=90, subsequent_indent=' ' * 11,  break_on_hyphens=False)
 
         logger.info(f'{fill}')
 
@@ -144,6 +136,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
         seqs = SeqIO.parse(fasta, 'fasta')
         for seq in seqs:
             paralog_dict[gene_id].append(seq.name)
+
 
     # Read in external outgroups file, and create a dictionary of gene_id:list_of_seq_names:
     if file_of_external_outgroups:  # dict not created if no outgroups file provided
@@ -289,18 +282,14 @@ def main(args):
     # Initialise logger:
     logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/01_check_and_batch')
 
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand check_and_align was called with these arguments:')
+    logger.debug(f'{"[INFO]:":10} Module check_inputs was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+
+    logger.debug(f'{fill}')
     logger.debug(args)
+
+    logger.info(f'{"[INFO]:":10} ======> CHECKING INPUT FILES <======\n')
 
     # Checking input directories and files:
     directory_suffix_dict = {args.gene_fasta_directory: '.fasta'}
@@ -315,9 +304,12 @@ def main(args):
 
     # Check gene names in input paralog files, and the external outgroup file (if provided), for periods/dots,
     # and convert them to underscores:
-    paralogs_folder_sanitised, external_outgroups_file_sanitised = sanitise_gene_names(args.gene_fasta_directory,
-                                                                                       args.external_outgroups_file,
-                                                                                       logger=logger)
+    paralogs_folder_sanitised, external_outgroups_file_sanitised = \
+        sanitise_gene_names(args.gene_fasta_directory,
+                            args.gene_name_delimiter,
+                            args.gene_name_field_num,
+                            args.external_outgroups_file,
+                            logger=logger)
 
     # Check outgroup coverage for each input file:
     check_outgroup_coverage(paralogs_folder_sanitised,
@@ -326,4 +318,4 @@ def main(args):
                             list_of_external_outgroups=args.external_outgroups,
                             logger=logger)
 
-    logger.info(f'{"[INFO]:":10} Finished checking input files.')
+    logger.info(f'{"[INFO]:":10} Finished checking input files.\n')

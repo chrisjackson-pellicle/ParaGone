@@ -203,9 +203,12 @@ def write_trim_report(collated_trim_report_dict,
     """
 
     basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("07_")}_trimmed_report.tsv'
+    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("04_")}_trimmed_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing trim tips report to file {report_filename}')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
 
     all_tree_stats_for_report = []
 
@@ -273,12 +276,14 @@ def main(args):
     # Initialise logger:
     logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/05_trim_tree_tips')
 
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
+    # # check for external dependencies:
+    # if utils.check_dependencies(logger=logger):
+    #     logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    # else:
+    #     logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+    #     sys.exit(1)
+
+    logger.info(f'{"[INFO]:":10} Performing quality control (trim tips, mask tips, cut deep paralogs) on trees...')
 
     logger.info(f'{"[INFO]:":10} Subcommand trim_tree_tips was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
@@ -287,26 +292,29 @@ def main(args):
     logger.debug(args)
 
     # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    tree_file_directory = '04_trees_pre_quality_control'
+    tree_file_suffix = '.treefile'
+
+    directory_suffix_dict = {tree_file_directory: tree_file_suffix}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
-    logger.info(f'{"[INFO]:":10} Relative cutoff value: {args.relative_cutoff}')
-    logger.info(f'{"[INFO]:":10} Absolute cutoff value: {args.absolute_cutoff}')
+    logger.info(f'{"[INFO]:":10} Relative cutoff value: {args.trim_tips_relative_cutoff}')
+    logger.info(f'{"[INFO]:":10} Absolute cutoff value: {args.trim_tips_absolute_cutoff}')
 
     filecount = 0
 
     # Create output folder:
-    treefile_directory_basename = os.path.basename(args.treefile_directory)
-    output_folder = f'08_{treefile_directory_basename.lstrip("07_")}_trimmed'
+    treefile_directory_basename = os.path.basename(tree_file_directory)
+    output_folder = f'05_{treefile_directory_basename.lstrip("04_")}_trimmed'
     utils.createfolder(output_folder)
 
     collated_trim_report_dict = defaultdict(lambda: defaultdict())
 
-    for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for treefile in glob.glob(f'{tree_file_directory}/*{tree_file_suffix}'):
         basename = os.path.basename(treefile)
         filecount += 1
         with open(treefile, 'r') as treefile_handle:
@@ -316,8 +324,8 @@ def main(args):
 
         trimmed_tree, nodes_above_absolute_cutoff, nodes_above_relative_cutoff = \
             trim(intree,
-                 float(args.relative_cutoff),
-                 float(args.absolute_cutoff),
+                 float(args.trim_tips_relative_cutoff),
+                 float(args.trim_tips_absolute_cutoff),
                  tree_name=basename,
                  logger=logger)
 
@@ -344,11 +352,11 @@ def main(args):
                       args.treefile_directory,
                       logger=logger)
 
-    try:
-        assert filecount > 0
-    except AssertionError:
-        logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in '
-                     f'{args.treefile_directory}!')
-        sys.exit(1)
+    # try:
+    #     assert filecount > 0
+    # except AssertionError:
+    #     logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in '
+    #                  f'{args.treefile_directory}!')
+    #     sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Finished trimming tree tips.')

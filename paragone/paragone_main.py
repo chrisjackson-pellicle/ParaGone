@@ -18,6 +18,8 @@ For a list of available subcommands, run:
 import argparse
 import sys
 import cProfile
+import logging
+import textwrap
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'ParaGone requires Python 3.6 or higher.'
@@ -56,6 +58,21 @@ from paragone import prune_paralogs_mi
 from paragone import strip_names_and_align
 from paragone import utils
 
+########################################################################################################################
+# Create a custom logger
+########################################################################################################################
+
+# Log to Terminal (stderr):
+console_handler = logging.StreamHandler(sys.stderr)
+console_handler.setLevel(logging.INFO)
+
+# Setup logger:
+logger = logging.getLogger(f'paragone.{__name__}')
+
+# Add handlers to the logger
+logger.addHandler(console_handler)
+logger.setLevel(logging.DEBUG)  # Default level is 'WARNING'
+
 
 ########################################################################################################################
 # Define functions
@@ -64,11 +81,20 @@ from paragone import utils
 
 def check_and_align_main(args):
     """
-    Calls the function main() from modules check_inputs followed by align_and_clean
+    Calls the function main() from modules: check_inputs -> align_and_clean
 
     :param args: argparse namespace with subparser options for function check_and_align.main()
     :return: None: no return value specified; default is None
     """
+
+    parameters = vars(args)
+
+    logger.info(f'{"[INFO]:":10} Subcommand check_and_align was called with these arguments:\n')
+
+    for parameter, value in parameters.items():
+        if not parameter == 'func':
+            logger.info(f'{" "* 10} {parameter}: {value}')
+    logger.info('')
 
     check_inputs.main(args)
     align_and_clean.main(args)
@@ -85,48 +111,71 @@ def alignment_to_tree_main(args):
     alignment_to_tree.main(args)
 
 
-def collate_alignments_and_trees_main(args):
+def qc_trees_and_fasta_main(args):
     """
-    Calls the function main() from module collate_alignments_and_trees
+    Calls the function main() from modules: trim_tree_tips -> mask_tree_tips -> cut_deep_paralogs -> fasta_from_tree
 
-    :param args: argparse namespace with subparser options for function collate_alignments_and_trees.main()
+    :param args: argparse namespace with subparser options for function qc_trees_and_fasta_main.main()
     :return: None: no return value specified; default is None
     """
 
-    collate_alignments_and_trees.main(args)
+    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_fasta was called with these arguments:')
 
+    print(args)
 
-def trim_tree_tips_main(args):
-    """
-    Calls the function main() from module trim_tree_tips
-
-    :param args: argparse namespace with subparser options for function trim_tree_tips.main()
-    :return: None: no return value specified; default is None
-    """
+    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+    logger.info(f'{fill}\n')
+    logger.info(args)
 
     trim_tree_tips.main(args)
-
-
-def mask_tree_tips_main(args):
-    """
-    Calls the function main() from module mask_tree_tips
-
-    :param args: argparse namespace with subparser options for function mask_tree_tips.main()
-    :return: None: no return value specified; default is None
-    """
-
     mask_tree_tips.main(args)
+    # cut_deep_paralogs.main(args)
+    # fasta_from_tree.main(args)
 
 
-def cut_deep_paralogs_main(args):
-    """
-    Calls the function main() from module cut_deep_paralogs
+# def collate_alignments_and_trees_main(args):
+#     """
+#     Calls the function main() from module collate_alignments_and_trees
+#
+#     :param args: argparse namespace with subparser options for function collate_alignments_and_trees.main()
+#     :return: None: no return value specified; default is None
+#     """
+#
+#     collate_alignments_and_trees.main(args)
 
-    :param args: argparse namespace with subparser options for function cut_deep_paralogs.main()
-    :return: None: no return value specified; default is None
-    """
 
-    cut_deep_paralogs.main(args)
+# def trim_tree_tips_main(args):
+#     """
+#     Calls the function main() from module trim_tree_tips
+#
+#     :param args: argparse namespace with subparser options for function trim_tree_tips.main()
+#     :return: None: no return value specified; default is None
+#     """
+#
+#     trim_tree_tips.main(args)
+#
+#
+# def mask_tree_tips_main(args):
+#     """
+#     Calls the function main() from module mask_tree_tips
+#
+#     :param args: argparse namespace with subparser options for function mask_tree_tips.main()
+#     :return: None: no return value specified; default is None
+#     """
+#
+#     mask_tree_tips.main(args)
+#
+#
+# def cut_deep_paralogs_main(args):
+#     """
+#     Calls the function main() from module cut_deep_paralogs
+#
+#     :param args: argparse namespace with subparser options for function cut_deep_paralogs.main()
+#     :return: None: no return value specified; default is None
+#     """
+#
+#     cut_deep_paralogs.main(args)
 
 
 def fasta_from_tree_main(args):
@@ -216,7 +265,10 @@ def parse_arguments():
     # Add subparsers:
     subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
     parser_check_and_align = paragone_subparsers.add_check_and_align_parser(subparsers)
-    # parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
+    parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
+    parser_qc_trees_and_fasta = paragone_subparsers.add_qc_trees_and_fasta(subparsers)
+
+
     # parser_collate_alignments_and_trees = paragone_subparsers.add_collate_alignments_and_trees_parser(subparsers)
     # parser_trim_tree_tips = paragone_subparsers.add_trim_tree_tips_parser(subparsers)
     # parser_mask_tree_tips = paragone_subparsers.add_mask_tree_tips_parser(subparsers)
@@ -232,7 +284,8 @@ def parse_arguments():
     # parser_check_and_batch.set_defaults(func=check_and_batch_main)
     # parser_align_and_clean.set_defaults(func=align_and_clean_main)
     parser_check_and_align.set_defaults(func=check_and_align_main)
-    # parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
+    parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
+    parser_qc_trees_and_fasta.set_defaults(func=qc_trees_and_fasta_main)
     # parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
     # parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
     # parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
@@ -263,6 +316,13 @@ def main():
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     # Run the function associated with the subcommand, with or without cProfile:
     if args.run_profiler:

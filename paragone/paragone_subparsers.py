@@ -20,7 +20,17 @@ def add_check_and_align_parser(subparsers):
                                                         'paralog alignments; clean alignments')
     parser_check_and_align.add_argument('gene_fasta_directory',
                                         type=str,
-                                        help="Directory contains fasta files including paralogs")
+                                        help='Directory contains fasta files with paralog sequences')
+    parser_check_and_align.add_argument('--gene_name_delimiter',
+                                        type=str,
+                                        default='_',
+                                        help='Delimiter in paralog filename to extract gene name. Default is: '
+                                             '%(default)s')
+    parser_check_and_align.add_argument('--gene_name_field_num',
+                                        type=int,
+                                        default='1',
+                                        help='From paralog filename, number of fields to extract gene name. Default '
+                                             'is: %(default)s')
     parser_check_and_align.add_argument('--external_outgroups_file',
                                         type=str,
                                         default=None,
@@ -118,168 +128,121 @@ def add_alignment_to_tree_parser(subparsers):
 
     return parser_alignment_to_tree
 
+#
+# def add_collate_alignments_and_trees_parser(subparsers):
+#     """
+#     Parser for collate_alignments_and_trees
+#
+#     :param argparse._SubParsersAction subparsers:
+#     :return None: no return value specified; default is None
+#     """
+#
+#     parser_collate_alignments_and_trees = subparsers.add_parser(
+#         'collate_alignments_and_trees',
+#         help='Collates all HmmCleaned alignments into a single folder. Collates all corresponding trees into a '
+#              'single folder')
+#     group_1 = parser_collate_alignments_and_trees.add_mutually_exclusive_group(required=True)
+#     group_1.add_argument('--from_alignment_to_tree',
+#                          action='store_true',
+#                          dest='from_alignment_to_tree',
+#                          default=False,
+#                          help='If set, trees are from step "alignment_to_tree".')
+#     group_1.add_argument('--from_align_selected_and_tree',
+#                          action='store_true',
+#                          dest='from_align_selected_and_tree',
+#                          default=False,
+#                          help='If set, trees are from step "align_selected_and_tree".')
+#     group_1.add_argument('--from_prune_paralogs_mo',
+#                          action='store_const', const='mo',
+#                          dest='from_prune_paralogs',
+#                          default=False,
+#                          help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
+#     group_1.add_argument('--from_prune_paralogs_rt',
+#                          action='store_const', const='rt',
+#                          dest='from_prune_paralogs',
+#                          default=False,
+#                          help='If set, sequences are from paralog pruning step "prune_paralogs_rt".')
+#     group_1.add_argument('--from_prune_paralogs_mi',
+#                          action='store_const', const='mi',
+#                          dest='from_prune_paralogs',
+#                          default=False,
+#                          help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
+#
+#     parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
+#                                                      type=str,
+#                                                      default='.treefile',
+#                                                      help='Suffix for newick tree files. Default is: %(default)s')
+#     parser_collate_alignments_and_trees.add_argument('--run_profiler',
+#                                                      action='store_true',
+#                                                      dest='run_profiler',
+#                                                      default=False,
+#                                                      help='If supplied, run the subcommand using cProfile. Saves a '
+#                                                           '*.csv file of results')
+#
+#     return parser_collate_alignments_and_trees
 
-def add_collate_alignments_and_trees_parser(subparsers):
+
+def add_qc_trees_and_fasta(subparsers):
     """
-    Parser for collate_alignments_and_trees
+    Parser for add_qc_trees_and_fasta
 
     :param argparse._SubParsersAction subparsers:
     :return None: no return value specified; default is None
     """
 
-    parser_collate_alignments_and_trees = subparsers.add_parser(
-        'collate_alignments_and_trees',
-        help='Collates all HmmCleaned alignments into a single folder. Collates all corresponding trees into a '
-             'single folder')
-    group_1 = parser_collate_alignments_and_trees.add_mutually_exclusive_group(required=True)
-    group_1.add_argument('--from_alignment_to_tree',
-                         action='store_true',
-                         dest='from_alignment_to_tree',
-                         default=False,
-                         help='If set, trees are from step "alignment_to_tree".')
-    group_1.add_argument('--from_align_selected_and_tree',
-                         action='store_true',
-                         dest='from_align_selected_and_tree',
-                         default=False,
-                         help='If set, trees are from step "align_selected_and_tree".')
-    group_1.add_argument('--from_prune_paralogs_mo',
-                         action='store_const', const='mo',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
-    group_1.add_argument('--from_prune_paralogs_rt',
-                         action='store_const', const='rt',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step "prune_paralogs_rt".')
-    group_1.add_argument('--from_prune_paralogs_mi',
-                         action='store_const', const='mi',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
+    parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_fasta',
+                                                      help='Quality control trees; for remaining tips, '
+                                                           'extract corresponding fasta sequences')
+    # parser_qc_trees_and_fasta.add_argument('treefile_directory',
+    #                                        type=str,
+    #                                        help='directory containing tree newick files')
+    # parser_qc_trees_and_fasta.add_argument('--tree_file_suffix',
+    #                                        type=str,
+    #                                        default='.treefile',
+    #                                        help='Suffix for newick tree files. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--trim_tips_relative_cutoff',
+                                           type=float,
+                                           default=0.2,
+                                           help='Relative cutoff for removing tree tips. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--trim_tips_absolute_cutoff',
+                                           type=float,
+                                           default=0.4,
+                                           help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+    # parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
+    #                                        type=str,
+    #                                        help='directory containing original fasta alignment files')
+    # parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
+    #                                        type=str,
+    #                                        default='.fasta',
+    #                                        help='Suffix for alignment files. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--mask_tips_remove_paraphyletic_tips',
+                                           action='store_true',
+                                           default=False,
+                                           help='Remove paraphyletic tree tips. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
+                                           type=float,
+                                           default=0.3,
+                                           help='Internal branch length cutoff cutting tree. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_minimum_number_taxa',
+                                           type=int,
+                                           default=4,
+                                           help='Minimum number of taxa in tree for tree to be retained. Default is: '
+                                                '%(default)s')
+    parser_qc_trees_and_fasta.add_argument('--run_profiler',
+                                           action='store_true',
+                                           dest='run_profiler',
+                                           default=False,
+                                           help='If supplied, run the subcommand using cProfile. Saves a '
+                                                '*.csv file of results')
 
-    parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
-                                                     type=str,
-                                                     default='.treefile',
-                                                     help='Suffix for newick tree files. Default is: %(default)s')
-    parser_collate_alignments_and_trees.add_argument('--run_profiler',
-                                                     action='store_true',
-                                                     dest='run_profiler',
-                                                     default=False,
-                                                     help='If supplied, run the subcommand using cProfile. Saves a '
-                                                          '*.csv file of results')
+    # Set defaults for subparser <parser_qc_trees_and_fasta>:
+    parser_qc_trees_and_fasta.set_defaults(
+        treefile_directory='07_trees_pre_quality_control_trimmed_masked_cut',
+        alignment_directory='03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned',
+        tree_file_suffix='.subtree',
+        from_cut_deep_paralogs=True)
 
-    return parser_collate_alignments_and_trees
-
-
-def add_trim_tree_tips_parser(subparsers):
-    """
-    Parser for trim_tree_tips
-
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_trim_tree_tips = subparsers.add_parser('trim_tree_tips',
-                                                  help='Remove tree tips on long branches')
-    parser_trim_tree_tips.add_argument('treefile_directory',
-                                       type=str,
-                                       help='directory containing tree newick files')
-    parser_trim_tree_tips.add_argument('--tree_file_suffix',
-                                       type=str,
-                                       default='.treefile',
-                                       help='Suffix for newick tree files. Default is: %(default)s')
-    parser_trim_tree_tips.add_argument('--relative_cutoff',
-                                       type=float,
-                                       default=0.2,
-                                       help='Relative cutoff for removing tree tips. Default is: %(default)s')
-    parser_trim_tree_tips.add_argument('--absolute_cutoff',
-                                       type=float,
-                                       default=0.4,
-                                       help='Absolute cutoff for removing tree tips. Default is: %(default)s')
-    parser_trim_tree_tips.add_argument('--run_profiler',
-                                       action='store_true',
-                                       dest='run_profiler',
-                                       default=False,
-                                       help='If supplied, run the subcommand using cProfile. Saves a '
-                                            '*.csv file of results')
-
-    return parser_trim_tree_tips
-
-
-def add_mask_tree_tips_parser(subparsers):
-    """
-    Parser for mask_tree_tips
-
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_mask_tree_tips = subparsers.add_parser('mask_tree_tips',
-                                                  help='Remove monophyletic tree tips from same taxon')
-    parser_mask_tree_tips.add_argument('treefile_directory',
-                                       type=str,
-                                       help='directory containing tree newick files')
-    parser_mask_tree_tips.add_argument('--tree_file_suffix',
-                                       type=str,
-                                       default='.tt',
-                                       help='Suffix for newick tree files. Default is: %(default)s')
-    parser_mask_tree_tips.add_argument('alignment_directory',
-                                       type=str,
-                                       help='directory containing fasta alignment files')
-    parser_mask_tree_tips.add_argument('--alignment_file_suffix',
-                                       type=str,
-                                       default='.fasta',
-                                       help='Suffix for alignment files. Default is: %(default)s')
-    parser_mask_tree_tips.add_argument('--remove_paraphyletic_tips',
-                                       action='store_true',
-                                       default=False,
-                                       help='Remove paraphyletic tree tips. Default is: %(default)s')
-    parser_mask_tree_tips.add_argument('--run_profiler',
-                                       action='store_true',
-                                       dest='run_profiler',
-                                       default=False,
-                                       help='If supplied, run the subcommand using cProfile. Saves a '
-                                            '*.csv file of results')
-
-    return parser_mask_tree_tips
-
-
-def add_cut_deep_paralogs_parser(subparsers):
-    """
-    Parser for cut_deep_paralogs
-
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_cut_deep_paralogs = subparsers.add_parser('cut_deep_paralogs',
-                                                     help='Cut long internal branches to remove deep paralogs')
-    parser_cut_deep_paralogs.add_argument('treefile_directory',
-                                          type=str,
-                                          help='directory containing tree newick files')
-    parser_cut_deep_paralogs.add_argument('--tree_file_suffix',
-                                          type=str,
-                                          default='.mm',
-                                          help='Suffix for newick tree files. Default is: %(default)s')
-    parser_cut_deep_paralogs.add_argument('--internal_branch_length_cutoff',
-                                          type=float,
-                                          default=0.3,
-                                          help='Internal branch length cutoff cutting tree. Default is: %('
-                                               'default)s')
-    parser_cut_deep_paralogs.add_argument('--minimum_number_taxa',
-                                          type=int,
-                                          default=4,
-                                          help='Minimum number of taxa in tree for tree to be retained. Default is: %('
-                                               'default)s')
-    parser_cut_deep_paralogs.add_argument('--run_profiler',
-                                          action='store_true',
-                                          dest='run_profiler',
-                                          default=False,
-                                          help='If supplied, run the subcommand using cProfile. Saves a '
-                                               '*.csv file of results')
-
-    return parser_cut_deep_paralogs
+    return parser_qc_trees_and_fasta
 
 
 def add_fasta_from_tree_parser(subparsers):
@@ -323,17 +286,17 @@ def add_fasta_from_tree_parser(subparsers):
                          dest='from_prune_paralogs',
                          default=False,
                          help='If set, trees are from paralog pruning step "prune_paralogs_mi".')
-    parser_fasta_from_tree.add_argument('--batch_size',
-                                        type=int,
-                                        default=20,
-                                        help='Number of fasta files in each batch, from input paralog fasta files. '
-                                             'Default is: %(default)s')
-    parser_fasta_from_tree.add_argument('--run_profiler',
-                                        action='store_true',
-                                        dest='run_profiler',
-                                        default=False,
-                                        help='If supplied, run the subcommand using cProfile. Saves a '
-                                             '*.csv file of results')
+    # parser_fasta_from_tree.add_argument('--batch_size',
+    #                                     type=int,
+    #                                     default=20,
+    #                                     help='Number of fasta files in each batch, from input paralog fasta files. '
+    #                                          'Default is: %(default)s')
+    # parser_fasta_from_tree.add_argument('--run_profiler',
+    #                                     action='store_true',
+    #                                     dest='run_profiler',
+    #                                     default=False,
+    #                                     help='If supplied, run the subcommand using cProfile. Saves a '
+    #                                          '*.csv file of results')
 
     return parser_fasta_from_tree
 

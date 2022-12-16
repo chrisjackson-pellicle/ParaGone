@@ -16,6 +16,8 @@ from ete3 import Tree
 import io
 import pstats
 import cProfile
+import re
+from textwrap import TextWrapper
 
 
 def check_inputs(directory_suffix_dict,
@@ -292,3 +294,82 @@ def cprofile_to_csv(profile_binary_file):
 
     return '\n'.join(lines)
 
+
+def fill_forward_slash(text, width=70, **kwargs):
+    """
+    Fill a single paragraph of text, returning a new string.
+
+    Reformat the single paragraph in 'text' to fit in lines of no more
+    than 'width' columns, and return a new string containing the entire
+    wrapped paragraph.  As with wrap(), tabs are expanded and other
+    whitespace characters converted to space.  See TextWrapper class for
+    available keyword args to customize wrapping behaviour.
+
+    This function uses the subclass TextWrapperForwardSlash.
+    """
+    w = TextWrapperForwardSlash(width=width, **kwargs)
+    return w.fill(text)
+
+
+class TextWrapperForwardSlash(TextWrapper):
+    """
+    Subclasses textwrap.TextWrapper and alters regex so that break_on_hyphens corresponds to forward slashes rather
+    than hyphens. Used for wrapping long path strings.
+
+    Change: letter = r'[^\d\W]' -> letter = r'[\w-]'
+    """
+
+    _whitespace = '\t\n\x0b\x0c\r '
+    word_punct = r'[\w!"\'&.,?]'
+    letter = r'[\w-]'
+    whitespace = r'[%s]' % re.escape(_whitespace)
+    nowhitespace = '[^' + whitespace[1:]
+
+    wordsep_re = re.compile(r'''
+        ( # any whitespace
+          %(ws)s+
+        | # em-dash between words
+          (?<=%(wp)s) -{2,} (?=\w)
+        | # word, possibly hyphenated
+          %(nws)s+? (?:
+            # hyphenated word
+              (?: (?<=%(lt)s{2}/) | (?<=%(lt)s/%(lt)s/))
+              (?= %(lt)s /? %(lt)s)
+            | # end of word
+              (?=%(ws)s|\Z)
+            | # em-dash
+              (?<=%(wp)s) (?=-{2,}\w)
+            )
+        )''' % {'wp': word_punct,
+                'lt': letter,
+                'ws': whitespace,
+                'nws': nowhitespace},
+        re.VERBOSE)
+    del word_punct, letter, nowhitespace
+
+    def __init__(self,
+                 width=70,
+                 initial_indent="",
+                 subsequent_indent="",
+                 expand_tabs=True,
+                 replace_whitespace=True,
+                 fix_sentence_endings=False,
+                 break_long_words=True,
+                 drop_whitespace=True,
+                 break_on_forward_slash=True,
+                 tabsize=8,
+                 *,
+                 max_lines=None,
+                 placeholder=' [...]'):
+        super().__init__(width=width,
+                         initial_indent=initial_indent,
+                         subsequent_indent=subsequent_indent,
+                         expand_tabs=expand_tabs,
+                         replace_whitespace=replace_whitespace,
+                         fix_sentence_endings=fix_sentence_endings,
+                         break_long_words=break_long_words,
+                         drop_whitespace=drop_whitespace,
+                         break_on_hyphens=break_on_forward_slash,
+                         tabsize=tabsize,
+                         max_lines=max_lines,
+                         placeholder=placeholder)

@@ -35,8 +35,8 @@ def fasttree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'05_{input_folder_basename.lstrip("04_").rstrip("alignments_hmmcleaned")}_trees'
+    # input_folder_basename = os.path.basename(alignments_folder)
+    output_folder = f'04_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using FastTreeMP. Tree files will be '
@@ -158,8 +158,8 @@ def iqtree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'05_{input_folder_basename.lstrip("04_").rstrip("alignments_hmmcleaned")}_tree_files'
+    # input_folder_basename = os.path.basename(alignments_folder)
+    output_folder = f'04_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using IQTREE. Tree files will be '
