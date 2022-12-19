@@ -78,6 +78,10 @@ def add_check_and_align_parser(subparsers):
                                         action='store_true',
                                         default=False,
                                         help='No not trim alignments using Trimal. Default is: %(default)s')
+    parser_check_and_align.add_argument('--no_cleaning',
+                                        action='store_true',
+                                        default=False,
+                                        help='No not clean alignments using HmmCleaner.pl. Default is: %(default)s')
     parser_check_and_align.add_argument('--run_profiler',
                                         action='store_true',
                                         dest='run_profiler',
@@ -182,7 +186,7 @@ def add_alignment_to_tree_parser(subparsers):
 #     return parser_collate_alignments_and_trees
 
 
-def add_qc_trees_and_fasta(subparsers):
+def add_qc_trees_and_extract_fasta(subparsers):
     """
     Parser for add_qc_trees_and_fasta
 
@@ -190,7 +194,7 @@ def add_qc_trees_and_fasta(subparsers):
     :return None: no return value specified; default is None
     """
 
-    parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_fasta',
+    parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_extract_fasta',
                                                       help='Quality control trees; for remaining tips, '
                                                            'extract corresponding fasta sequences')
     # parser_qc_trees_and_fasta.add_argument('treefile_directory',
@@ -208,13 +212,13 @@ def add_qc_trees_and_fasta(subparsers):
                                            type=float,
                                            default=0.4,
                                            help='Absolute cutoff for removing tree tips. Default is: %(default)s')
-    # parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
-    #                                        type=str,
-    #                                        help='directory containing original fasta alignment files')
-    # parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
-    #                                        type=str,
-    #                                        default='.fasta',
-    #                                        help='Suffix for alignment files. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
+                                           type=str,
+                                           help='directory containing original fasta alignment files')
+    parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
+                                           type=str,
+                                           default='.fasta',
+                                           help='Suffix for alignment files. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--mask_tips_remove_paraphyletic_tips',
                                            action='store_true',
                                            default=False,
@@ -238,8 +242,8 @@ def add_qc_trees_and_fasta(subparsers):
     # Set defaults for subparser <parser_qc_trees_and_fasta>:
     parser_qc_trees_and_fasta.set_defaults(
         treefile_directory='07_trees_pre_quality_control_trimmed_masked_cut',
-        alignment_directory='03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned',
-        tree_file_suffix='.subtree',
+        # alignment_directory='03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned',
+        # tree_file_suffix='.subtree',
         from_cut_deep_paralogs=True)
 
     return parser_qc_trees_and_fasta

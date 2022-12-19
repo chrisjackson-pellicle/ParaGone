@@ -133,11 +133,15 @@ def setup_logger(name, log_file, console_level=logging.INFO, file_level=logging.
 def createfolder(directory):
     """
     Attempts to create a directory named after the name provided, and provides an error message on failure
+
+    :param str directory: path to a directory to create
+    :return str directory: path to a directory to create
     """
 
     try:
         if not os.path.exists(directory):
             os.makedirs(directory)
+        return directory
     except OSError:
         print(f'{"[ERROR]:":10} Error creating directory: {directory}')
         sys.exit(1)

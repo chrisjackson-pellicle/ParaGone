@@ -271,16 +271,14 @@ def batch_input_files(gene_fasta_directory,
 ########################################################################################################################
 ########################################################################################################################
 
-def main(args):
+def main(args, logger=None):
     """
     Entry point for the paragone_main.py script.
 
     :param args: argparse namespace with subparser options for function main()
+    :param logging.Logger logger: a logger object
     :return:
     """
-
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/01_check_and_batch')
 
     logger.debug(f'{"[INFO]:":10} Module check_inputs was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,

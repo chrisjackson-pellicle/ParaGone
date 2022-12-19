@@ -3,11 +3,11 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-- Aligns the paralog fasta files using mafft or muscle, and if the option -no_stitched_contigs is provided,
-  realigns using Clustal Omega (which can do a better job when alignment contains contigs from different regions of
+- Aligns the paralog fasta files using MAFFT or MUSCLE, and if the option -no_stitched_contigs is provided,
+  realigns using Clustal Omega (which can do a better job when the alignment contains contigs from different regions of
   the full-length reference e.g. split between 5' and 3' halves).
-- Trims alignments with Trimal.
-- Runs HmmCleaner.pl on the alignments.
+- Trims alignments with Trimal (optional)
+- Runs HmmCleaner.pl on the alignments (optional).
 """
 
 import logging
@@ -32,9 +32,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                           algorithm='auto',
                                           pool_threads=1,
                                           mafft_threads=2,
-                                          no_stitched_contigs=False,
                                           use_muscle=False,
-                                          no_trimming=False,
                                           logger=None):
     """
     Generate alignments via function <mafft_or_muscle_align> using multiprocessing.
@@ -43,15 +41,12 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    :param bool no_stitched_contigs: if True, realign with Clustal Omega
     :param bool use_muscle: if True, use muscle instead of mafft for alignments
-    :param bool no_trimming: if true, don't trim alignments with Trimal. Default is False
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
-    input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'02_{input_folder_basename.lstrip("01_")}_alignments'
+    output_folder = f'02_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -82,15 +77,27 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      no_stitched_contigs=no_stitched_contigs,
                                       use_muscle=use_muscle,
-                                      no_trimming=no_trimming,
                                       logger=logger)
-
                           for fasta_file in target_genes]
+
         for future in future_results:
             future.add_done_callback(utils.done_callback)
         wait(future_results, return_when="ALL_COMPLETED")
+
+    for future in future_results:
+        try:
+            alignment_name, seqs_renamed = future.result()
+            if seqs_renamed:
+                sequence_names = ', '.join(seqs_renamed)
+                logger.info('')
+                fill = textwrap.fill(f'{"[WARNING]:":10} Alignment {alignment_name} contains sequences that were '
+                                     f'reversed by MAFFT, i.e. sequence names have the prefix "_R_". This prefix has '
+                                     f'been removed from the following sequences: {sequence_names}',
+                                     width=90, subsequent_indent=" " * 11)
+                logger.warning(fill)
+        except:
+            raise
 
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
@@ -107,13 +114,11 @@ def mafft_or_muscle_align(fasta_file,
                           lock,
                           num_files_to_process,
                           threads=1,
-                          no_stitched_contigs=False,
                           use_muscle=False,
-                          no_trimming=False,
                           logger=None):
     """
     Use mafft or muscle to align a fasta file of sequences, using the algorithm (if mafft) and number of threads
-    provided. Trims alignment with Trimal if no_stitched_contigs=False. Returns filename of the output alignment.
+    provided. Returns filename of the output alignment.
 
     :param str fasta_file: path to a fasta file
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
@@ -122,32 +127,21 @@ def mafft_or_muscle_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    :param bool no_stitched_contigs: if True, realign with Clustal Omega
     :param bool use_muscle: if True, use muscle instead of mafft for alignments
-    :param bool no_trimming: if true, don't trim alignments with Trimal. Default is False
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
     """
 
     fasta_file_basename = os.path.basename(fasta_file)
     expected_alignment_file = f'{output_folder}/{re.sub(".fasta", ".aln.fasta", fasta_file_basename)}'
-    expected_alignment_file_trimmed = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
 
     try:
-        if not no_stitched_contigs:  # i.e. stitched contig _were_ produced
-            assert utils.file_exists_and_not_empty(expected_alignment_file_trimmed)
-            logger.debug(f'Trimmed alignment exists for {fasta_file_basename}, skipping...')
-            with lock:
-                counter.value += 1
+        assert utils.file_exists_and_not_empty(expected_alignment_file)
+        logger.debug(f'Alignment exists for {fasta_file_basename}, skipping...')
+        with lock:
+            counter.value += 1
 
-            return os.path.basename(expected_alignment_file_trimmed)
-        else:
-            assert utils.file_exists_and_not_empty(expected_alignment_file)
-            logger.debug(f'Alignment exists for {fasta_file_basename}, skipping...')
-            with lock:
-                counter.value += 1
-
-            return os.path.basename(expected_alignment_file)
+        return os.path.basename(expected_alignment_file)
 
     except AssertionError:
         if use_muscle:
@@ -158,6 +152,7 @@ def mafft_or_muscle_align(fasta_file,
             logger.debug(f'stdout is: {stdout}')
             logger.debug(f'stderr is: {stderr}')
         else:
+
             if algorithm == 'auto':
                 mafft_cline = (MafftCommandline(auto='true', adjustdirection='true', thread=threads, input=fasta_file))
             else:
@@ -173,30 +168,16 @@ def mafft_or_muscle_align(fasta_file,
                 alignment_file.write(stdout)
 
             # If mafft has reversed any sequences, remove the prefix "_R_" from such sequence names:
-            remove_r_prefix(expected_alignment_file, logger=logger)
-
-        if not no_stitched_contigs:  # only trim if stitched contigs (and hence won't be realigned)
-            trimmed_alignment = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
-            try:
-                result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                         '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        check=True)
-                logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'trimal stdout is: {result.stdout}')
-                logger.debug(f'trimal stderr is: {result.stderr}')
-
-            except subprocess.CalledProcessError as exc:
-                logger.error(f'trimal FAILED. Output is: {exc}')
-                logger.error(f'trimal stdout is: {exc.stdout}')
-                logger.error(f'trimal stderr is: {exc.stderr}')
-                raise ValueError('There was an issue running trimal. Check input files!')
+            seqs_renamed_list = remove_r_prefix(expected_alignment_file, logger=logger)
 
         with lock:
             counter.value += 1
             logger.debug(f'Aligned file {fasta_file_basename}')
 
-        return os.path.basename(expected_alignment_file)
+        if use_muscle:
+            return os.path.basename(expected_alignment_file), None
+        else:
+            return os.path.basename(expected_alignment_file), seqs_renamed_list
 
     finally:
         with lock:
@@ -213,7 +194,7 @@ def remove_r_prefix(alignment, logger=None):
 
     :param str alignment: path to untrimmed alignment fasta file
     :param logging.Logger logger: a logger object
-    :return:
+    :return str os.path.basename(alignment), list seqs_renamed:
     """
 
     seqs_renamed = []
@@ -228,14 +209,56 @@ def remove_r_prefix(alignment, logger=None):
             AlignIO.write(alignment_obj, new_alignment_handle, 'fasta')
 
     if seqs_renamed:
-        sequence_names = ', '.join(seqs_renamed)
+        return seqs_renamed
+    else:
+        return None
 
-        fill = textwrap.fill(f'{"[WARNING]:":10} Alignment {alignment} contains sequences that were reversed by '
-                             f'MAFFT, i.e. sequence names have the prefix "_R_". This prefix has been removed from the '
-                             f'following sequences: {sequence_names}',
-                             width=90,
-                             subsequent_indent=" " * 11)
-        logger.warning(fill)
+
+def run_trimal(input_folder, logger=None):
+    """
+    Runs trimal on each alignment within a provided folder.
+    :param str input_folder: path to a folder containing fasta alignment files
+    :param logging.Logger logger: a logger object
+    :return str trimmed_alignments_directory: directory containing trimmed alignments
+    """
+
+    output_folder = f'03_alignments_trimmed'
+    trimmed_alignments_directory = utils.createfolder(output_folder)
+
+    logger.info('')
+    fill = textwrap.fill(f'{"[INFO]:":10} Running trimal on paralog alignments. Trimmed alignments will be '
+                         f'written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.info(fill)
+
+    for alignment in glob.glob(f'{input_folder}/*.aln.fasta'):
+        alignment_basename = os.path.basename(alignment)
+        expected_trimmed_alignment_file = \
+            f'{output_folder}/{re.sub(".aln.fasta", ".aln.trimmed.fasta", alignment_basename)}'
+
+        try:
+            assert utils.file_exists_and_not_empty(expected_trimmed_alignment_file)
+            logger.debug(f'Trimmed alignment exists for {alignment_basename}, skipping...')
+
+            return os.path.basename(expected_trimmed_alignment_file)
+
+        except AssertionError:
+            try:
+                result = subprocess.run(['trimal', '-in', alignment, '-out', expected_trimmed_alignment_file,
+                                         '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
+                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        check=True)
+                logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
+                logger.debug(f'trimal stdout is: {result.stdout}')
+                logger.debug(f'trimal stderr is: {result.stderr}')
+
+            except subprocess.CalledProcessError as exc:
+                logger.error(f'trimal FAILED. Output is: {exc}')
+                logger.error(f'trimal stdout is: {exc.stdout}')
+                logger.error(f'trimal stderr is: {exc.stderr}')
+                raise ValueError('There was an issue running trimal. Check input files!')
+
+    return trimmed_alignments_directory
 
 
 def run_hmm_cleaner(input_folder, logger=None):
@@ -247,17 +270,16 @@ def run_hmm_cleaner(input_folder, logger=None):
     :return:
     """
 
-    input_folder_basename = os.path.basename(input_folder)
-    output_folder = f'03_{input_folder_basename.lstrip("02_")}_hmmcleaned'
+    output_folder = f'04_alignments_trimmed_hmmcleaned'
     utils.createfolder(output_folder)
 
     logger.info('')
-    fill = textwrap.fill(f'{"[INFO]:":10} Running HmmCleaner.pl on trimmed alignments. Cleaned alignments will be '
+    fill = textwrap.fill(f'{"[INFO]:":10} Running HmmCleaner.pl on alignments. Cleaned alignments will be '
                          f'written to directory: "{output_folder}".',
                          width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
     logger.info(fill)
 
-    for alignment in glob.glob(f'{input_folder}/*.aln.trimmed.fasta'):
+    for alignment in glob.glob(f'{input_folder}/*.fasta'):
 
         alignment_basename = os.path.basename(alignment)
 
@@ -270,12 +292,12 @@ def run_hmm_cleaner(input_folder, logger=None):
 
         logger.debug(f'Trying command {command}')
 
-        hmm_file = re.sub('aln.trimmed.fasta', 'aln.trimmed_hmm.fasta', str(alignment_basename))  # output by HmmCleaner.pl
-        hmm_score = re.sub('aln.trimmed.fasta', 'aln.trimmed_hmm.score', str(alignment_basename))
-        hmm_log = re.sub('aln.trimmed.fasta', 'aln.trimmed_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
-        hmm_file_output = re.sub('aln.trimmed.fasta', 'aln.trimmed.hmm.fasta', str(alignment_basename))  # Desired filename
-        hmm_score_output = re.sub('aln.trimmed.fasta', 'aln.trimmed.hmm.score', str(alignment_basename))
-        hmm_log_output = re.sub('aln.trimmed.fasta', 'aln.trimmed.hmm.log', str(alignment_basename))
+        hmm_file = re.sub('.fasta', '_hmm.fasta', str(alignment_basename))  # output by HmmCleaner.pl
+        hmm_score = re.sub('.fasta', '_hmm.score', str(alignment_basename))  # output by HmmCleaner.pl
+        hmm_log = re.sub('.fasta', '_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
+        hmm_file_output = re.sub('.fasta', '.hmm.fasta', str(alignment_basename))  # Desired filename
+        hmm_score_output = re.sub('.fasta', '.hmm.score', str(alignment_basename))
+        hmm_log_output = re.sub('.fasta', '.hmm.log', str(alignment_basename))
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
@@ -286,7 +308,6 @@ def run_hmm_cleaner(input_folder, logger=None):
 
             # Filter out empty sequences comprising only dashes, and post-hmmcleaner alignments where all sequences
             # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
-
             with open(f'{input_folder}/{hmm_file}', 'r') as hmm_fasta_handle:
                 good_seqs = []
                 seqs_all_dashes = []
@@ -334,8 +355,6 @@ def run_hmm_cleaner(input_folder, logger=None):
             logger.error(f'hmmcleaner stdout is: {exc.stdout}')
             logger.error(f'hmmcleaner stderr is: {exc.stderr}')
 
-            # hmm_file_output = re.sub('aln.trimmed.fasta', 'aln.trimmed.hmm.fasta', str(alignment))
-
             logger.info(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
                         f' {command}')
             logger.info(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
@@ -349,7 +368,6 @@ def run_hmm_cleaner(input_folder, logger=None):
 def clustalo_align_multiprocessing(fasta_to_align_folder,
                                    pool_threads=1,
                                    clustalo_threads=1,
-                                   no_trimming=False,
                                    logger=None):
     """
     Generate alignments via function <clustalo_align> using multiprocessing.
@@ -357,13 +375,12 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     :param fasta_to_align_folder: path to folder containing input fasta alignment files
     :param int pool_threads: number of alignments to run concurrently
     :param int clustalo_threads: number of threads to use for each concurrent alignment
-    :param bool no_trimming: if true, don't trim alignments with Trimal. Default is False
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
     input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'03_{input_folder_basename}_clustal'
+    output_folder = f'{input_folder_basename}_clustal'
     utils.createfolder(output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -380,7 +397,6 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=clustalo_threads,
-                                      no_trimming=no_trimming,
                                       logger=logger)
                           for fasta_file in target_genes]
         for future in future_results:
@@ -401,7 +417,6 @@ def clustalo_align(fasta_file,
                    lock,
                    num_files_to_process,
                    threads=1,
-                   no_trimming=False,
                    logger=None):
     """
     Use clustal omega to align a fasta file of sequences, using the number of threads provided. Trims alignment with
@@ -413,7 +428,6 @@ def clustalo_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    :param bool no_trimming: if true, don't trim alignments with Trimal. Default is False
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file: filename of output alignment
     """
@@ -440,24 +454,6 @@ def clustalo_align(fasta_file,
         logger.debug(f'stdout is: {stdout}')
         logger.debug(f'stderr is: {stderr}')
 
-        # remove_r_prefix(expected_alignment_file)
-        trimmed_alignment = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
-
-        try:
-            result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                     '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                    universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    check=True)
-            logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'trimal stdout is: {result.stdout}')
-            logger.debug(f'trimal stderr is: {result.stderr}')
-
-        except subprocess.CalledProcessError as exc:
-            logger.error(f'trimal FAILED. Output is: {exc}')
-            logger.error(f'trimal stdout is: {exc.stdout}')
-            logger.error(f'trimal stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running trimal. Check input files!')
-
         with lock:
             counter.value += 1
             logger.debug(f'Aligned file {fasta_file_basename}')
@@ -474,16 +470,14 @@ def clustalo_align(fasta_file,
 ########################################################################################################################
 # Run script:
 
-def main(args):
+def main(args, logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param logging.Logger logger: a logger object
     :return:
     """
-
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/02_align_and_clean')
 
     logger.debug(f'{"[INFO]:":10} Module align_and_clean was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
@@ -511,34 +505,50 @@ def main(args):
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            no_stitched_contigs=args.no_stitched_contigs,
             use_muscle=args.use_muscle,
-            no_trimming=args.no_trimming,
             logger=logger)
 
-        run_hmm_cleaner(alignments_output_folder, logger=logger)
+        # Perform optional trimming with TrimAl:
+        if not args.no_trimming:
+            alignments_output_folder = run_trimal(alignments_output_folder, logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
+
+        # Perform optional cleaning with HmmCleaner.pl
+        if not args.no_cleaning:
+            run_hmm_cleaner(alignments_output_folder, logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
     elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
 
-        # CJJ CHECK IF THIS IS REQUIRED TO REV COMP SEQUENCES:
+        # Align with MAFFT first to reverse complement any paralog sequences that need it:
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
             gene_fasta_directory,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            no_stitched_contigs=args.no_stitched_contigs,
             use_muscle=args.use_muscle,
             logger=logger)
 
-        clustal_alignment_output_folder = clustalo_align_multiprocessing(
+        alignments_output_folder = clustalo_align_multiprocessing(
             alignments_output_folder,
             pool_threads=args.pool,
             clustalo_threads=args.threads,
-            no_trimming=args.no_trimming,
             logger=logger)
 
-        run_hmm_cleaner(clustal_alignment_output_folder, logger=logger)
+        # Perform optional trimming with TrimAl:
+        if not args.no_trimming:
+            alignments_output_folder = run_trimal(alignments_output_folder, logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
-    logger.info(f'{"[INFO]:":10} Finished aligning and cleaning input files.')
+        # Perform optional cleaning with HmmCleaner.pl
+        if not args.no_cleaning:
+            run_hmm_cleaner(alignments_output_folder, logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
+
+    logger.info(f'{"[INFO]:":10} Finished aligning and trimming/cleaning input files.')
 

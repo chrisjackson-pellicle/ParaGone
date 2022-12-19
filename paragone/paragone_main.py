@@ -59,35 +59,34 @@ from paragone import strip_names_and_align
 from paragone import utils
 
 ########################################################################################################################
-# Create a custom logger
-########################################################################################################################
-
-# Log to Terminal (stderr):
-console_handler = logging.StreamHandler(sys.stderr)
-console_handler.setLevel(logging.INFO)
-
-# Setup logger:
-logger = logging.getLogger(f'paragone.{__name__}')
-
-# Add handlers to the logger
-logger.addHandler(console_handler)
-logger.setLevel(logging.DEBUG)  # Default level is 'WARNING'
-
-
-########################################################################################################################
 # Define functions
 ########################################################################################################################
 
 
-def check_and_align_main(args):
+def check_and_align_main(args,
+                         log_directory=None,
+                         report_directory=None):
     """
     Calls the function main() from modules: check_inputs -> align_and_clean
 
     :param args: argparse namespace with subparser options for function check_and_align.main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
     """
 
+    # Create a dictionary from the argparse Namespace:
     parameters = vars(args)
+
+    # Create a logger for check_and_align_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/check_and_align')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
     logger.info(f'{"[INFO]:":10} Subcommand check_and_align was called with these arguments:\n')
 
@@ -96,40 +95,100 @@ def check_and_align_main(args):
             logger.info(f'{" "* 10} {parameter}: {value}')
     logger.info('')
 
-    check_inputs.main(args)
-    align_and_clean.main(args)
+    # Check input files:
+    check_inputs.main(
+        args,
+        logger=logger)
+
+    # Align paralogs, trim and clean:
+    align_and_clean.main(
+        args,
+        logger=logger)
 
 
-def alignment_to_tree_main(args):
+def alignment_to_tree_main(args,
+                           log_directory=None,
+                           report_directory=None):
     """
     Calls the function main() from module alignment_to_tree
 
     :param args: argparse namespace with subparser options for function alignment_to_tree.main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
     """
 
-    alignment_to_tree.main(args)
+    # Create a dictionary from the argparse Namespace:
+    parameters = vars(args)
+
+    # Create a logger for alignment_to_tree_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/alignment_to_tree')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
+
+    logger.info(f'{"[INFO]:":10} Subcommand alignment_to_tree was called with these arguments:\n')
+
+    for parameter, value in parameters.items():
+        if not parameter == 'func':
+            logger.info(f'{" " * 10} {parameter}: {value}')
+    logger.info('')
+
+    # Produce trees from alignments:
+    alignment_to_tree.main(
+        args,
+        logger=logger)
 
 
-def qc_trees_and_fasta_main(args):
+def qc_trees_and_extract_fasta_main(args,
+                                    log_directory=None,
+                                    report_directory=None):
     """
     Calls the function main() from modules: trim_tree_tips -> mask_tree_tips -> cut_deep_paralogs -> fasta_from_tree
 
     :param args: argparse namespace with subparser options for function qc_trees_and_fasta_main.main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
     """
 
-    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_fasta was called with these arguments:')
+    # Create a dictionary from the argparse Namespace:
+    parameters = vars(args)
 
-    print(args)
+    # Create a logger for qc_trees_and_extract_fasta_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/qc_trees_and_extract_fasta')
 
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
-    logger.info(args)
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
 
-    trim_tree_tips.main(args)
-    mask_tree_tips.main(args)
+    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_extract_fasta was called with these arguments:\n')
+
+    for parameter, value in parameters.items():
+        if parameter not in ['func', 'from_cut_deep_paralogs']:
+            logger.info(f'{" " * 10} {parameter}: {value}')
+    logger.info('')
+
+    # Trim tips from the input tree if above threshold lengths:
+    trim_tree_tips.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Mask tree tips in trimmed trees:
+    mask_tree_tips.main(
+        args,
+        report_directory,
+        logger=logger)
+
+
     # cut_deep_paralogs.main(args)
     # fasta_from_tree.main(args)
 
@@ -266,7 +325,7 @@ def parse_arguments():
     subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
     parser_check_and_align = paragone_subparsers.add_check_and_align_parser(subparsers)
     parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
-    parser_qc_trees_and_fasta = paragone_subparsers.add_qc_trees_and_fasta(subparsers)
+    parser_qc_trees_and_extract_fasta = paragone_subparsers.add_qc_trees_and_extract_fasta(subparsers)
 
 
     # parser_collate_alignments_and_trees = paragone_subparsers.add_collate_alignments_and_trees_parser(subparsers)
@@ -285,7 +344,7 @@ def parse_arguments():
     # parser_align_and_clean.set_defaults(func=align_and_clean_main)
     parser_check_and_align.set_defaults(func=check_and_align_main)
     parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
-    parser_qc_trees_and_fasta.set_defaults(func=qc_trees_and_fasta_main)
+    parser_qc_trees_and_extract_fasta.set_defaults(func=qc_trees_and_extract_fasta_main)
     # parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
     # parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
     # parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
@@ -311,31 +370,37 @@ def main():
 
     # Create a directory for logs for each step of the pipeline:
     utils.createfolder('00_logs_and_reports_resolve_paralogs')
-    utils.createfolder('00_logs_and_reports_resolve_paralogs/logs')
-    utils.createfolder('00_logs_and_reports_resolve_paralogs/reports')
+    log_directory = utils.createfolder('00_logs_and_reports_resolve_paralogs/logs')
+    report_directory = utils.createfolder('00_logs_and_reports_resolve_paralogs/reports')
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
 
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
+    # # check for external dependencies:
+    # if utils.check_dependencies(logger=logger):
+    #     logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    # else:
+    #     logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+    #     sys.exit(1)
 
     # Run the function associated with the subcommand, with or without cProfile:
     if args.run_profiler:
         profiler = cProfile.Profile()
         profiler.enable()
-        args.func(args)
+
+        args.func(args,
+                  log_directory=log_directory,
+                  report_directory=report_directory)
+
         profiler.disable()
         csv = utils.cprofile_to_csv(profiler)
 
         with open(f'{sys.argv[1]}_cprofile.csv', 'w+') as cprofile_handle:
             cprofile_handle.write(csv)
     else:
-        args.func(args)
+        args.func(args,
+                  log_directory=log_directory,
+                  report_directory=report_directory)
 
 
 ########################################################################################################################

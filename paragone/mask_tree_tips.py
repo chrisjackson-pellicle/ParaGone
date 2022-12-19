@@ -150,21 +150,21 @@ def mask_paraphyletic_tips(curroot,
 
 
 def write_mask_report(collated_mask_report_dict,
-                      treefile_directory,
+                      report_directory,
                       logger=None):
     """
     Writes a *.tsv report detailing which tips were masked (removed) from each tree, and why.
 
     :param dict collated_mask_report_dict: dictionary of default dicts for mono and (optional) paraphyletic cut-off
     tips/data
-    :param str treefile_directory: name of tree file directory for report filename
+    :param str report_directory: path to directory for report files
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("05_")}_masked_report.tsv'
+    report_filename = f'{report_directory}/trees_trimmed_masked_report.tsv'
 
+    logger.info('')
     fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
@@ -234,35 +234,38 @@ def write_mask_report(collated_mask_report_dict,
             report_handle.write(f'{stats_joined}\n')
 
 
-def main(args):
+def main(args,
+         report_directory,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/06_mask_tree_tips')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand mask_tree_tips was called with these arguments:')
+    logger.debug(f'{"[INFO]:":10} Module mask_tree_tips was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{fill}\n')
+    logger.debug(args)
+
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> MASKING TREE TIPS <======\n')
+
+    logger.debug(f'{"[INFO]:":10} Module mask_tree_tips was called with these arguments:')
+    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
     # Checking input directories and files:
-    tree_file_directory = '05_trees_pre_quality_control_trimmed'
+    tree_file_directory = '06_trees_pre_quality_control_trimmed'
     tree_file_suffix = '.tt'
-    alignment_directory = '03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned'
-    alignment_file_suffix = 'fasta'
+    alignment_directory = args.mask_tips_alignment_directory
+    alignment_file_suffix = args.mask_tips_alignment_file_suffix
 
     directory_suffix_dict = {tree_file_directory: tree_file_suffix,
                              alignment_directory: alignment_file_suffix}
@@ -274,16 +277,16 @@ def main(args):
 
     # Create output folder:
     treefile_directory_basename = os.path.basename(tree_file_directory)
-    output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_masked'
-    utils.createfolder(output_folder)
-
-    filecount = 0
+    output_folder = f'07_{treefile_directory_basename.lstrip("06_")}_masked'
+    masked_tree_output_folder = utils.createfolder(output_folder)
 
     # Create a dictionary of gene name to alignment file name:
     gene_name_to_alignment_dict = {}  # key is gene name, value is the alignment file name
+
     for alignment_file in glob.glob(f'{alignment_directory}/*{alignment_file_suffix}'):
         alignment_basename = os.path.basename(alignment_file)
         alignment_gene_name = os.path.basename(alignment_file).split('.')[0]
+
         try:
             gene_name_to_alignment_dict[alignment_gene_name] = alignment_basename
         except KeyError:
@@ -301,7 +304,6 @@ def main(args):
             intree = newick3.parse(tree_file_handle.readline())
 
         tree_gene_name = os.path.basename(tree_file).split('.')[0]
-        filecount += 1
 
         logger.info(f'{"[INFO]:":10} Analysing tree: {tree_file_basename}')
 
@@ -356,6 +358,11 @@ def main(args):
         with open(tree_to_write, "w") as tree_outfile:
             tree_outfile.write(newick3.tostring(curroot) + ";\n")
 
+    # Write a report of tips trimmed from each tree, and why:
+    write_mask_report(collated_mask_report_dict,
+                      report_directory,
+                      logger=logger)
+
     fill = textwrap.fill(f'{"[INFO]:":10} Finished masking tips of input trees. Masked trees have been written to '
                          f'directory: "{output_folder}".',
                          width=90, subsequent_indent=' ' * 11,
@@ -363,17 +370,4 @@ def main(args):
 
     logger.info(f'{fill}')
 
-    # Write a report of tips trimmed from each tree, and why:
-    write_mask_report(collated_mask_report_dict,
-                      tree_file_directory,
-                      logger=logger)
-
-    # try:
-    #     assert filecount > 0
-    # except AssertionError:
-    #     logger.error(f'{"[ERROR]:":10} No files with suffix {tree_file_suffix} found in'
-    #                  f' {tree_file_directory}.')
-    #     sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Finished masking tree tips.')
 

@@ -36,7 +36,7 @@ def fasttree_multiprocessing(alignments_folder,
     """
 
     # input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'04_trees_pre_quality_control'
+    output_folder = f'05_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using FastTreeMP. Tree files will be '
@@ -46,7 +46,7 @@ def fasttree_multiprocessing(alignments_folder,
 
     logger.info(f'{fill}')
 
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -159,7 +159,7 @@ def iqtree_multiprocessing(alignments_folder,
     """
 
     # input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'04_trees_pre_quality_control'
+    output_folder = f'05_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Generating trees from alignments using IQTREE. Tree files will be '
@@ -169,7 +169,7 @@ def iqtree_multiprocessing(alignments_folder,
 
     logger.info(f'{fill}')
 
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -265,32 +265,25 @@ def iqtree(alignment_file,
                          f' {counter.value}/{num_files_to_process}')
 
 
-def main(args):
+def main(args, logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/03_alignment_to_tree')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand alignment_to_tree was called with these arguments:')
+    logger.debug(f'{"[INFO]:":10} Module alignment_to_tree was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
+    logger.info(f'{"[INFO]:":10} ======> GENERATING TREES FROM PARALOG ALIGNMENTS <======\n')
+
     # Checking input directories and files:
-    directory_suffix_dict = {args.alignment_directory: '.trimmed.fasta'}
+    directory_suffix_dict = {args.alignment_directory: '.fasta'}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
