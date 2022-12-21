@@ -255,14 +255,8 @@ def main(args,
     logger.info('')
     logger.info(f'{"[INFO]:":10} ======> MASKING TREE TIPS <======\n')
 
-    logger.debug(f'{"[INFO]:":10} Module mask_tree_tips was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.debug(f'{fill}\n')
-    logger.debug(args)
-
     # Checking input directories and files:
-    tree_file_directory = '06_trees_pre_quality_control_trimmed'
+    tree_file_directory = '06_trees_trimmed'
     tree_file_suffix = '.tt'
     alignment_directory = args.mask_tips_alignment_directory
     alignment_file_suffix = args.mask_tips_alignment_file_suffix
@@ -276,8 +270,7 @@ def main(args,
                        logger=logger)
 
     # Create output folder:
-    treefile_directory_basename = os.path.basename(tree_file_directory)
-    output_folder = f'07_{treefile_directory_basename.lstrip("06_")}_masked'
+    output_folder = f'07_trees_trimmed_masked'
     masked_tree_output_folder = utils.createfolder(output_folder)
 
     # Create a dictionary of gene name to alignment file name:

@@ -285,12 +285,6 @@ def main(args,
 
     logger.info(f'{"[INFO]:":10} ======> TRIMMING TREE TIPS <======\n')
 
-    logger.debug(f'{"[INFO]:":10} Module trim_tree_tips was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.debug(f'{fill}\n')
-    logger.debug(args)
-
     # Checking input directories and files:
     tree_file_directory = '05_trees_pre_quality_control'
     tree_file_suffix = '.treefile'
@@ -303,8 +297,7 @@ def main(args,
                        logger=logger)
 
     # Create output folder for trimmed trees:
-    treefile_directory_basename = os.path.basename(tree_file_directory)
-    output_folder = f'06_{treefile_directory_basename.lstrip("05_")}_trimmed'
+    output_folder = f'06_trees_trimmed'
     trimmed_tree_output_folder = utils.createfolder(output_folder)
 
     collated_trim_report_dict = defaultdict(lambda: defaultdict())

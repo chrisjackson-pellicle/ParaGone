@@ -214,15 +214,18 @@ def remove_r_prefix(alignment, logger=None):
         return None
 
 
-def run_trimal(input_folder, logger=None):
+def run_trimal(input_folder,
+               output_folder,
+               logger=None):
     """
     Runs trimal on each alignment within a provided folder.
     :param str input_folder: path to a folder containing fasta alignment files
+    :param str output_folder: path to a folder for output trimmed fasta alignment files
     :param logging.Logger logger: a logger object
     :return str trimmed_alignments_directory: directory containing trimmed alignments
     """
 
-    output_folder = f'03_alignments_trimmed'
+    # output_folder = f'03_alignments_trimmed'
     trimmed_alignments_directory = utils.createfolder(output_folder)
 
     logger.info('')
@@ -500,6 +503,7 @@ def main(args, logger=None):
 
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
+
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
             gene_fasta_directory,
             algorithm=args.mafft_algorithm,
@@ -509,14 +513,18 @@ def main(args, logger=None):
             logger=logger)
 
         # Perform optional trimming with TrimAl:
+        trimmed_output_folder = '03_alignments_trimmed'
         if not args.no_trimming:
-            alignments_output_folder = run_trimal(alignments_output_folder, logger=logger)
+            alignments_output_folder = run_trimal(alignments_output_folder,
+                                                  trimmed_output_folder,
+                                                  logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
-            run_hmm_cleaner(alignments_output_folder, logger=logger)
+            run_hmm_cleaner(alignments_output_folder,
+                            logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
@@ -539,14 +547,18 @@ def main(args, logger=None):
             logger=logger)
 
         # Perform optional trimming with TrimAl:
+        trimmed_output_folder = '03_alignments_trimmed'
         if not args.no_trimming:
-            alignments_output_folder = run_trimal(alignments_output_folder, logger=logger)
+            alignments_output_folder = run_trimal(alignments_output_folder,
+                                                  trimmed_output_folder,
+                                                  logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
-            run_hmm_cleaner(alignments_output_folder, logger=logger)
+            run_hmm_cleaner(alignments_output_folder,
+                            logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 

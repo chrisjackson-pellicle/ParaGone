@@ -116,20 +116,20 @@ def cut_long_internal_branches(curroot,
 
 
 def write_cut_report(collated_subtree_data,
-                     treefile_directory,
+                     report_directory,
                      logger=None):
     """
     Writes a *.tsv report detailing which retained subtree count, and which subtrees were discarded.
 
     :param dict collated_subtree_data: dictionary of default dicts for retained and discarded subtrees
-    :param str treefile_directory: name of tree file directory for report filename
+    :param str report_directory: path to directory for report files
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("06_")}_cut_report.tsv'
+    report_filename = f'{report_directory}/trees_trimmed_masked_cut_report.tsv'
 
+    logger.info('')
     fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
@@ -178,32 +178,29 @@ def write_cut_report(collated_subtree_data,
                                     f'{reason}\t\n')
 
 
-def main(args):
+def main(args,
+         report_directory,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/07_cut_deep_paralogs')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand cut_deep_paralogs was called with these arguments:')
+    logger.debug(f'{"[INFO]:":10} Module cut_deep_paralogs was called with these arguments:')
     fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
                          break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> CUTTING DEEP PARALOGS <======\n')
+
     # Checking input directories and files:
-    tree_file_directory = '06_trees_pre_quality_control_trimmed_masked'
+    tree_file_directory = '07_trees_trimmed_masked'
     tree_file_suffix = '.mm'
 
     directory_suffix_dict = {tree_file_directory: tree_file_suffix}
@@ -214,12 +211,11 @@ def main(args):
                        logger=logger)
 
     # Create output folder:
-    treefile_directory_basename = os.path.basename(tree_file_directory)
-    output_folder = f'07_{treefile_directory_basename.lstrip("06_")}_cut'
+    output_folder = f'08_trees_trimmed_masked_cut'
     utils.createfolder(output_folder)
-    filecount = 0
 
-    logger.info(f'{"[INFO]:":10} Cutting internal branches longer than {args.cut_deep_paralogs_internal_branch_length_cutoff}')
+    logger.info(f'{"[INFO]:":10} Cutting internal branches longer than'
+                f' {args.cut_deep_paralogs_internal_branch_length_cutoff}')
 
     collated_subtree_data = defaultdict(lambda: defaultdict())
 
@@ -227,7 +223,6 @@ def main(args):
         tree_file_basename = os.path.basename(tree_file)
         with open(tree_file, 'r') as tree_file_handle:
             intree = newick3.parse(tree_file_handle.readline())
-        filecount += 1
 
         logger.info(f'{"[INFO]:":10} Analysing tree: {tree_file_basename}')
 
@@ -239,8 +234,8 @@ def main(args):
                            f'less than the minimum number of {args.cut_deep_paralogs_minimum_number_taxa} specified. '
                            f'Skipping tree...')
         else:
-            logger.info(f'{"[INFO]:":10} Tree {tree_file_basename} has {raw_tree_size} tips and {num_taxa} unique '
-                        f'taxon names...')
+            logger.debug(f'{"[INFO]:":10} Tree {tree_file_basename} has {raw_tree_size} tips and {num_taxa} unique '
+                         f'taxon names...')
 
             # Cut long internal branches if present:
             subtrees, subtrees_discarded_during_cutting = \
@@ -290,21 +285,21 @@ def main(args):
 
                 subtree_sizes_joined = ', '.join(subtree_sizes)
 
-                logger.info(f'{"[INFO]:":10} For input tree {tree_file_basename}, {count} subtree(s) were written. '
-                            f'Sizes (tip numbers) were: {subtree_sizes_joined}')
+                logger.info(f'{"[INFO]:":10} Subtree(s) written: {count}. Sizes (tip numbers) were: {subtree_sizes_joined}')
 
     # Write a report of tips trimmed from each tree, and why:
     write_cut_report(collated_subtree_data,
-                     args.treefile_directory,
+                     report_directory,
                      logger=logger)
 
-    # try:
-    #     assert filecount > 0
-    # except AssertionError:
-    #     logger.error(f'{"[ERROR]:":10} No files with suffix {args.tree_file_suffix} found in {args.treefile_directory}')
-    #     sys.exit(1)
+    # logger.info(f'{"[INFO]:":10} Finished cutting putative deep paralogs.')
 
-    logger.info(f'{"[INFO]:":10} Finished cutting putative deep paralogs.')
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished cutting putative deep paralogs. Trees/subtrees have been '
+                         f'written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
+
+    logger.info(f'{fill}')
 
 
 

@@ -188,75 +188,55 @@ def qc_trees_and_extract_fasta_main(args,
         report_directory,
         logger=logger)
 
+    # Cut tree at points of putative deep paralogs:
+    cut_deep_paralogs.main(
+        args,
+        report_directory,
+        logger=logger)
 
-    # cut_deep_paralogs.main(args)
-    # fasta_from_tree.main(args)
-
-
-# def collate_alignments_and_trees_main(args):
-#     """
-#     Calls the function main() from module collate_alignments_and_trees
-#
-#     :param args: argparse namespace with subparser options for function collate_alignments_and_trees.main()
-#     :return: None: no return value specified; default is None
-#     """
-#
-#     collate_alignments_and_trees.main(args)
+    # Extract fasta sequences corresponding to the QC'd trees:
+    fasta_from_tree.main(
+        args,
+        report_directory,
+        logger=logger)
 
 
-# def trim_tree_tips_main(args):
-#     """
-#     Calls the function main() from module trim_tree_tips
-#
-#     :param args: argparse namespace with subparser options for function trim_tree_tips.main()
-#     :return: None: no return value specified; default is None
-#     """
-#
-#     trim_tree_tips.main(args)
-#
-#
-# def mask_tree_tips_main(args):
-#     """
-#     Calls the function main() from module mask_tree_tips
-#
-#     :param args: argparse namespace with subparser options for function mask_tree_tips.main()
-#     :return: None: no return value specified; default is None
-#     """
-#
-#     mask_tree_tips.main(args)
-#
-#
-# def cut_deep_paralogs_main(args):
-#     """
-#     Calls the function main() from module cut_deep_paralogs
-#
-#     :param args: argparse namespace with subparser options for function cut_deep_paralogs.main()
-#     :return: None: no return value specified; default is None
-#     """
-#
-#     cut_deep_paralogs.main(args)
-
-
-def fasta_from_tree_main(args):
-    """
-    Calls the function main() from module fasta_from_tree
-
-    :param args: argparse namespace with subparser options for function fasta_from_tree.main()
-    :return: None: no return value specified; default is None
-    """
-
-    fasta_from_tree.main(args)
-
-
-def align_selected_and_tree_main(args):
+def align_selected_and_tree_main(args,
+                                 log_directory=None,
+                                 report_directory=None):
     """
     Calls the function main() from module align_selected_and_tree
 
     :param args: argparse namespace with subparser options for function align_selected_and_tree.main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
     """
 
-    align_selected_and_tree.main(args)
+    # Create a dictionary from the argparse Namespace:
+    parameters = vars(args)
+
+    # Create a logger for qc_trees_and_extract_fasta_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/qc_trees_and_extract_fasta')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
+
+    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_extract_fasta was called with these arguments:\n')
+
+    for parameter, value in parameters.items():
+        if parameter not in ['func', 'from_cut_deep_paralogs']:
+            logger.info(f'{" " * 10} {parameter}: {value}')
+    logger.info('')
+
+    align_selected_and_tree.main(
+        args,
+        report_directory,
+        logger=logger)
 
 
 def prune_paralogs_mo_main(args):
@@ -326,31 +306,17 @@ def parse_arguments():
     parser_check_and_align = paragone_subparsers.add_check_and_align_parser(subparsers)
     parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
     parser_qc_trees_and_extract_fasta = paragone_subparsers.add_qc_trees_and_extract_fasta(subparsers)
-
-
-    # parser_collate_alignments_and_trees = paragone_subparsers.add_collate_alignments_and_trees_parser(subparsers)
-    # parser_trim_tree_tips = paragone_subparsers.add_trim_tree_tips_parser(subparsers)
-    # parser_mask_tree_tips = paragone_subparsers.add_mask_tree_tips_parser(subparsers)
-    # parser_cut_deep_paralogs = paragone_subparsers.add_cut_deep_paralogs_parser(subparsers)
-    # parser_fasta_from_tree = paragone_subparsers.add_fasta_from_tree_parser(subparsers)
-    # parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
+    parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
     # parser_prune_paralogs_mo = paragone_subparsers.add_prune_paralogs_mo_parser(subparsers)
     # parser_prune_paralogs_rt = paragone_subparsers.add_prune_paralogs_rt_parser(subparsers)
     # parser_prune_paralogs_mi = paragone_subparsers.add_prune_paralogs_mi_parser(subparsers)
     # parser_strip_names_and_align = paragone_subparsers.add_strip_names_and_align_parser(subparsers)
 
     # Set functions for subparsers:
-    # parser_check_and_batch.set_defaults(func=check_and_batch_main)
-    # parser_align_and_clean.set_defaults(func=align_and_clean_main)
     parser_check_and_align.set_defaults(func=check_and_align_main)
     parser_alignment_to_tree.set_defaults(func=alignment_to_tree_main)
     parser_qc_trees_and_extract_fasta.set_defaults(func=qc_trees_and_extract_fasta_main)
-    # parser_collate_alignments_and_trees.set_defaults(func=collate_alignments_and_trees_main)
-    # parser_trim_tree_tips.set_defaults(func=trim_tree_tips_main)
-    # parser_mask_tree_tips.set_defaults(func=mask_tree_tips_main)
-    # parser_cut_deep_paralogs.set_defaults(func=cut_deep_paralogs_main)
-    # parser_fasta_from_tree.set_defaults(func=fasta_from_tree_main)
-    # parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
+    parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     # parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
     # parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
     # parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)

@@ -132,59 +132,6 @@ def add_alignment_to_tree_parser(subparsers):
 
     return parser_alignment_to_tree
 
-#
-# def add_collate_alignments_and_trees_parser(subparsers):
-#     """
-#     Parser for collate_alignments_and_trees
-#
-#     :param argparse._SubParsersAction subparsers:
-#     :return None: no return value specified; default is None
-#     """
-#
-#     parser_collate_alignments_and_trees = subparsers.add_parser(
-#         'collate_alignments_and_trees',
-#         help='Collates all HmmCleaned alignments into a single folder. Collates all corresponding trees into a '
-#              'single folder')
-#     group_1 = parser_collate_alignments_and_trees.add_mutually_exclusive_group(required=True)
-#     group_1.add_argument('--from_alignment_to_tree',
-#                          action='store_true',
-#                          dest='from_alignment_to_tree',
-#                          default=False,
-#                          help='If set, trees are from step "alignment_to_tree".')
-#     group_1.add_argument('--from_align_selected_and_tree',
-#                          action='store_true',
-#                          dest='from_align_selected_and_tree',
-#                          default=False,
-#                          help='If set, trees are from step "align_selected_and_tree".')
-#     group_1.add_argument('--from_prune_paralogs_mo',
-#                          action='store_const', const='mo',
-#                          dest='from_prune_paralogs',
-#                          default=False,
-#                          help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
-#     group_1.add_argument('--from_prune_paralogs_rt',
-#                          action='store_const', const='rt',
-#                          dest='from_prune_paralogs',
-#                          default=False,
-#                          help='If set, sequences are from paralog pruning step "prune_paralogs_rt".')
-#     group_1.add_argument('--from_prune_paralogs_mi',
-#                          action='store_const', const='mi',
-#                          dest='from_prune_paralogs',
-#                          default=False,
-#                          help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
-#
-#     parser_collate_alignments_and_trees.add_argument('--tree_file_suffix',
-#                                                      type=str,
-#                                                      default='.treefile',
-#                                                      help='Suffix for newick tree files. Default is: %(default)s')
-#     parser_collate_alignments_and_trees.add_argument('--run_profiler',
-#                                                      action='store_true',
-#                                                      dest='run_profiler',
-#                                                      default=False,
-#                                                      help='If supplied, run the subcommand using cProfile. Saves a '
-#                                                           '*.csv file of results')
-#
-#     return parser_collate_alignments_and_trees
-
 
 def add_qc_trees_and_extract_fasta(subparsers):
     """
@@ -241,68 +188,11 @@ def add_qc_trees_and_extract_fasta(subparsers):
 
     # Set defaults for subparser <parser_qc_trees_and_fasta>:
     parser_qc_trees_and_fasta.set_defaults(
-        treefile_directory='07_trees_pre_quality_control_trimmed_masked_cut',
-        # alignment_directory='03_input_paralog_fasta_with_sanitised_filenames_alignments_hmmcleaned',
-        # tree_file_suffix='.subtree',
+        treefile_directory='08_trees_trimmed_masked_cut',
+        tree_file_suffix='.subtree',
         from_cut_deep_paralogs=True)
 
     return parser_qc_trees_and_fasta
-
-
-def add_fasta_from_tree_parser(subparsers):
-    """
-    Parser for fasta_from_tree
-
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_fasta_from_tree = subparsers.add_parser('fasta_from_tree',
-                                                   help='Filters an alignment for names in tree')
-    parser_fasta_from_tree.add_argument('treefile_directory',
-                                        type=str,
-                                        help='directory containing tree newick files')
-    parser_fasta_from_tree.add_argument('alignment_directory',
-                                        type=str,
-                                        help='directory containing fasta alignment files')
-    parser_fasta_from_tree.add_argument('--tree_file_suffix',
-                                        type=str,
-                                        default='.subtree',
-                                        help='Suffix for newick tree files. Default is: %(default)s')
-    group_1 = parser_fasta_from_tree.add_mutually_exclusive_group(required=True)
-    group_1.add_argument('--from_cut_deep_paralogs',
-                         action='store_true',
-                         dest='from_cut_deep_paralogs',
-                         default=False,
-                         help='If set, trees are from QC step "cut_deep_paralogs".')
-    group_1.add_argument('--from_prune_paralogs_mo',
-                         action='store_const', const='mo',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, trees are from paralog pruning step "prune_paralogs_mo".')
-    group_1.add_argument('--from_prune_paralogs_rt',
-                         action='store_const', const='rt',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, trees are from paralog pruning step ="prune_paralogs_rt".')
-    group_1.add_argument('--from_prune_paralogs_mi',
-                         action='store_const', const='mi',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, trees are from paralog pruning step "prune_paralogs_mi".')
-    # parser_fasta_from_tree.add_argument('--batch_size',
-    #                                     type=int,
-    #                                     default=20,
-    #                                     help='Number of fasta files in each batch, from input paralog fasta files. '
-    #                                          'Default is: %(default)s')
-    # parser_fasta_from_tree.add_argument('--run_profiler',
-    #                                     action='store_true',
-    #                                     dest='run_profiler',
-    #                                     default=False,
-    #                                     help='If supplied, run the subcommand using cProfile. Saves a '
-    #                                          '*.csv file of results')
-
-    return parser_fasta_from_tree
 
 
 def add_align_selected_and_tree_parser(subparsers):
@@ -320,9 +210,9 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 type=str,
                                                 help='directory containing selected alignment files corresponding to '
                                                      'subtrees')
-    parser_align_selected_and_tree.add_argument('hmmcleaned_alignment_directory',
+    parser_align_selected_and_tree.add_argument('qc_alignment_directory',
                                                 type=str,
-                                                help='directory containing hmmcleaned original fasta alignment files')
+                                                help='directory containing quality controlled alignment files')
     parser_align_selected_and_tree.add_argument('--pool',
                                                 type=int,
                                                 default=1,
@@ -346,6 +236,10 @@ def add_align_selected_and_tree_parser(subparsers):
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
                                                 help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--no_trimming',
+                                                action='store_true',
+                                                default=False,
+                                                help='No not trim alignments using Trimal. Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--external_outgroups_file',
                                                 type=str,
                                                 default=None,
