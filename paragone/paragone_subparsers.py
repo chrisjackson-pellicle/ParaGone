@@ -188,8 +188,6 @@ def add_qc_trees_and_extract_fasta(subparsers):
 
     # Set defaults for subparser <parser_qc_trees_and_fasta>:
     parser_qc_trees_and_fasta.set_defaults(
-        treefile_directory='08_trees_trimmed_masked_cut',
-        tree_file_suffix='.subtree',
         from_cut_deep_paralogs=True)
 
     return parser_qc_trees_and_fasta
@@ -330,189 +328,125 @@ def add_prune_paralogs_parser(subparsers):
     return parser_prune_paralogs
 
 
-
-# def add_prune_paralogs_mo_parser(subparsers):
-#     """
-#     Parser for fasta_from_tree
-#
-#     :param argparse._SubParsersAction subparsers:
-#     :return None: no return value specified; default is None
-#     """
-#
-#     parser_prune_paralogs_mo = subparsers.add_parser('prune_paralogs_mo',
-#                                                      help='Prune paralogs from tree using Monophyletic Outgroups (MO) '
-#                                                      'algorithm')
-#     parser_prune_paralogs_mo.add_argument('treefile_directory',
-#                                           type=str,
-#                                           help='directory containing tree newick files')
-#     parser_prune_paralogs_mo.add_argument('in_and_outgroup_list',
-#                                           type=str,
-#                                           help='Text file listing in- and out-group taxa')
-#     parser_prune_paralogs_mo.add_argument('--tree_file_suffix',
-#                                           type=str,
-#                                           default='.treefile',
-#                                           help='Suffix for newick tree files. Default is: %(default)s')
-#     parser_prune_paralogs_mo.add_argument('--minimum_taxa',
-#                                           type=int,
-#                                           default=2,
-#                                           help='Minimum number of taxa required. Default is: %(default)s')
-#     parser_prune_paralogs_mo.add_argument('--ignore_1to1_orthologs',
-#                                           action='store_true',
-#                                           default=False,
-#                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
-#                                                'default)s')
-#     parser_prune_paralogs_mo.add_argument('--run_profiler',
-#                                           action='store_true',
-#                                           dest='run_profiler',
-#                                           default=False,
-#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-#                                                'results')
-#
-#     return parser_prune_paralogs_mo
-#
-#
-# def add_prune_paralogs_rt_parser(subparsers):
-#     """
-#     Parser for fasta_from_tree
-#
-#     :param argparse._SubParsersAction subparsers:
-#     :return None: no return value specified; default is None
-#     """
-#
-#     parser_prune_paralogs_rt = subparsers.add_parser('prune_paralogs_rt',
-#                                                      help='Prune paralogs from tree using RooTed ingroups (RT) '
-#                                                      'algorithm')
-#     parser_prune_paralogs_rt.add_argument('treefile_directory',
-#                                           type=str,
-#                                           help='directory containing tree newick files')
-#     parser_prune_paralogs_rt.add_argument('in_and_outgroup_list',
-#                                           type=str,
-#                                           help='Text file listing in- and out-group taxa')
-#     parser_prune_paralogs_rt.add_argument('--tree_file_suffix',
-#                                           type=str,
-#                                           default='.treefile',
-#                                           help='Suffix for newick tree files. Default is: %(default)s')
-#     parser_prune_paralogs_rt.add_argument('--minimum_taxa',
-#                                           type=int,
-#                                           default=2,
-#                                           help='Minimum number of taxa required. Default is: %(default)s')
-#     parser_prune_paralogs_rt.add_argument('--run_profiler',
-#                                           action='store_true',
-#                                           dest='run_profiler',
-#                                           default=False,
-#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-#                                                'results')
-#
-#     return parser_prune_paralogs_rt
-#
-#
-# def add_prune_paralogs_mi_parser(subparsers):
-#     """
-#     Parser for fasta_from_tree
-#
-#     :param argparse._SubParsersAction subparsers:
-#     :return None: no return value specified; default is None
-#     """
-#
-#     parser_prune_paralogs_mi = subparsers.add_parser('prune_paralogs_mi',
-#                                                      help='Prune paralogs from tree using Maximum Inclusion (MI) '
-#                                                      'algorithm')
-#     parser_prune_paralogs_mi.add_argument('treefile_directory',
-#                                           type=str,
-#                                           help='directory containing tree newick files')
-#     parser_prune_paralogs_mi.add_argument('in_and_outgroup_list',
-#                                           type=str,
-#                                           help='Text file listing in- and out-group taxa')
-#     parser_prune_paralogs_mi.add_argument('--tree_file_suffix',
-#                                           type=str,
-#                                           default='.treefile',
-#                                           help='Suffix for newick tree files. Default is: %(default)s')
-#     parser_prune_paralogs_mi.add_argument('--relative_tip_cutoff',
-#                                           type=float,
-#                                           default=0.2,
-#                                           help='Relative tip cut-off threshold. Default is: %(default)s')
-#     parser_prune_paralogs_mi.add_argument('--absolute_tip_cutoff',
-#                                           type=float,
-#                                           default=0.4,
-#                                           help='Absolute tip cut-off threshold. Default is: %(default)s')
-#     parser_prune_paralogs_mi.add_argument('--minimum_taxa',
-#                                           type=int,
-#                                           default=2,
-#                                           help='Minimum number of taxa required. Default is: %(default)s')
-#     parser_prune_paralogs_mi.add_argument('--ignore_1to1_orthologs',
-#                                           action='store_true',
-#                                           default=False,
-#                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
-#                                                'default)s')
-#     parser_prune_paralogs_mi.add_argument('--run_profiler',
-#                                           action='store_true',
-#                                           dest='run_profiler',
-#                                           default=False,
-#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-#                                                'results')
-#
-#     return parser_prune_paralogs_mi
-
-
-def add_strip_names_and_align_parser(subparsers):
+def add_final_alignments_parser(subparsers):
     """
-    Parser for strip_names_and_align
+    Parser for final_alignments
 
     :param argparse._SubParsersAction subparsers:
     :return None: no return value specified; default is None
     """
 
-    parser_align_selected_and_tree = subparsers.add_parser('strip_names_and_align',
-                                                           help='Strip names of paralog designations (e.g. .main, .0, '
-                                                                '.1 etc), and performs a final alignment step')
-    parser_align_selected_and_tree.add_argument('selected_alignment_directory',
-                                                type=str,
-                                                help='directory containing selected alignment files corresponding to '
-                                                     'pruned trees from one of MO, RT, MI algorithms.')
-    group_1 = parser_align_selected_and_tree.add_mutually_exclusive_group(required=True)
-    group_1.add_argument('--from_prune_paralogs_mo',
-                         action='store_const', const='mo',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step "prune_paralogs_mo".')
-    group_1.add_argument('--from_prune_paralogs_rt',
-                         action='store_const', const='rt',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step ="prune_paralogs_rt".')
-    group_1.add_argument('--from_prune_paralogs_mi',
-                         action='store_const', const='mi',
-                         dest='from_prune_paralogs',
-                         default=False,
-                         help='If set, sequences are from paralog pruning step "prune_paralogs_mi".')
-    parser_align_selected_and_tree.add_argument('--pool',
-                                                type=int,
-                                                default=1,
-                                                help='Number of alignments to run concurrently. Default is: %('
-                                                     'default)s')
-    parser_align_selected_and_tree.add_argument('--threads',
-                                                type=int,
-                                                default=1,
-                                                help='Number of threads to use for each concurrent alignment. Default '
-                                                     'is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--no_stitched_contigs',
-                                                action='store_true',
-                                                default=False,
-                                                help='If specified, realign mafft alignments with clustal omega. '
-                                                     'Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--use_muscle',
-                                                action='store_true',
-                                                default=False,
-                                                help='If specified, use muscle rather than mafft for initial '
-                                                     'alignments. Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--mafft_algorithm',
-                                                default='auto',
-                                                help='Algorithm to use for mafft alignments. Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--run_profiler',
-                                                action='store_true',
-                                                dest='run_profiler',
-                                                default=False,
-                                                help='If supplied, run the subcommand using cProfile. Saves a *.csv '
-                                                     'file of results')
+    parser_final_alignments = subparsers.add_parser('final_alignments',
+                                                    help='Recover fasta sequences for pruned trees. Strip names of '
+                                                         'paralog designations (e.g. .main, .0, .1 etc), and perform '
+                                                         'a final alignment')
+    parser_final_alignments.add_argument('--mo',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the Monophyletic Outgroups (MO) algorithm')
+    parser_final_alignments.add_argument('--mi',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the Maximum Inclusion (MI) algorithm')
+    parser_final_alignments.add_argument('--rt',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the RooTed ingroups (RT) algorithm')
+    parser_final_alignments.add_argument('--pool',
+                                         type=int,
+                                         default=1,
+                                         help='Number of alignments to run concurrently. Default is: %('
+                                              'default)s')
+    parser_final_alignments.add_argument('--threads',
+                                         type=int,
+                                         default=1,
+                                         help='Number of threads to use for each concurrent alignment. Default '
+                                              'is: %(default)s')
+    parser_final_alignments.add_argument('--no_stitched_contigs',
+                                         action='store_true',
+                                         default=False,
+                                         help='If specified, realign mafft alignments with clustal omega. '
+                                              'Default is: %(default)s')
+    parser_final_alignments.add_argument('--use_muscle',
+                                         action='store_true',
+                                         default=False,
+                                         help='If specified, use muscle rather than mafft for initial '
+                                              'alignments. Default is: %(default)s')
+    parser_final_alignments.add_argument('--mafft_algorithm',
+                                         default='auto',
+                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_final_alignments.add_argument('--no_trimming',
+                                         action='store_true',
+                                         default=False,
+                                         help='No not trim alignments using Trimal. Default is: %(default)s')
+    parser_final_alignments.add_argument('--run_profiler',
+                                         action='store_true',
+                                         dest='run_profiler',
+                                         default=False,
+                                         help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+                                              'file of results')
 
-    return parser_align_selected_and_tree
+    parser_final_alignments.set_defaults(
+        from_cut_deep_paralogs=False)
+
+    return parser_final_alignments
+
+
+def add_paragone_full_pipeline_parser(subparsers):
+    """
+    Parser for paragone_full_pipeline
+
+    :param argparse._SubParsersAction subparsers:
+    :return None: no return value specified; default is None
+    """
+
+    parser_paragone_full_pipeline = subparsers.add_parser('paragone_full_pipeline',
+                                                          help='Run all steps of the ParaGone pipeline.')
+    parser_paragone_full_pipeline.add_argument('--mo',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the Monophyletic Outgroups (MO) algorithm')
+    parser_paragone_full_pipeline.add_argument('--mi',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the Maximum Inclusion (MI) algorithm')
+    parser_paragone_full_pipeline.add_argument('--rt',
+                                         action='store_true',
+                                         default=False,
+                                         help='Run the RooTed ingroups (RT) algorithm')
+    parser_paragone_full_pipeline.add_argument('--pool',
+                                         type=int,
+                                         default=1,
+                                         help='Number of alignments to run concurrently. Default is: %('
+                                              'default)s')
+    parser_paragone_full_pipeline.add_argument('--threads',
+                                         type=int,
+                                         default=1,
+                                         help='Number of threads to use for each concurrent alignment. Default '
+                                              'is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--no_stitched_contigs',
+                                         action='store_true',
+                                         default=False,
+                                         help='If specified, realign mafft alignments with clustal omega. '
+                                              'Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--use_muscle',
+                                         action='store_true',
+                                         default=False,
+                                         help='If specified, use muscle rather than mafft for initial '
+                                              'alignments. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--mafft_algorithm',
+                                         default='auto',
+                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--no_trimming',
+                                         action='store_true',
+                                         default=False,
+                                         help='No not trim alignments using Trimal. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--run_profiler',
+                                         action='store_true',
+                                         dest='run_profiler',
+                                         default=False,
+                                         help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+                                              'file of results')
+
+
+    return parser_paragone_full_pipeline

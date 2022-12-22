@@ -44,15 +44,18 @@ def subsample_alignments(treefile_directory,
     logger.info(f'{"[INFO]:":10} Recovering alignment sequences corresponding to tree tip names...')
 
     # Check for trim/clean status of original alignments:
-    if re.search('hmmcleaned', alignment_directory):
-        logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed and cleaned')
-        alignment_suffix = '.aln.trimmed.hmm.fasta'
-    elif re.search('trimmed', alignment_directory):
-        logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed but not cleaned')
-        alignment_suffix = '.aln.trimmed.fasta'
+    if from_cut_deep_paralogs:
+        if re.search('hmmcleaned', alignment_directory):
+            logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed and cleaned')
+            alignment_suffix = '.aln.trimmed.hmm.fasta'
+        elif re.search('trimmed', alignment_directory):
+            logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed but not cleaned')
+            alignment_suffix = '.aln.trimmed.fasta'
+        else:
+            logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were neither trimmed or cleaned')
+            alignment_suffix = '.aln.fasta'
     else:
-        logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were neither trimmed or cleaned')
-        alignment_suffix = '.aln.fasta'
+        alignment_suffix = '.outgroup_added.aln.fasta'
 
     # Capture number of sequences pre and post filtering in a dictionary for report:
     alignment_filtering_dict = {}
@@ -70,7 +73,7 @@ def subsample_alignments(treefile_directory,
         else:  # e.g. 4691_1.1to1ortho.tre, 4471_1.inclade1.ortho1.tre, 4527_1.MIortho1.tre. etc
             alignment_prefix = tree_basename.split('.')[0]
             output_alignment_prefix = '.'.join(tree_basename.split('.')[0:-1])
-            matching_alignment = f'{alignment_directory}/{alignment_prefix}.outgroup_added.aln.trimmed.fasta'
+            matching_alignment = f'{alignment_directory}/{alignment_prefix}{alignment_suffix}'
 
         # Read in original alignments and select seqs matching tree termini:
         alignment = AlignIO.read(matching_alignment, "fasta")
@@ -108,18 +111,16 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
     if from_cut_deep_paralogs:
         report_filename = f'{report_directory}/fasta_from_qc_trees_report.tsv'
-    else:
-        # report_filename = f'00_logs_and_reports_resolve_paralogs/reports/' \
-        #                   f'{re.sub("^[0-9]{2}_", "", basename)}_fasta_from_tree_{algorithm_suffix}_report.tsv'
-        report_filename = f'00_logs_and_reports_resolve_paralogs/reports/fasta_from_tree_{algorithm_suffix}_report.tsv'
+    elif algorithm_suffix in ['mo', 'mi', 'rt']:
+        report_filename = f'{report_directory}/fasta_from_tree_{algorithm_suffix}_report.tsv'
 
-    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing fasta_from_tree report to file: "{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
     logger.info(f'{fill}')
 
     with open(report_filename, 'w') as report_handle:
-        report_handle.write(f'QC tree file\tNumber of tree tips\tNumber seqs in original alignment\tNumber seqs '
+        report_handle.write(f'tree file\tNumber of tree tips\tNumber seqs in original alignment\tNumber seqs '
                             f'filtered alignment\n')
 
         for tree_name, stats in alignment_filtering_dict.items():
@@ -128,12 +129,14 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
 
 def main(args,
          report_directory,
+         algorithm_suffix=None,
          logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
     :param str report_directory: path to directory for report files
+    :param str algorithm_suffix: suffix for algorithm trees to extract fasta from
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -145,32 +148,61 @@ def main(args,
     logger.debug(args)
 
     logger.info('')
-    logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO QC TREES <======\n')
 
-    algorithm_suffix = None
+    if args.from_cut_deep_paralogs:
+        original_alignments_directory = args.mask_tips_alignment_directory
+        treefile_directory = '08_trees_trimmed_masked_cut'
+        tree_file_suffix = '.subtree'
+        output_folder = f'09_alignments_from_qc_trees'
+
+        logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO QC TREES <======\n')
+
+    if algorithm_suffix in ['mo']:
+        original_alignments_directory = '12_pre_paralog_resolution_alignments'
+        treefile_directory = '14_pruned_MO'
+        tree_file_suffix = '.tre'
+        output_folder = f'17_selected_sequences_MO'
+
+        logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO MO TREES <======\n')
+
+    if algorithm_suffix in ['mi']:
+        original_alignments_directory = '12_pre_paralog_resolution_alignments'
+        treefile_directory = '15_pruned_MI'
+        tree_file_suffix = '.tre'
+        output_folder = f'18_selected_sequences_MI'
+
+        logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO MI TREES <======\n')
+
+    if algorithm_suffix in ['rt']:
+        original_alignments_directory = '12_pre_paralog_resolution_alignments'
+        treefile_directory = '16_pruned_RT'
+        tree_file_suffix = '.tre'
+        output_folder = f'19_selected_sequences_RT'
+
+        logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO RT TREES <======\n')
 
     # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
+    directory_suffix_dict = {treefile_directory: tree_file_suffix}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
-    # Create output folder:
-    if args.from_cut_deep_paralogs:
-        output_folder = f'09_alignments_from_qc_trees'
-    elif args.from_prune_paralogs:
-        output_folder = f'22_selected_sequences_{algorithm_suffix}_batches'
+    # # Create output folder:
+    # if args.from_cut_deep_paralogs:
+    #     output_folder = f'09_alignments_from_qc_trees'
+    # elif args.from_prune_paralogs:
+    #     output_folder = f'22_selected_sequences_{algorithm_suffix}_batches'
 
     utils.createfolder(output_folder)
 
     # Recover alignments with sequences corresponding to tree tip names:
     filtered_alignments_folder,  alignment_filtering_dict = \
-        subsample_alignments(args.treefile_directory,
+        subsample_alignments(treefile_directory,
                              output_folder,
-                             args.tree_file_suffix,
-                             args.mask_tips_alignment_directory,  # same alignments used for mask_tips step
+                             tree_file_suffix,
+                             original_alignments_directory,
                              from_cut_deep_paralogs=args.from_cut_deep_paralogs,
                              algorithm_suffix=algorithm_suffix,
                              logger=logger)

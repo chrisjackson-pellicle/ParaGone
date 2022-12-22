@@ -204,7 +204,7 @@ def write_mo_report(report_directory,
     """
     Writes a *.tsv report detailing for Monophyletic Outgroup (MO) pruning process.
 
-    :param str treefile_directory: name of tree file directory for report filename
+    :param str report_directory: path to directory for report files
     :param tree_stats_collated_dict: dictionary of treename:{stats}
     :param logging.Logger logger: a logger object
     :return:
@@ -213,7 +213,8 @@ def write_mo_report(report_directory,
     report_filename = f'{report_directory}/MO_report.tsv'
 
     logger.info('')
-    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing Monophyletic Outgroup (MO) report to file: "'
+                                    f'{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
     logger.info(f'{fill}')
@@ -356,9 +357,6 @@ def main(args,
     directory_suffix_dict = {treefile_directory: tree_file_suffix}
     in_and_outgroups_list = 'in_and_outgroups_list.txt'
     file_list = [in_and_outgroups_list]
-
-    # if args.in_and_outgroup_list:
-    #     file_list.append('in_and_outgroups_list.txt')
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
@@ -541,9 +539,7 @@ def main(args,
                     logger=logger)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Monophyletic '
-                         f'Outgroups (MO) '
-                         f'algorithm. Trees have been written to directory: "{output_folder}".',
-                         width=90, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
+                         f'Outgroups (MO) algorithm. Trees have been written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,  break_on_hyphens=False)
 
     logger.info(f'{fill}')

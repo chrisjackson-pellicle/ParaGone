@@ -19,6 +19,7 @@ from multiprocessing import Manager
 from concurrent.futures import wait
 
 from paragone import utils
+from paragone.align_and_clean import run_trimal
 
 
 def mafft_or_muscle_align(fasta_file,
@@ -28,7 +29,6 @@ def mafft_or_muscle_align(fasta_file,
                           lock,
                           num_files_to_process,
                           threads=1,
-                          no_stitched_contigs=False,
                           use_muscle=False,
                           logger=None):
     """
@@ -42,7 +42,6 @@ def mafft_or_muscle_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    :param bool no_stitched_contigs: if True, realign with Clustal Omega
     :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
@@ -50,23 +49,14 @@ def mafft_or_muscle_align(fasta_file,
 
     fasta_file_basename = os.path.basename(fasta_file)
     expected_alignment_file = f'{output_folder}/{re.sub(".fasta", ".aln.fasta", fasta_file_basename)}'
-    expected_alignment_file_trimmed = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
 
     try:
-        if not no_stitched_contigs:  # i.e. stitched contig _were_ produced
-            assert utils.file_exists_and_not_empty(expected_alignment_file_trimmed)
-            logger.debug(f'Trimmed alignment exists for {fasta_file_basename}, skipping...')
-            with lock:
-                counter.value += 1
+        assert utils.file_exists_and_not_empty(expected_alignment_file)
+        logger.debug(f'Alignment exists for {fasta_file_basename}, skipping...')
+        with lock:
+            counter.value += 1
 
-            return os.path.basename(expected_alignment_file_trimmed)
-        else:
-            assert utils.file_exists_and_not_empty(expected_alignment_file)
-            logger.debug(f'Alignment exists for {fasta_file_basename}, skipping...')
-            with lock:
-                counter.value += 1
-
-            return os.path.basename(expected_alignment_file)
+        return os.path.basename(expected_alignment_file)
 
     except AssertionError:
         if use_muscle:
@@ -78,9 +68,9 @@ def mafft_or_muscle_align(fasta_file,
             logger.debug(f'stderr is: {stderr}')
         else:
             if algorithm == 'auto':
-                mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
+                mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
             else:
-                mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
+                mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
 
             logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
             stdout, stderr = mafft_cline()
@@ -90,23 +80,6 @@ def mafft_or_muscle_align(fasta_file,
 
             with open(expected_alignment_file, 'w') as alignment_file:
                 alignment_file.write(stdout)
-
-        if not no_stitched_contigs:  # only trim if stitched contigs (and hence won't be realigned)
-            trimmed_alignment = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
-            try:
-                result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                         '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        check=True)
-                logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'trimal stdout is: {result.stdout}')
-                logger.debug(f'trimal stderr is: {result.stderr}')
-
-            except subprocess.CalledProcessError as exc:
-                logger.error(f'trimal FAILED. Output is: {exc}')
-                logger.error(f'trimal stdout is: {exc.stdout}')
-                logger.error(f'trimal stderr is: {exc.stderr}')
-                raise ValueError('There was an issue running trimal. Check input files!')
 
         with lock:
             counter.value += 1
@@ -121,28 +94,26 @@ def mafft_or_muscle_align(fasta_file,
 
 
 def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
+                                          alignments_output_folder,
                                           algorithm='auto',
                                           pool_threads=1,
                                           mafft_threads=2,
-                                          no_stitched_contigs=False,
                                           use_muscle=False,
                                           logger=None):
     """
     Generate alignments via function <mafft_or_muscle_align> using multiprocessing.
 
     :param str fasta_to_align_folder: path to folder containing input fasta files
+    :param str alignments_output_folder: name of folder for output alignments
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    :param bool no_stitched_contigs: if True, realign with Clustal Omega
     :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
-    input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'24_{input_folder_basename.lstrip("_23")}_alignments'
-    utils.createfolder(output_folder)
+    utils.createfolder(alignments_output_folder)
 
     if use_muscle:
         logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
@@ -167,26 +138,26 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
         future_results = [pool.submit(mafft_or_muscle_align,
                                       fasta_file,
                                       algorithm,
-                                      output_folder,
+                                      alignments_output_folder,
                                       counter,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      no_stitched_contigs=no_stitched_contigs,
                                       use_muscle=use_muscle,
                                       logger=logger)
 
                           for fasta_file in target_genes]
+
         for future in future_results:
             future.add_done_callback(utils.done_callback)
         wait(future_results, return_when="ALL_COMPLETED")
 
-    alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
+    alignment_list = [alignment for alignment in glob.glob(f'{alignments_output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
     logger.debug(f'{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
 
-    return output_folder
+    return alignments_output_folder
 
 
 def clustalo_align(fasta_file,
@@ -232,23 +203,6 @@ def clustalo_align(fasta_file,
         logger.debug(f'stdout is: {stdout}')
         logger.debug(f'stderr is: {stderr}')
 
-        trimmed_alignment = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
-
-        try:
-            result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                     '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                    universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    check=True)
-            logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'trimal stdout is: {result.stdout}')
-            logger.debug(f'trimal stderr is: {result.stderr}')
-
-        except subprocess.CalledProcessError as exc:
-            logger.error(f'trimal FAILED. Output is: {exc}')
-            logger.error(f'trimal stdout is: {exc.stdout}')
-            logger.error(f'trimal stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running trimal. Check input files!')
-
         with lock:
             counter.value += 1
             logger.debug(f'Aligned file {fasta_file_basename}')
@@ -262,6 +216,7 @@ def clustalo_align(fasta_file,
 
 
 def clustalo_align_multiprocessing(fasta_to_align_folder,
+                                   alignments_output_folder,
                                    pool_threads=1,
                                    clustalo_threads=1,
                                    logger=None):
@@ -269,17 +224,17 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     Generate alignments via function <clustalo_align> using multiprocessing.
 
     :param fasta_to_align_folder: path to folder containing input fasta alignment files
+    :param str alignments_output_folder: name of folder for output alignments
     :param int pool_threads: number of alignments to run concurrently
     :param int clustalo_threads: number of threads to use for each concurrent alignment
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
-    input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_clustal'
-    utils.createfolder(output_folder)
+    utils.createfolder(alignments_output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
+
     target_genes = [file for file in sorted(glob.glob(f'{fasta_to_align_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool_threads) as pool:
@@ -288,36 +243,42 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
         counter = manager.Value('i', 0)
         future_results = [pool.submit(clustalo_align,
                                       fasta_file,
-                                      output_folder,
+                                      alignments_output_folder,
                                       counter,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=clustalo_threads,
                                       logger=logger)
+
                           for fasta_file in target_genes]
+
         for future in future_results:
             future.add_done_callback(utils.done_callback)
         wait(future_results, return_when="ALL_COMPLETED")
 
-    alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
+    alignment_list = [alignment for alignment in glob.glob(f'{alignments_output_folder}/*.aln.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
     logger.debug(f'{len(alignment_list)} alignments generated from {len(future_results)} fasta files...')
 
-    return output_folder
+    return alignments_output_folder
 
 
-def strip_names_for_concat(selected_alignment_directory):
+def strip_names_for_concat(selected_alignment_directory,
+                           output_folder):
     """
     Strips everything after a dot ('.') from the name of each sequence in an alignment file.
     Returns the name of the output folder.
 
     :param str selected_alignment_directory: path to input folder containing fasta alignment files
-    :return str: path to the output folder produced
+    :param str output_folder: path to output folder for sequences with stripped names
+    # :return str: path to the output folder produced
+    :return
     """
 
-    input_folder_basename = os.path.basename(selected_alignment_directory)
-    output_folder = f'23_{input_folder_basename}_stripped_names'
+    # input_folder_basename = os.path.basename(selected_alignment_directory)
+    # output_folder = f'23_{input_folder_basename}_stripped_names'
+
     utils.createfolder(output_folder)
 
     for alignment in glob.glob(f'{selected_alignment_directory}/*.fasta'):
@@ -330,74 +291,92 @@ def strip_names_for_concat(selected_alignment_directory):
         with open(f'{output_folder}/{re.sub(".fasta", "_stripped.fasta", alignment_basename)}', 'w') as stripped:
             AlignIO.write(seqs, stripped, 'fasta')
 
-    return output_folder
+    # return output_folder
 
 
-def main(args):
+def main(args,
+         report_directory,
+         selected_alignment_directory=None,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param str selected_alignment_directory: name of directory with selected sequences
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, f'00_logs_and_reports_resolve_paralogs/logs/15_strip_names_and_align'
-                                          f'_{args.from_prune_paralogs}')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand strip_names_and_align was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{"[INFO]:":10} Module strip_names_and_align was called with these arguments:')
+    fill = textwrap.fill(' '.join(sys.argv[1:]),
+                         width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> STRIP PARALOG NAME SUFFIX AND ALIGN <======\n')
+
     # Checking input directories and files:
-    directory_suffix_dict = {args.selected_alignment_directory: '.fasta'}
+    directory_suffix_dict = {selected_alignment_directory: '.fasta'}
     file_list = []
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
-    # Create output folder for pruned trees:
-    # output_folder = f'{os.path.basename(args.selected_alignment_directory)}_stripped_names'
-    # utils.createfolder(output_folder)
+    if re.search('MO', selected_alignment_directory):
+        stripped_names_folder = f'20_MO_stripped_names'
+        alignments_output_folder = f'23_MO_final_alignments'
+        alignments_output_folder_trimmed = f'26_MO_final_alignments_trimmed'
+    if re.search('MI', selected_alignment_directory):
+        stripped_names_folder = f'21_MI_stripped_names'
+        alignments_output_folder = f'24_MI_final_alignments'
+        alignments_output_folder_trimmed = f'27_MI_final_alignments_trimmed'
+    if re.search('RT', selected_alignment_directory):
+        stripped_names_folder = f'22_RT_stripped_names'
+        alignments_output_folder = f'25_RT_final_alignments'
+        alignments_output_folder_trimmed = f'28_RT_final_alignments_trimmed'
 
-    stripped_names_output_folder = strip_names_for_concat(args.selected_alignment_directory)
+    strip_names_for_concat(selected_alignment_directory,
+                           stripped_names_folder)
 
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
+
         alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            stripped_names_output_folder,
+            stripped_names_folder,
+            alignments_output_folder,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            no_stitched_contigs=args.no_stitched_contigs,
             use_muscle=args.use_muscle,
             logger=logger)
+
+        # Perform optional trimming with TrimAl:
+        if not args.no_trimming:
+            alignments_output_folder = run_trimal(alignments_output_folder,
+                                                  alignments_output_folder_trimmed,
+                                                  logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
     elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
-        alignments_output_folder = mafft_or_muscle_align_multiprocessing(
-            stripped_names_output_folder,
-            algorithm=args.mafft_algorithm,
-            pool_threads=args.pool,
-            mafft_threads=args.threads,
-            no_stitched_contigs=args.no_stitched_contigs,
-            use_muscle=args.use_muscle,
-            logger=logger)
 
-        clustal_alignment_output_folder = clustalo_align_multiprocessing(
+        alignments_output_folder = clustalo_align_multiprocessing(
+            stripped_names_folder,
             alignments_output_folder,
             pool_threads=args.pool,
             clustalo_threads=args.threads,
             logger=logger)
+
+        # Perform optional trimming with TrimAl:
+        if not args.no_trimming:
+            alignments_output_folder = run_trimal(alignments_output_folder,
+                                                  alignments_output_folder_trimmed,
+                                                  logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
     logger.info(f'\n{"[INFO]:":10} Finished stripping fasta sequence names and final alignments.')

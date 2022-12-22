@@ -87,22 +87,25 @@ def prune_paralogs_rt(curroot,
     return inclades_list, inclades_with_fewer_than_min_ingroup_taxa, ortho_dict, ortho_dict_fewer_than_min_taxa
 
 
-def write_rt_report(treefile_directory,
+def write_rt_report(report_directory,
                     tree_stats_collated_dict,
                     logger=None):
     """
     Writes a *.tsv report detailing for RooTed outgroup (RT) pruning process.
 
-    :param str treefile_directory: name of tree file directory for report filename
+    :param str report_directory: path to directory for report files
     :param tree_stats_collated_dict:
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_RT_report.tsv'
+    report_filename = f'{report_directory}/RT_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing RooTed outgroup (RT) report to file {report_filename}')
+    logger.info('')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing RooTed outgroup (RT) report to file: "{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
 
     trees_with_unrecognised_names_count = 0
     trees_with_fewer_than_min_ingroup_taxa_count = 0
@@ -223,54 +226,51 @@ def write_rt_report(treefile_directory,
             report_handle.write(f'{stats_joined}\n')
 
 
-def main(args):
+def main(args,
+         report_directory,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/12_prune_paralogs_RT')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_rt was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{"[INFO]:":10} Module prune_paralogs_rt was called with these arguments:')
+    fill = textwrap.fill(' '.join(sys.argv[1:]),
+                         width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
-    # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
-    file_list = []
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH RT ALGORITHM <======\n')
 
-    if args.in_and_outgroup_list:
-        file_list.append(args.in_and_outgroup_list)
+    # Checking input directories and files:
+    treefile_directory = '13_pre_paralog_resolution_trees'
+    tree_file_suffix = '.treefile'
+    directory_suffix_dict = {treefile_directory: tree_file_suffix}
+    in_and_outgroups_list = 'in_and_outgroups_list.txt'
+    file_list = [in_and_outgroups_list]
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
     # Create output folder for pruned trees:
-    output_folder = f'19_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_RT'
+    output_folder = f'16_pruned_RT'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
-    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(args.in_and_outgroup_list,
+    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(in_and_outgroups_list,
                                                                 logger=logger)
 
     # Create dict for report file:
     tree_stats_collated = defaultdict(lambda: defaultdict())
 
     # Iterate over tree and prune with RT algorithm:
-    for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for treefile in glob.glob(f'{treefile_directory}/*{tree_file_suffix}'):
         treefile_basename = os.path.basename(treefile)
         output_file_id = f'{output_folder}/{tree_utils.get_cluster_id(treefile_basename)}'
 
@@ -296,16 +296,24 @@ def main(args):
 
             # Check for unrecognised tip names and skip tree if present:
             if unrecognised_names:
-                logger.warning(f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not '
-                               f'found in ingroups or outgroups. Skipping tree...')
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not found in '
+                    f'ingroups or outgroups. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['unrecognised_names'] = unrecognised_names
                 continue
 
             # Check if tree contains more than the minimum number of taxa, else skip:
             if len(ingroup_names) < args.minimum_taxa:
-                logger.warning(f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} taxa; '
-                               f'minimum_taxa required is {args.minimum_taxa}. Skipping tree...')
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} ingroup taxa; '
+                    f'minimum_taxa required is {args.minimum_taxa}. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['fewer_than_min_ingroup_taxa'] = newick3.tostring(curroot)
                 continue
@@ -314,8 +322,13 @@ def main(args):
             if len(outgroup_names) == 0 and len(names) == num_taxa:
                 outfile_filename = f'{output_file_id}.unrooted-ortho.tre'
 
-                logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contains no outgroup taxa, but no putative '
-                            f'paralogs detected. Writing tree to {outfile_filename}')
+                fill = textwrap.fill(
+                    f'{"[INFO]:":10} Tree {treefile_basename} contains no outgroup taxa, but no putative paralogs '
+                    f'detected. Writing tree to {outfile_filename}',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.info(f'{fill}')
+
                 with open(f'{outfile_filename}', 'w') as outfile:
                     outfile.write(newick3.tostring(curroot) + ";\n")
 
@@ -323,8 +336,13 @@ def main(args):
 
             # If no outgroup at all, and putative paralogs detected, skip tree:
             elif len(outgroup_names) == 0:
-                logger.info(f'{"[WARNING]:":10} Tree {treefile_basename} contains no outgroup taxa and putative '
-                            f'paralogs detected. Skipping tree...')
+
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Tree {treefile_basename} contains no outgroup taxa and putative paralogs '
+                    f'detected. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['no_outgroup_taxa_putative_paralogs'] = newick3.tostring(curroot)
                 continue
@@ -351,9 +369,12 @@ def main(args):
                 tree_stats_collated[treefile_basename]['inclade_to_ortho_below_min_taxa_dict'] = \
                     ortho_dict_fewer_than_min_taxa
 
-    write_rt_report(args.treefile_directory,
+    write_rt_report(report_directory,
                     tree_stats_collated,
                     logger=logger)
 
-    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the RooTed outgroups (RT) '
-                f'algorithm.')
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the RooTed outgroups (RT) '
+                         f'algorithm. Trees have been written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,  break_on_hyphens=False)
+
+    logger.info(f'{fill}')

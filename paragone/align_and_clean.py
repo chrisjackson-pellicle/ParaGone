@@ -225,7 +225,6 @@ def run_trimal(input_folder,
     :return str trimmed_alignments_directory: directory containing trimmed alignments
     """
 
-    # output_folder = f'03_alignments_trimmed'
     trimmed_alignments_directory = utils.createfolder(output_folder)
 
     logger.info('')

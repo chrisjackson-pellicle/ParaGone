@@ -276,144 +276,31 @@ def prune_paralogs_main(args,
         logger.error(f'{"[ERROR]:":10} Please provide at least one of the following parameters: --rt, --mo, --mi\n')
         sys.exit()
 
+    # Run the Monophyletic Outgroups (MO) algorithm:
     if args.mo:
         prune_paralogs_mo.main(
             args,
             report_directory,
             logger=logger)
 
+    # Run the Maximum Inclusion (MI) algorithm:
     if args.mi:
-        pass
+        prune_paralogs_mi.main(
+            args,
+            report_directory,
+            logger=logger)
 
+    # Run the RooTed outgroups (RT) algorithm:
     if args.rt:
-        pass
+        prune_paralogs_rt.main(
+            args,
+            report_directory,
+            logger=logger)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def prune_paralogs_mo_main(args,
-                           log_directory=None,
-                           report_directory=None):
-    """
-    Calls the function main() from module prune_paralogs_mo
-
-    :param args: argparse namespace with subparser options for function prune_paralogs_mo.main()
-    :param str log_directory: path to directory for log files
-    :param str report_directory: path to directory for report files
-    :return: None: no return value specified; default is None
-    """
-
-    # Create a dictionary from the argparse Namespace:
-    parameters = vars(args)
-
-    # Create a logger for qc_trees_and_extract_fasta_main:
-    logger = utils.setup_logger(__name__, f'{log_directory}/prune_paralogs_mo')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_mo was called with these arguments:\n')
-
-    for parameter, value in parameters.items():
-        if parameter not in ['func']:
-            logger.info(f'{" " * 10} {parameter}: {value}')
-    logger.info('')
-
-    prune_paralogs_mo.main(
-        args,
-        report_directory,
-        logger=logger)
-
-
-def prune_paralogs_rt_main(args,
-                           log_directory=None,
-                           report_directory=None):
-    """
-    Calls the function main() from module prune_paralogs_rt
-
-    :param args: argparse namespace with subparser options for function prune_paralogs_rt.main()
-    :param str log_directory: path to directory for log files
-    :param str report_directory: path to directory for report files
-    :return: None: no return value specified; default is None
-    """
-
-    # Create a dictionary from the argparse Namespace:
-    parameters = vars(args)
-
-    # Create a logger for alignment_to_tree_main:
-    logger = utils.setup_logger(__name__, f'{log_directory}/prune_paralogs_rt')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_rt was called with these arguments:\n')
-
-    for parameter, value in parameters.items():
-        if not parameter == 'func':
-            logger.info(f'{" " * 10} {parameter}: {value}')
-    logger.info('')
-
-    prune_paralogs_rt.main(args)
-
-
-def prune_paralogs_mi_main(args,
-                           log_directory=None,
-                           report_directory=None):
-    """
-    Calls the function main() from module prune_paralogs_mi
-
-    :param args: argparse namespace with subparser options for function prune_paralogs_mi.main()
-    :param str log_directory: path to directory for log files
-    :param str report_directory: path to directory for report files
-    :return: None: no return value specified; default is None
-    """
-
-    # Create a dictionary from the argparse Namespace:
-    parameters = vars(args)
-
-    # Create a logger for alignment_to_tree_main:
-    logger = utils.setup_logger(__name__, f'{log_directory}/prune_paralogs_mi')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_mi was called with these arguments:\n')
-
-    for parameter, value in parameters.items():
-        if not parameter == 'func':
-            logger.info(f'{" " * 10} {parameter}: {value}')
-    logger.info('')
-
-    prune_paralogs_mi.main(args)
-
-
-def strip_names_and_align_main(args,
-                               log_directory=None,
-                               report_directory=None):
+def final_alignments_main(args,
+                          log_directory=None,
+                          report_directory=None):
     """
     Calls the function main() from module strip_names_and_align
 
@@ -443,7 +330,47 @@ def strip_names_and_align_main(args,
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
 
-    strip_names_and_align.main(args)
+    # Extract fasta for the Monophyletic Outgroups (MO) algorithm:
+    if args.mo:
+        fasta_from_tree.main(
+            args,
+            report_directory,
+            algorithm_suffix='mo',
+            logger=logger)
+
+    strip_names_and_align.main(
+        args,
+        report_directory,
+        selected_alignment_directory='17_selected_sequences_MO',
+        logger=logger)
+
+    # Extract fasta for the Maximum Inclusion (MI) algorithm:
+    if args.mi:
+        fasta_from_tree.main(
+            args,
+            report_directory,
+            algorithm_suffix='mi',
+            logger=logger)
+
+    strip_names_and_align.main(
+        args,
+        report_directory,
+        selected_alignment_directory='18_selected_sequences_MI',
+        logger=logger)
+
+    # Extract fasta for the RooTed outgroups (RT) algorithm:
+    if args.rt:
+        fasta_from_tree.main(
+            args,
+            report_directory,
+            algorithm_suffix='rt',
+            logger=logger)
+
+    strip_names_and_align.main(
+        args,
+        report_directory,
+        selected_alignment_directory='19_selected_sequences_RT',
+        logger=logger)
 
 
 def parse_arguments():
@@ -471,10 +398,7 @@ def parse_arguments():
     parser_qc_trees_and_extract_fasta = paragone_subparsers.add_qc_trees_and_extract_fasta(subparsers)
     parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
     parser_prune_paralogs = paragone_subparsers.add_prune_paralogs_parser(subparsers)
-    # parser_prune_paralogs_mo = paragone_subparsers.add_prune_paralogs_mo_parser(subparsers)
-    # parser_prune_paralogs_rt = paragone_subparsers.add_prune_paralogs_rt_parser(subparsers)
-    # parser_prune_paralogs_mi = paragone_subparsers.add_prune_paralogs_mi_parser(subparsers)
-    # parser_strip_names_and_align = paragone_subparsers.add_strip_names_and_align_parser(subparsers)
+    parser_final_alignments = paragone_subparsers.add_final_alignments_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_align.set_defaults(func=check_and_align_main)
@@ -482,10 +406,7 @@ def parse_arguments():
     parser_qc_trees_and_extract_fasta.set_defaults(func=qc_trees_and_extract_fasta_main)
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     parser_prune_paralogs.set_defaults(func=prune_paralogs_main)
-    # parser_prune_paralogs_mo.set_defaults(func=prune_paralogs_mo_main)
-    # parser_prune_paralogs_rt.set_defaults(func=prune_paralogs_rt_main)
-    # parser_prune_paralogs_mi.set_defaults(func=prune_paralogs_mi_main)
-    # parser_strip_names_and_align.set_defaults(func=strip_names_and_align_main)
+    parser_final_alignments.set_defaults(func=final_alignments_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
@@ -506,13 +427,6 @@ def main():
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()
-
-    # # check for external dependencies:
-    # if utils.check_dependencies(logger=logger):
-    #     logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    # else:
-    #     logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-    #     sys.exit(1)
 
     # Run the function associated with the subcommand, with or without cProfile:
     if args.run_profiler:

@@ -459,24 +459,6 @@ def clustalo_align(fasta_file,
         logger.debug(f'stdout is: {stdout}')
         logger.debug(f'stderr is: {stderr}')
 
-        trimmed_alignment = re.sub('.aln.fasta', '.aln.trimmed.fasta', expected_alignment_file)
-
-        try:
-
-            result = subprocess.run(['trimal', '-in', expected_alignment_file, '-out', trimmed_alignment,
-                                     '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                    universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    check=True)
-            logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'trimal stdout is: {result.stdout}')
-            logger.debug(f'trimal stderr is: {result.stderr}')
-
-        except subprocess.CalledProcessError as exc:
-            logger.error(f'trimal FAILED. Output is: {exc}')
-            logger.error(f'trimal stdout is: {exc.stdout}')
-            logger.error(f'trimal stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running trimal. Check input files!')
-
         with lock:
             counter.value += 1
             logger.debug(f'Aligned file {fasta_file_basename}')

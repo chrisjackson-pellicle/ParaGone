@@ -24,22 +24,26 @@ from paragone import utils
 from paragone import trim_tree_tips
 
 
-def write_mi_report(treefile_directory,
+def write_mi_report(report_directory,
                     tree_stats_collated_dict,
                     logger=None):
     """
     Writes a *.tsv report detailing for Maximum Inclusion (MI) pruning process.
 
-    :param str treefile_directory: name of tree file directory for report filename
+    :param str report_directory: path to directory for report files
     :param tree_stats_collated_dict: dictionary of treename:{stats}
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_MI_report.tsv'
+    report_filename = f'{report_directory}/MI_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing Maximum Inclusion (MI) report to file {report_filename}')
+    logger.info('')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing Maximum Inclusion (MI) report to file: "'
+                                    f'{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
 
     trees_with_unrecognised_names_count = 0
     trees_with_fewer_than_min_ingroup_taxa_count = 0
@@ -195,54 +199,51 @@ def write_mi_report(treefile_directory,
             report_handle.write(f'{stats_joined}\n')
 
 
-def main(args):
+def main(args,
+         report_directory,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/13_prune_paralogs_MI')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_mi was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{"[INFO]:":10} Module prune_paralogs_mi was called with these arguments:')
+    fill = textwrap.fill(' '.join(sys.argv[1:]),
+                         width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
-    # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
-    file_list = []
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH MI ALGORITHM <======\n')
 
-    if args.in_and_outgroup_list:
-        file_list.append(args.in_and_outgroup_list)
+    # Checking input directories and files:
+    treefile_directory = '13_pre_paralog_resolution_trees'
+    tree_file_suffix = '.treefile'
+    directory_suffix_dict = {treefile_directory: tree_file_suffix}
+    in_and_outgroups_list = 'in_and_outgroups_list.txt'
+    file_list = [in_and_outgroups_list]
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
     # Create output folder for pruned trees:
-    output_folder = f'20_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_MI'
+    output_folder = f'15_pruned_MI'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
-    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(args.in_and_outgroup_list,
+    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(in_and_outgroups_list,
                                                                 logger=logger)
 
     # Create dict for report file:
     tree_stats_collated = defaultdict(lambda: defaultdict())
 
     # Iterate over tree and prune with MO algorithm:
-    for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for treefile in glob.glob(f'{treefile_directory}/*{tree_file_suffix}'):
         treefile_basename = os.path.basename(treefile)
         output_file_id = f'{output_folder}/{tree_utils.get_cluster_id(treefile_basename)}'
 
@@ -267,33 +268,54 @@ def main(args):
 
             # Check for unrecognised tip names and skip tree if present:
             if unrecognised_names:
-                logger.warning(f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not '
-                               f'found in ingroups or outgroups. Skipping tree...')
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not found in '
+                    f'ingroups or outgroups. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['unrecognised_names'] = unrecognised_names
                 continue
 
             # Check if tree contains more than the minimum number of taxa:
             if len(ingroup_names) < args.minimum_taxa:
-                logger.warning(f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} ingroup '
-                               f'taxa; minimum_taxa required is {args.minimum_taxa}. Skipping tree...')
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} ingroup taxa; '
+                    f'minimum_taxa required is {args.minimum_taxa}. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['fewer_than_min_ingroup_taxa'] = newick3.tostring(curroot)
                 continue
 
             # Check if paralogs are present; if not, write 1to1ortho tree (optional):
             if tree_utils.get_front_score(curroot) >= args.minimum_taxa:  # get_front_score -1 if paralogs present
-                logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contain no duplicated taxon names (i.e. '
-                            f'paralogs).')
+                fill = textwrap.fill(
+                    f'{"[INFO]:":10} Tree {treefile_basename} contain no duplicated taxon names (i.e. paralogs).',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.info(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['1to1_orthologs'] = newick3.tostring(curroot)
 
                 if not args.ignore_1to1_orthologs:
-                    logger.info(f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre')
+
+                    fill = textwrap.fill(
+                        f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre',
+                        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                    logger.info(f'{fill}')
+
                     shutil.copy(treefile, f'{output_file_id}.1to1ortho.tre')
                 else:
-                    logger.info(f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided. Skipping tree...'
-                                f' {treefile_basename}')
+                    fill = textwrap.fill(
+                        f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided. Skipping tree '
+                        f'{treefile_basename}...',
+                        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                    logger.info(f'{fill}')
 
                 continue
 
@@ -363,7 +385,11 @@ def main(args):
                 clades_with_greater_than_min_taxa
 
             if len(pruned_clades) > 0:
-                logger.info(f'{"[INFO]:":10} {len(pruned_clades)} pruned clades recovered for tree {treefile_basename}')
+
+                fill = utils.fill_forward_slash(f'{"[INFO]:":10} {len(pruned_clades)} pruned clades recovered for '
+                                                f'tree {treefile_basename}',
+                                                width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+                logger.info(f'{fill}')
 
                 count = 1
 
@@ -422,9 +448,12 @@ def main(args):
                     pruned_orthologs_below_minimum_taxa
 
     # Write a *.tsv report file:
-    write_mi_report(args.treefile_directory,
+    write_mi_report(report_directory,
                     tree_stats_collated,
                     logger=logger)
 
-    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Maximum Inclusion (MI) '
-                f'algorithm.')
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Maximum Inclusion (MI) '
+                         f'algorithm. Trees have been written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+    logger.info(f'{fill}')
