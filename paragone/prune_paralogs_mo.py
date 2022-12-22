@@ -198,7 +198,7 @@ def prune_paralogs_from_rerooted_homotree(root,
     return root
 
 
-def write_mo_report(treefile_directory,
+def write_mo_report(report_directory,
                     tree_stats_collated_dict,
                     logger=None):
     """
@@ -210,10 +210,13 @@ def write_mo_report(treefile_directory,
     :return:
     """
 
-    basename = os.path.basename(treefile_directory)
-    report_filename = f'00_logs_and_reports_resolve_paralogs/reports/{basename.lstrip("17_")}_MO_report.tsv'
+    report_filename = f'{report_directory}/MO_report.tsv'
 
-    logger.info(f'{"[INFO]:":10} Writing Monophyletic Outgroup (MO) report to file {report_filename}')
+    logger.info('')
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+                                    width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+
+    logger.info(f'{fill}')
 
     trees_with_unrecognised_names_count = 0
     trees_with_fewer_than_min_ingroup_taxa_count = 0
@@ -326,54 +329,54 @@ def write_mo_report(treefile_directory,
             report_handle.write(f'{stats_joined}\n')
 
 
-def main(args):
+def main(args,
+         report_directory,
+         logger=None):
     """
     Entry point for the paragone_main.py script
 
     :param args: argparse namespace with subparser options for function main()
+    :param str report_directory: path to directory for report files
+    :param logging.Logger logger: a logger object
     :return:
     """
 
-    # Initialise logger:
-    logger = utils.setup_logger(__name__, '00_logs_and_reports_resolve_paralogs/logs/11_prune_paralogs_MO')
-
-    # check for external dependencies:
-    if utils.check_dependencies(logger=logger):
-        logger.info(f'{"[INFO]:":10} All external dependencies found!')
-    else:
-        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
-        sys.exit(1)
-
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs_mo was called with these arguments:')
-    fill = textwrap.fill(' '.join(sys.argv[1:]), width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11,
-                         break_on_hyphens=False)
-    logger.info(f'{fill}\n')
+    logger.debug(f'{"[INFO]:":10} Module prune_paralogs_mo was called with these arguments:')
+    fill = textwrap.fill(' '.join(sys.argv[1:]),
+                         width=90, initial_indent=' ' * 11, subsequent_indent=' ' * 11, break_on_hyphens=False)
+    logger.debug(f'{fill}\n')
     logger.debug(args)
 
-    # Checking input directories and files:
-    directory_suffix_dict = {args.treefile_directory: args.tree_file_suffix}
-    file_list = []
+    logger.info('')
+    logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH MO ALGORITHM <======\n')
 
-    if args.in_and_outgroup_list:
-        file_list.append(args.in_and_outgroup_list)
+    # Checking input directories and files:
+    treefile_directory = '13_pre_paralog_resolution_trees'
+    tree_file_suffix = '.treefile'
+    directory_suffix_dict = {treefile_directory: tree_file_suffix}
+    in_and_outgroups_list = 'in_and_outgroups_list.txt'
+    file_list = [in_and_outgroups_list]
+
+    # if args.in_and_outgroup_list:
+    #     file_list.append('in_and_outgroups_list.txt')
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
     # Create output folder for pruned trees:
-    output_folder = f'18_{os.path.basename(args.treefile_directory).lstrip("17_")}_pruned_MO'
+    output_folder = f'14_pruned_MO'
     utils.createfolder(output_folder)
 
     # Parse the ingroup and outgroup text file:
-    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(args.in_and_outgroup_list,
+    ingroups, outgroups = utils.parse_ingroup_and_outgroup_file(in_and_outgroups_list,
                                                                 logger=logger)
 
     # Create dict for report file:
     tree_stats_collated = defaultdict(lambda: defaultdict())
 
     # Iterate over tree and prune with MO algorithm:
-    for treefile in glob.glob(f'{args.treefile_directory}/*{args.tree_file_suffix}'):
+    for treefile in glob.glob(f'{treefile_directory}/*{tree_file_suffix}'):
         treefile_basename = os.path.basename(treefile)
         output_file_id = f'{output_folder}/{tree_utils.get_cluster_id(treefile_basename)}'
 
@@ -399,32 +402,55 @@ def main(args):
 
             # Check for unrecognised tip names and skip tree if present:
             if unrecognised_names:
-                logger.warning(f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not '
-                               f'found in ingroups or outgroups. Skipping tree...')
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Taxon names {unrecognised_names} in tree {treefile_basename} not found in '
+                    f'ingroups or outgroups. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['unrecognised_names'] = unrecognised_names
                 continue
 
             # Check if tree contains more than the minimum number of taxa:
             if len(ingroup_names) < args.minimum_taxa:
-                logger.warning(f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} ingroup '
-                               f'taxa; minimum_taxa required is {args.minimum_taxa}. Skipping tree...')
+
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Tree {treefile_basename} contains {len(ingroup_names)} ingroup taxa; '
+                    f'minimum_taxa required is {args.minimum_taxa}. Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['fewer_than_min_ingroup_taxa'] = newick3.tostring(curroot)
                 continue
 
         # If the tree has no taxon duplication, no cutting is needed:
         if num_tips == num_taxa:
-            logger.info(f'{"[INFO]:":10} Tree {treefile_basename} contain no duplicated taxon names (i.e. paralogs).')
+            fill = textwrap.fill(
+                f'{"[INFO]:":10} Tree {treefile_basename} contain no duplicated taxon names (i.e. paralogs).',
+                width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+            logger.info(f'{fill}')
 
             tree_stats_collated[treefile_basename]['1to1_orthologs'] = newick3.tostring(curroot)
 
             if not args.ignore_1to1_orthologs:
-                logger.info(f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre')
+
+                fill = textwrap.fill(
+                    f'{"[INFO]:":10} Writing tree {treefile_basename} to {output_file_id}.1to1ortho.tre',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.info(f'{fill}')
+
                 shutil.copy(treefile, f'{output_file_id}.1to1ortho.tre')
             else:
-                logger.info(f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided. Skipping tree...'
-                            f' {treefile_basename}')
+                fill = textwrap.fill(
+                    f'{"[INFO]:":10} Parameter --ignore_1to1_orthologs provided. Skipping tree {treefile_basename}...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.info(f'{fill}')
+
         else:
             # Now need to deal with taxon duplications. Check to make sure that the ingroup and outgroup names were
             # set correctly:
@@ -438,8 +464,13 @@ def main(args):
 
             # Skip the tree if there are duplicated outgroup taxa
             elif len(outgroup_names) > len(set(outgroup_names)):
-                logger.info(f'{"[WARNING]:":10} Tree {treefile_basename} contains duplicate taxon names in the  '
-                            f'outgroup taxa. Skipping tree...')
+
+                fill = textwrap.fill(
+                    f'{"[WARNING]:":10} Tree {treefile_basename} contains duplicate taxon names in the outgroup taxa. '
+                    f'Skipping tree...',
+                    width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                logger.warning(f'{fill}')
 
                 tree_stats_collated[treefile_basename]['duplicate_taxa_in_outgroup'] = newick3.tostring(curroot)
 
@@ -447,14 +478,18 @@ def main(args):
                 if curroot.nchildren == 2:  # need to reroot
                     temp, curroot = tree_utils.remove_kink(curroot, curroot)
 
-                # Check if the outgroup sequenes are monophyletic:
+                # Check if the outgroup sequences are monophyletic:
                 curroot = reroot_with_monophyletic_outgroups(curroot,
                                                              outgroups,
                                                              logger=logger)
 
                 # Only return one tree after pruning:
                 if curroot:  # i.e. the outgroup was monophyletic
-                    logger.info(f'{"[INFO]:":10} Outgroup sequences are monophletic for tree {treefile_basename}.')
+                    fill = textwrap.fill(
+                        f'{"[INFO]:":10} Outgroup sequences are monophyletic for tree {treefile_basename}.',
+                        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                    logger.info(f'{fill}')
 
                     tree_stats_collated[treefile_basename]['monophyletic_outgroups'] = newick3.tostring(curroot)
 
@@ -463,8 +498,12 @@ def main(args):
                         outfile.write(newick3.tostring(curroot) + ";\n")
 
                     # Prune the re-rooted tree with the MO algorith:
-                    logger.info(f'{"[INFO]:":10} Applying Monophyletic Outgroup algorithm to tree'
-                                f' {treefile_basename}...')
+                    fill = textwrap.fill(
+                        f'{"[INFO]:":10} Applying Monophyletic Outgroup algorithm to tree {treefile_basename}...',
+                        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                    logger.info(f'{fill}')
+
                     ortho = prune_paralogs_from_rerooted_homotree(curroot,
                                                                   outgroups,
                                                                   logger=logger)
@@ -480,9 +519,13 @@ def main(args):
                             tree_stats_collated[treefile_basename]['mo_output_file_above_minimum_taxa'] = \
                                 newick3.tostring(curroot)
                     else:
-                        logger.warning(f'{"[WARNING]:":10} After pruning with MO algorith, tree {treefile_basename} '
-                                       f'contains {len(set(tree_utils.get_front_names(curroot)))} taxa; parameter '
-                                       f'--minimum_taxa is {args.minimum_taxa}. No tree file will be written.')
+                        fill = textwrap.fill(
+                            f'{"[WARNING]:":10} After pruning with MO algorith, tree {treefile_basename} contains'
+                            f' {len(set(tree_utils.get_front_names(curroot)))} taxa; parameter --minimum_taxa is'
+                            f' {args.minimum_taxa}. No tree file will be written.',
+                            width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+                        logger.warning(f'{fill}')
 
                         tree_stats_collated[treefile_basename]['mo_output_file_below_minimum_taxa'] = \
                             newick3.tostring(curroot)
@@ -493,10 +536,14 @@ def main(args):
                         newick3.tostring(curroot)
 
     # Write a *.tsv report file:
-    write_mo_report(args.treefile_directory,
+    write_mo_report(report_directory,
                     tree_stats_collated,
                     logger=logger)
 
-    logger.info(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Monophyletic Outgroups (MO) '
-                f'algorithm.')
+    fill = textwrap.fill(f'{"[INFO]:":10} Finished extracting putative ortholog trees using the Monophyletic '
+                         f'Outgroups (MO) '
+                         f'algorithm. Trees have been written to directory: "{output_folder}".',
+                         width=90, subsequent_indent=' ' * 11,
+                         break_on_hyphens=False)
 
+    logger.info(f'{fill}')

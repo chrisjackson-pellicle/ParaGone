@@ -292,8 +292,6 @@ def main(args,
                      report_directory,
                      logger=logger)
 
-    # logger.info(f'{"[INFO]:":10} Finished cutting putative deep paralogs.')
-
     fill = textwrap.fill(f'{"[INFO]:":10} Finished cutting putative deep paralogs. Trees/subtrees have been '
                          f'written to directory: "{output_folder}".',
                          width=90, subsequent_indent=' ' * 11,

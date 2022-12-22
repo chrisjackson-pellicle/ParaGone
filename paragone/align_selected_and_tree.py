@@ -253,10 +253,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     :return str output_folder: name of the output folder containing alignments
     """
 
-    # input_folder_basename = os.path.basename(fasta_to_align_folder)
-    # output_folder = f'14_{input_folder_basename.lstrip("13_")}_alignments'
-
-    output_folder = f'11_pre_paralog_resolution_alignments'
+    output_folder = f'12_pre_paralog_resolution_alignments'
     utils.createfolder(output_folder)
 
     if use_muscle:
@@ -310,7 +307,6 @@ def mafft_or_muscle_align(fasta_file,
                           lock,
                           num_files_to_process,
                           threads=1,
-                          no_stitched_contigs=False,
                           use_muscle=False,
                           logger=None):
     """
@@ -390,8 +386,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     :return str output_folder: name of the output folder containing alignments
     """
 
-    input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_clustal'
+    output_folder = f'12_pre_paralog_resolution_alignments'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -510,12 +505,11 @@ def fasttree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    # input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'12_pre_paralog_resolution_trees'
+    output_folder = f'13_pre_paralog_resolution_trees'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using FastTreeMP...')
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*trimmed.fasta'))]
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -627,12 +621,11 @@ def iqtree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    input_folder_basename = os.path.basename(alignments_folder)
-    output_folder = f'15_{input_folder_basename.lstrip("14_")}_tree_files'
+    output_folder = f'13_pre_paralog_resolution_trees'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating phylogenies from alignments using IQTREE...')
-    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.trimmed.fasta'))]
+    alignments = [file for file in sorted(glob.glob(f'{alignments_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool) as pool:
         manager = Manager()
@@ -787,15 +780,13 @@ def main(args,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
-        trimmed_output_folder = f'10_alignments_from_qc_outgroups_added_trimmed'
+        trimmed_output_folder = f'11_alignments_from_qc_outgroups_added_trimmed'
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
                                                   logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
-
-            sys.exit()
 
         # Generate trees:
         if args.use_fasttree:
@@ -816,18 +807,27 @@ def main(args,
 
             utils.resolve_polytomies(trees_folder, logger=logger)
 
-    elif args.no_stitched_contigs:  # Re-align with Clustal Omega only - no need for MAFT.
+    elif args.no_stitched_contigs:  # Re-align with Clustal Omega only - no need for MAFFT.
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
 
-        alignment_output_folder = clustalo_align_multiprocessing(
+        alignments_output_folder = clustalo_align_multiprocessing(
             outgroups_added_folder,
             pool_threads=args.pool,
             clustalo_threads=args.threads,
             logger=logger)
 
+        # Perform optional trimming with TrimAl:
+        trimmed_output_folder = f'11_alignments_from_qc_outgroups_added_trimmed'
+        if not args.no_trimming:
+            alignments_output_folder = run_trimal(alignments_output_folder,
+                                                  trimmed_output_folder,
+                                                  logger=logger)
+        else:
+            logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
+
         # Generate trees:
         if args.use_fasttree:
-            trees_folder = fasttree_multiprocessing(alignment_output_folder,
+            trees_folder = fasttree_multiprocessing(alignments_output_folder,
                                                     pool=args.pool,
                                                     threads=args.threads,
                                                     bootstraps=args.generate_bootstraps,
@@ -836,7 +836,7 @@ def main(args,
             utils.resolve_polytomies(trees_folder, logger=logger)
 
         else:
-            trees_folder = iqtree_multiprocessing(alignment_output_folder,
+            trees_folder = iqtree_multiprocessing(alignments_output_folder,
                                                   pool=args.pool,
                                                   threads=args.threads,
                                                   bootstraps=args.generate_bootstraps,

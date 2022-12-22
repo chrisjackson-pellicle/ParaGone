@@ -17,6 +17,7 @@ import io
 import pstats
 import cProfile
 import re
+import textwrap
 from textwrap import TextWrapper
 
 
@@ -273,8 +274,12 @@ def parse_ingroup_and_outgroup_file(in_out_file, logger=None):
         logger.error(f'{"[ERROR]:":10} Taxon ID {set(ingroups)} & {set(outgroups)} are in both ingroup and outgroup!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} There are {len(ingroups)} ingroup taxa and {len(outgroups)} outgroup taxa on the'
-                f' {os.path.basename(in_out_file)} file provided')
+    fill = textwrap.fill(
+        f'{"[INFO]:":10} There are {len(ingroups)} ingroup taxa and {len(outgroups)} outgroup taxa in the'
+        f' {os.path.basename(in_out_file)} file provided',
+        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+    logger.info(f'{fill}')
 
     return ingroups, outgroups
 

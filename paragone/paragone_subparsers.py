@@ -279,127 +279,179 @@ def add_align_selected_and_tree_parser(subparsers):
     return parser_align_selected_and_tree
 
 
-def add_prune_paralogs_mo_parser(subparsers):
+def add_prune_paralogs_parser(subparsers):
     """
-    Parser for fasta_from_tree
+    Parser for prune_paralogs
 
     :param argparse._SubParsersAction subparsers:
     :return None: no return value specified; default is None
     """
 
-    parser_prune_paralogs_mo = subparsers.add_parser('prune_paralogs_mo',
-                                                     help='Prune paralogs from tree using Monophyletic Outgroups (MO) '
-                                                     'algorithm')
-    parser_prune_paralogs_mo.add_argument('treefile_directory',
-                                          type=str,
-                                          help='directory containing tree newick files')
-    parser_prune_paralogs_mo.add_argument('in_and_outgroup_list',
-                                          type=str,
-                                          help='Text file listing in- and out-group taxa')
-    parser_prune_paralogs_mo.add_argument('--tree_file_suffix',
-                                          type=str,
-                                          default='.treefile',
-                                          help='Suffix for newick tree files. Default is: %(default)s')
-    parser_prune_paralogs_mo.add_argument('--minimum_taxa',
-                                          type=int,
-                                          default=2,
-                                          help='Minimum number of taxa required. Default is: %(default)s')
-    parser_prune_paralogs_mo.add_argument('--ignore_1to1_orthologs',
-                                          action='store_true',
-                                          default=False,
-                                          help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
-                                               'default)s')
-    parser_prune_paralogs_mo.add_argument('--run_profiler',
-                                          action='store_true',
-                                          dest='run_profiler',
-                                          default=False,
-                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-                                               'results')
+    parser_prune_paralogs = subparsers.add_parser('prune_paralogs',
+                                                  help='Prune paralogs from tree using one or more of the '
+                                                       'algorithms: Monophyletic Outgroups (MO), RooTed ingroups ('
+                                                       'RT), Maximum Inclusion (MI)')
+    parser_prune_paralogs.add_argument('--mo',
+                                       action='store_true',
+                                       default=False,
+                                       help='Run the Monophyletic Outgroups (MO) algorithm')
+    parser_prune_paralogs.add_argument('--mi',
+                                       action='store_true',
+                                       default=False,
+                                       help='Run the Maximum Inclusion (MI) algorithm')
+    parser_prune_paralogs.add_argument('--rt',
+                                       action='store_true',
+                                       default=False,
+                                       help='Run the RooTed ingroups (RT) algorithm')
+    parser_prune_paralogs.add_argument('--minimum_taxa',
+                                       type=int,
+                                       default=2,
+                                       help='Minimum number of taxa required. Default is: %(default)s')
+    parser_prune_paralogs.add_argument('--ignore_1to1_orthologs',
+                                       action='store_true',
+                                       default=False,
+                                       help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
+                                            'default)s')
+    parser_prune_paralogs.add_argument('--relative_tip_cutoff',
+                                       type=float,
+                                       default=0.2,
+                                       help='Relative tip cut-off threshold. Default is: %(default)s')
+    parser_prune_paralogs.add_argument('--absolute_tip_cutoff',
+                                       type=float,
+                                       default=0.4,
+                                       help='Absolute tip cut-off threshold. Default is: %(default)s')
+    parser_prune_paralogs.add_argument('--run_profiler',
+                                       action='store_true',
+                                       dest='run_profiler',
+                                       default=False,
+                                       help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+                                            'results')
 
-    return parser_prune_paralogs_mo
-
-
-def add_prune_paralogs_rt_parser(subparsers):
-    """
-    Parser for fasta_from_tree
-
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_prune_paralogs_rt = subparsers.add_parser('prune_paralogs_rt',
-                                                     help='Prune paralogs from tree using RooTed ingroups (RT) '
-                                                     'algorithm')
-    parser_prune_paralogs_rt.add_argument('treefile_directory',
-                                          type=str,
-                                          help='directory containing tree newick files')
-    parser_prune_paralogs_rt.add_argument('in_and_outgroup_list',
-                                          type=str,
-                                          help='Text file listing in- and out-group taxa')
-    parser_prune_paralogs_rt.add_argument('--tree_file_suffix',
-                                          type=str,
-                                          default='.treefile',
-                                          help='Suffix for newick tree files. Default is: %(default)s')
-    parser_prune_paralogs_rt.add_argument('--minimum_taxa',
-                                          type=int,
-                                          default=2,
-                                          help='Minimum number of taxa required. Default is: %(default)s')
-    parser_prune_paralogs_rt.add_argument('--run_profiler',
-                                          action='store_true',
-                                          dest='run_profiler',
-                                          default=False,
-                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-                                               'results')
-
-    return parser_prune_paralogs_rt
+    return parser_prune_paralogs
 
 
-def add_prune_paralogs_mi_parser(subparsers):
-    """
-    Parser for fasta_from_tree
 
-    :param argparse._SubParsersAction subparsers:
-    :return None: no return value specified; default is None
-    """
-
-    parser_prune_paralogs_mi = subparsers.add_parser('prune_paralogs_mi',
-                                                     help='Prune paralogs from tree using Maximum Inclusion (MI) '
-                                                     'algorithm')
-    parser_prune_paralogs_mi.add_argument('treefile_directory',
-                                          type=str,
-                                          help='directory containing tree newick files')
-    parser_prune_paralogs_mi.add_argument('in_and_outgroup_list',
-                                          type=str,
-                                          help='Text file listing in- and out-group taxa')
-    parser_prune_paralogs_mi.add_argument('--tree_file_suffix',
-                                          type=str,
-                                          default='.treefile',
-                                          help='Suffix for newick tree files. Default is: %(default)s')
-    parser_prune_paralogs_mi.add_argument('--relative_tip_cutoff',
-                                          type=float,
-                                          default=0.2,
-                                          help='Relative tip cut-off threshold. Default is: %(default)s')
-    parser_prune_paralogs_mi.add_argument('--absolute_tip_cutoff',
-                                          type=float,
-                                          default=0.4,
-                                          help='Absolute tip cut-off threshold. Default is: %(default)s')
-    parser_prune_paralogs_mi.add_argument('--minimum_taxa',
-                                          type=int,
-                                          default=2,
-                                          help='Minimum number of taxa required. Default is: %(default)s')
-    parser_prune_paralogs_mi.add_argument('--ignore_1to1_orthologs',
-                                          action='store_true',
-                                          default=False,
-                                          help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
-                                               'default)s')
-    parser_prune_paralogs_mi.add_argument('--run_profiler',
-                                          action='store_true',
-                                          dest='run_profiler',
-                                          default=False,
-                                          help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
-                                               'results')
-
-    return parser_prune_paralogs_mi
+# def add_prune_paralogs_mo_parser(subparsers):
+#     """
+#     Parser for fasta_from_tree
+#
+#     :param argparse._SubParsersAction subparsers:
+#     :return None: no return value specified; default is None
+#     """
+#
+#     parser_prune_paralogs_mo = subparsers.add_parser('prune_paralogs_mo',
+#                                                      help='Prune paralogs from tree using Monophyletic Outgroups (MO) '
+#                                                      'algorithm')
+#     parser_prune_paralogs_mo.add_argument('treefile_directory',
+#                                           type=str,
+#                                           help='directory containing tree newick files')
+#     parser_prune_paralogs_mo.add_argument('in_and_outgroup_list',
+#                                           type=str,
+#                                           help='Text file listing in- and out-group taxa')
+#     parser_prune_paralogs_mo.add_argument('--tree_file_suffix',
+#                                           type=str,
+#                                           default='.treefile',
+#                                           help='Suffix for newick tree files. Default is: %(default)s')
+#     parser_prune_paralogs_mo.add_argument('--minimum_taxa',
+#                                           type=int,
+#                                           default=2,
+#                                           help='Minimum number of taxa required. Default is: %(default)s')
+#     parser_prune_paralogs_mo.add_argument('--ignore_1to1_orthologs',
+#                                           action='store_true',
+#                                           default=False,
+#                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
+#                                                'default)s')
+#     parser_prune_paralogs_mo.add_argument('--run_profiler',
+#                                           action='store_true',
+#                                           dest='run_profiler',
+#                                           default=False,
+#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+#                                                'results')
+#
+#     return parser_prune_paralogs_mo
+#
+#
+# def add_prune_paralogs_rt_parser(subparsers):
+#     """
+#     Parser for fasta_from_tree
+#
+#     :param argparse._SubParsersAction subparsers:
+#     :return None: no return value specified; default is None
+#     """
+#
+#     parser_prune_paralogs_rt = subparsers.add_parser('prune_paralogs_rt',
+#                                                      help='Prune paralogs from tree using RooTed ingroups (RT) '
+#                                                      'algorithm')
+#     parser_prune_paralogs_rt.add_argument('treefile_directory',
+#                                           type=str,
+#                                           help='directory containing tree newick files')
+#     parser_prune_paralogs_rt.add_argument('in_and_outgroup_list',
+#                                           type=str,
+#                                           help='Text file listing in- and out-group taxa')
+#     parser_prune_paralogs_rt.add_argument('--tree_file_suffix',
+#                                           type=str,
+#                                           default='.treefile',
+#                                           help='Suffix for newick tree files. Default is: %(default)s')
+#     parser_prune_paralogs_rt.add_argument('--minimum_taxa',
+#                                           type=int,
+#                                           default=2,
+#                                           help='Minimum number of taxa required. Default is: %(default)s')
+#     parser_prune_paralogs_rt.add_argument('--run_profiler',
+#                                           action='store_true',
+#                                           dest='run_profiler',
+#                                           default=False,
+#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+#                                                'results')
+#
+#     return parser_prune_paralogs_rt
+#
+#
+# def add_prune_paralogs_mi_parser(subparsers):
+#     """
+#     Parser for fasta_from_tree
+#
+#     :param argparse._SubParsersAction subparsers:
+#     :return None: no return value specified; default is None
+#     """
+#
+#     parser_prune_paralogs_mi = subparsers.add_parser('prune_paralogs_mi',
+#                                                      help='Prune paralogs from tree using Maximum Inclusion (MI) '
+#                                                      'algorithm')
+#     parser_prune_paralogs_mi.add_argument('treefile_directory',
+#                                           type=str,
+#                                           help='directory containing tree newick files')
+#     parser_prune_paralogs_mi.add_argument('in_and_outgroup_list',
+#                                           type=str,
+#                                           help='Text file listing in- and out-group taxa')
+#     parser_prune_paralogs_mi.add_argument('--tree_file_suffix',
+#                                           type=str,
+#                                           default='.treefile',
+#                                           help='Suffix for newick tree files. Default is: %(default)s')
+#     parser_prune_paralogs_mi.add_argument('--relative_tip_cutoff',
+#                                           type=float,
+#                                           default=0.2,
+#                                           help='Relative tip cut-off threshold. Default is: %(default)s')
+#     parser_prune_paralogs_mi.add_argument('--absolute_tip_cutoff',
+#                                           type=float,
+#                                           default=0.4,
+#                                           help='Absolute tip cut-off threshold. Default is: %(default)s')
+#     parser_prune_paralogs_mi.add_argument('--minimum_taxa',
+#                                           type=int,
+#                                           default=2,
+#                                           help='Minimum number of taxa required. Default is: %(default)s')
+#     parser_prune_paralogs_mi.add_argument('--ignore_1to1_orthologs',
+#                                           action='store_true',
+#                                           default=False,
+#                                           help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
+#                                                'default)s')
+#     parser_prune_paralogs_mi.add_argument('--run_profiler',
+#                                           action='store_true',
+#                                           dest='run_profiler',
+#                                           default=False,
+#                                           help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
+#                                                'results')
+#
+#     return parser_prune_paralogs_mi
 
 
 def add_strip_names_and_align_parser(subparsers):
