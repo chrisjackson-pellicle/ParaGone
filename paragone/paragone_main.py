@@ -18,8 +18,6 @@ For a list of available subcommands, run:
 import argparse
 import sys
 import cProfile
-import logging
-import textwrap
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'ParaGone requires Python 3.6 or higher.'
@@ -46,7 +44,6 @@ from paragone import paragone_subparsers
 from paragone import check_inputs
 from paragone import align_and_clean
 from paragone import alignment_to_tree
-from paragone import collate_alignments_and_trees
 from paragone import trim_tree_tips
 from paragone import mask_tree_tips
 from paragone import cut_deep_paralogs
@@ -373,6 +370,43 @@ def final_alignments_main(args,
         logger=logger)
 
 
+def paragone_full_pipeline_main(args,
+                                log_directory=None,
+                                report_directory=None):
+    """
+    Runs all steps of the ParaGone pipeline
+
+    :param args: argparse namespace with subparser options for function paragone_full_pipeline_main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
+    :return: None: no return value specified; default is None
+    """
+
+    # Create a dictionary from the argparse Namespace:
+    parameters = vars(args)
+
+    # Create a logger for alignment_to_tree_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/paragone_full_pipeline')
+
+    # check for external dependencies:
+    if utils.check_dependencies(logger=logger):
+        logger.info(f'{"[INFO]:":10} All external dependencies found!')
+    else:
+        logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
+        sys.exit(1)
+
+    logger.info(f'{"[INFO]:":10} Subcommand paragone_full_pipeline was called with these arguments:\n')
+
+    for parameter, value in parameters.items():
+        if not parameter == 'func':
+            logger.info(f'{" " * 10} {parameter}: {value}')
+    logger.info('')
+
+    check_and_align_main(args,
+                         log_directory=log_directory,
+                         report_directory=report_directory)
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -388,7 +422,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 1.0.1rc',
+                         version='%(prog)s 0.0.1rc',
                          help='Print the paragone version number.')
 
     # Add subparsers:
@@ -399,6 +433,7 @@ def parse_arguments():
     parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
     parser_prune_paralogs = paragone_subparsers.add_prune_paralogs_parser(subparsers)
     parser_final_alignments = paragone_subparsers.add_final_alignments_parser(subparsers)
+    parser_paragone_full_pipeline = paragone_subparsers.add_paragone_full_pipeline_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_align.set_defaults(func=check_and_align_main)
@@ -407,6 +442,7 @@ def parse_arguments():
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     parser_prune_paralogs.set_defaults(func=prune_paralogs_main)
     parser_final_alignments.set_defaults(func=final_alignments_main)
+    parser_paragone_full_pipeline.set_defaults(func=paragone_full_pipeline_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()

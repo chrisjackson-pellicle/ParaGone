@@ -402,51 +402,127 @@ def add_paragone_full_pipeline_parser(subparsers):
 
     parser_paragone_full_pipeline = subparsers.add_parser('paragone_full_pipeline',
                                                           help='Run all steps of the ParaGone pipeline.')
-    parser_paragone_full_pipeline.add_argument('--mo',
-                                         action='store_true',
-                                         default=False,
-                                         help='Run the Monophyletic Outgroups (MO) algorithm')
-    parser_paragone_full_pipeline.add_argument('--mi',
-                                         action='store_true',
-                                         default=False,
-                                         help='Run the Maximum Inclusion (MI) algorithm')
-    parser_paragone_full_pipeline.add_argument('--rt',
-                                         action='store_true',
-                                         default=False,
-                                         help='Run the RooTed ingroups (RT) algorithm')
+    parser_paragone_full_pipeline.add_argument('gene_fasta_directory',
+                                               type=str,
+                                               help='Directory contains fasta files with paralog sequences')
+    parser_paragone_full_pipeline.add_argument('--gene_name_delimiter',
+                                               type=str,
+                                               default='_',
+                                               help='Delimiter in paralog filename to extract gene name. Default is: '
+                                                    '%(default)s')
+    parser_paragone_full_pipeline.add_argument('--gene_name_field_num',
+                                               type=int,
+                                               default='1',
+                                               help='From paralog filename, number of fields to extract gene name. '
+                                                    'Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--external_outgroups_file',
+                                               type=str,
+                                               default=None,
+                                               help='File in fasta format with additional outgroup sequences to add '
+                                                    'to each gene')
+    parser_paragone_full_pipeline.add_argument('--external_outgroup',
+                                               action='append',
+                                               type=str,
+                                               dest='external_outgroups',
+                                               default=None,
+                                               help='If a taxon name is provided, only use these sequences from the '
+                                                    'user-provided external_outgroups_file. Note that this parameter '
+                                                    'can be specified one ore more times.')
+    parser_paragone_full_pipeline.add_argument('--internal_outgroup',
+                                               action='append',
+                                               type=str,
+                                               dest='internal_outgroups',
+                                               default=None,
+                                               help='Taxon name to use as an internal outgroup (i.e. present in input '
+                                                    'paralog files). Note that this parameter can be specified one or '
+                                                    'more times.')
     parser_paragone_full_pipeline.add_argument('--pool',
-                                         type=int,
-                                         default=1,
-                                         help='Number of alignments to run concurrently. Default is: %('
-                                              'default)s')
+                                               type=int,
+                                               default=1,
+                                               help='Number of alignments to run concurrently. Default is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--threads',
-                                         type=int,
-                                         default=1,
-                                         help='Number of threads to use for each concurrent alignment. Default '
-                                              'is: %(default)s')
+                                               type=int,
+                                               default=1,
+                                               help='Number of threads to use for each concurrent alignment. Default '
+                                                    'is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--no_stitched_contigs',
-                                         action='store_true',
-                                         default=False,
-                                         help='If specified, realign mafft alignments with clustal omega. '
-                                              'Default is: %(default)s')
+                                               action='store_true',
+                                               default=False,
+                                               help='If specified, realign mafft alignments with clustal omega. '
+                                                    'Default is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--use_muscle',
-                                         action='store_true',
-                                         default=False,
-                                         help='If specified, use muscle rather than mafft for initial '
-                                              'alignments. Default is: %(default)s')
+                                               action='store_true',
+                                               default=False,
+                                               help='If specified, use muscle rather than mafft for initial '
+                                                    'alignments. Default is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--mafft_algorithm',
-                                         default='auto',
-                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
+                                               default='auto',
+                                               help='Algorithm to use for mafft alignments. Default is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--no_trimming',
-                                         action='store_true',
-                                         default=False,
-                                         help='No not trim alignments using Trimal. Default is: %(default)s')
+                                               action='store_true',
+                                               default=False,
+                                               help='No not trim alignments using Trimal. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--no_cleaning',
+                                               action='store_true',
+                                               default=False,
+                                               help='No not clean alignments using HmmCleaner.pl. Default is: '
+                                                    '%(default)s')
     parser_paragone_full_pipeline.add_argument('--run_profiler',
-                                         action='store_true',
-                                         dest='run_profiler',
-                                         default=False,
-                                         help='If supplied, run the subcommand using cProfile. Saves a *.csv '
-                                              'file of results')
+                                               action='store_true',
+                                               dest='run_profiler',
+                                               default=False,
+                                               help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+                                                    'file of results')
+
+
+
+
+
+    # parser_paragone_full_pipeline.add_argument('--mo',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='Run the Monophyletic Outgroups (MO) algorithm')
+    # parser_paragone_full_pipeline.add_argument('--mi',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='Run the Maximum Inclusion (MI) algorithm')
+    # parser_paragone_full_pipeline.add_argument('--rt',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='Run the RooTed ingroups (RT) algorithm')
+    # parser_paragone_full_pipeline.add_argument('--pool',
+    #                                      type=int,
+    #                                      default=1,
+    #                                      help='Number of alignments to run concurrently. Default is: %('
+    #                                           'default)s')
+    # parser_paragone_full_pipeline.add_argument('--threads',
+    #                                      type=int,
+    #                                      default=1,
+    #                                      help='Number of threads to use for each concurrent alignment. Default '
+    #                                           'is: %(default)s')
+    # parser_paragone_full_pipeline.add_argument('--no_stitched_contigs',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='If specified, realign mafft alignments with clustal omega. '
+    #                                           'Default is: %(default)s')
+    # parser_paragone_full_pipeline.add_argument('--use_muscle',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='If specified, use muscle rather than mafft for initial '
+    #                                           'alignments. Default is: %(default)s')
+    # parser_paragone_full_pipeline.add_argument('--mafft_algorithm',
+    #                                      default='auto',
+    #                                      help='Algorithm to use for mafft alignments. Default is: %(default)s')
+    # parser_paragone_full_pipeline.add_argument('--no_trimming',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='No not trim alignments using Trimal. Default is: %(default)s')
+    # parser_paragone_full_pipeline.add_argument('--run_profiler',
+    #                                      action='store_true',
+    #                                      dest='run_profiler',
+    #                                      default=False,
+    #                                      help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+    #                                           'file of results')
 
 
     return parser_paragone_full_pipeline
