@@ -402,86 +402,86 @@ def paragone_full_pipeline_main(args,
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
 
-    # # Check input files:
-    # check_inputs.main(
-    #     args,
-    #     logger=logger)
-    #
-    # # Align paralogs, trim and clean:
-    # align_and_clean.main(
-    #     args,
-    #     logger=logger)
-    #
-    # if args.no_trimming and args.no_cleaning:
-    #     args.alignment_directory = '02_alignments'
-    # elif args.no_cleaning and not args.no_trimming:
-    #     args.alignment_directory = '03_alignments_trimmed'
-    # elif args.no_trimming and not args.no_cleaning:
-    #     args.alignment_directory = '04_alignments_hmmcleaned'
-    # else:
-    #     args.alignment_directory = '04_alignments_trimmed_hmmcleaned'
-    #
-    # # Produce trees from alignments:
-    # alignment_to_tree.main(
-    #     args,
-    #     logger=logger)
-    #
-    # # Trim tips from the input tree if above threshold lengths:
-    # trim_tree_tips.main(
-    #     args,
-    #     report_directory,
-    #     logger=logger)
-    #
-    # # Mask tree tips in trimmed trees:
-    # args.mask_tips_alignment_directory = args.alignment_directory
-    # args.mask_tips_alignment_file_suffix = '.fasta'
-    # mask_tree_tips.main(
-    #     args,
-    #     report_directory,
-    #     logger=logger)
-    #
-    # # Cut tree at points of putative deep paralogs:
-    # cut_deep_paralogs.main(
-    #     args,
-    #     report_directory,
-    #     logger=logger)
-    #
-    # # Extract fasta sequences corresponding to the QC'd trees:
-    # args.from_cut_deep_paralogs = True
-    # fasta_from_tree.main(
-    #     args,
-    #     report_directory,
-    #     logger=logger)
-    #
-    # # Align the selected sequences and generate trees:
-    # args.qc_alignment_directory = args.alignment_directory
-    # align_selected_and_tree.main(
-    #     args,
-    #     report_directory,
-    #     logger=logger)
-    #
-    # # Run the Monophyletic Outgroups (MO) algorithm:
-    # if args.mo:
-    #     prune_paralogs_mo.main(
-    #         args,
-    #         report_directory,
-    #         logger=logger)
-    #
-    # # Run the Maximum Inclusion (MI) algorithm:
-    # if args.mi:
-    #     args.relative_tip_cutoff = args.trim_tips_relative_cutoff
-    #     args.absolute_tip_cutoff = args.trim_tips_absolute_cutoff
-    #     prune_paralogs_mi.main(
-    #         args,
-    #         report_directory,
-    #         logger=logger)
-    #
-    # # Run the RooTed outgroups (RT) algorithm:
-    # if args.rt:
-    #     prune_paralogs_rt.main(
-    #         args,
-    #         report_directory,
-    #         logger=logger)
+    # Check input files:
+    check_inputs.main(
+        args,
+        logger=logger)
+
+    # Align paralogs, trim and clean:
+    align_and_clean.main(
+        args,
+        logger=logger)
+
+    if args.no_trimming and args.no_cleaning:
+        args.alignment_directory = '02_alignments'
+    elif args.no_cleaning and not args.no_trimming:
+        args.alignment_directory = '03_alignments_trimmed'
+    elif args.no_trimming and not args.no_cleaning:
+        args.alignment_directory = '04_alignments_hmmcleaned'
+    else:
+        args.alignment_directory = '04_alignments_trimmed_hmmcleaned'
+
+    # Produce trees from alignments:
+    alignment_to_tree.main(
+        args,
+        logger=logger)
+
+    # Trim tips from the input tree if above threshold lengths:
+    trim_tree_tips.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Mask tree tips in trimmed trees:
+    args.mask_tips_alignment_directory = args.alignment_directory
+    args.mask_tips_alignment_file_suffix = '.fasta'
+    mask_tree_tips.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Cut tree at points of putative deep paralogs:
+    cut_deep_paralogs.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Extract fasta sequences corresponding to the QC'd trees:
+    args.from_cut_deep_paralogs = True
+    fasta_from_tree.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Align the selected sequences and generate trees:
+    args.qc_alignment_directory = args.alignment_directory
+    align_selected_and_tree.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Run the Monophyletic Outgroups (MO) algorithm:
+    if args.mo:
+        prune_paralogs_mo.main(
+            args,
+            report_directory,
+            logger=logger)
+
+    # Run the Maximum Inclusion (MI) algorithm:
+    if args.mi:
+        args.relative_tip_cutoff = args.trim_tips_relative_cutoff
+        args.absolute_tip_cutoff = args.trim_tips_absolute_cutoff
+        prune_paralogs_mi.main(
+            args,
+            report_directory,
+            logger=logger)
+
+    # Run the RooTed outgroups (RT) algorithm:
+    if args.rt:
+        prune_paralogs_rt.main(
+            args,
+            report_directory,
+            logger=logger)
 
     # Extract fasta for the Monophyletic Outgroups (MO) algorithm:
     if args.mo:
@@ -527,6 +527,7 @@ def paragone_full_pipeline_main(args,
         report_directory,
         selected_alignment_directory='19_selected_sequences_RT',
         logger=logger)
+
 
 def parse_arguments():
     """
