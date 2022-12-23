@@ -92,14 +92,30 @@ def reroot_with_monophyletic_outgroups(root,
                     back_in_names += 1
 
             if front_in_names == 0 and front_out_names > 0 and back_in_names > 0 and back_out_names == 0:
-                newroot = node.parent  # ingroup at back, outgroup in front CJJ added.parent - bugfix?
+                # print('yeah_1')
+                # print(f'\n\nIternode is: {newick3.tostring(node)}')
+                # print(f'front_out_names: {front_out_names}')
+                # print(f'front_in_names: {front_in_names}')
+                # print(f'back_out_names: {back_out_names}')
+                # print(f'back_in_names: {back_in_names}')
+                newroot = node.parent  # ingroup at back, outgroup in front CJJ added .parent - bugfix?
+                # print(f'newroot:\n{newick3.tostring(newroot)}')
                 break
 
             if front_in_names > 0 and front_out_names == 0 and back_in_names == 0 and back_out_names > 0:
-                newroot = node.parent  # ingroup in front, outgroup at back
+                # print('yeah_2')
+                # print(f'\n\nIternode is: {newick3.tostring(node)}')
+                # print(f'front_out_names: {front_out_names}')
+                # print(f'front_in_names: {front_in_names}')
+                # print(f'back_out_names: {back_out_names}')
+                # print(f'back_in_names: {back_in_names}')
+                # newroot = node.parent  # ingroup in front, outgroup at back
+                newroot = node  # ingroup in front, outgroup at back CJJ removed .parent - bugfix?
+                # print(f'newroot:\n{newick3.tostring(newroot)}')
                 break
 
         if newroot:
+            # print(f'\nReturned tree:\n{newick3.tostring(phylo3.reroot(root, newroot))}')
             return phylo3.reroot(root, newroot)
         else:
             return None
@@ -170,7 +186,7 @@ def prune_paralogs_from_rerooted_homotree(root,
                 logger.debug(f'Cutting node0: {newick3.tostring(node0)}')
                 node0.prune()
 
-    else:
+    else:  # CJJ added
         raise ValueError('More than one clade with outgroup sequences!')
 
     # If there are still taxon duplications (putative paralogs) in the ingroup clade, keep pruning:

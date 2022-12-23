@@ -467,6 +467,15 @@ def add_paragone_full_pipeline_parser(subparsers):
                                                default=False,
                                                help='No not clean alignments using HmmCleaner.pl. Default is: '
                                                     '%(default)s')
+    parser_paragone_full_pipeline.add_argument('--generate_bootstraps',
+                                               action='store_true',
+                                               default=False,
+                                               help='Create bootstraps for trees using UFBoot. Default is: '
+                                                    '%(default)s')
+    parser_paragone_full_pipeline.add_argument('--use_fasttree',
+                                               action='store_true',
+                                               default=False,
+                                               help='Use FastTree instead of IQTREE. Default is: %(default)s')
     parser_paragone_full_pipeline.add_argument('--run_profiler',
                                                action='store_true',
                                                dest='run_profiler',
@@ -474,22 +483,57 @@ def add_paragone_full_pipeline_parser(subparsers):
                                                help='If supplied, run the subcommand using cProfile. Saves a *.csv '
                                                     'file of results')
 
+    parser_paragone_full_pipeline.add_argument('--trim_tips_relative_cutoff',
+                                               type=float,
+                                               default=0.2,
+                                               help='Relative cutoff for removing tree tips. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--trim_tips_absolute_cutoff',
+                                               type=float,
+                                               default=0.4,
+                                               help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+    # parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
+    #                                        type=str,
+    #                                        help='directory containing original fasta alignment files')
+    # parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
+    #                                        type=str,
+    #                                        default='.fasta',
+    #                                        help='Suffix for alignment files. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--mask_tips_remove_paraphyletic_tips',
+                                               action='store_true',
+                                               default=False,
+                                               help='Remove paraphyletic tree tips. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
+                                               type=float,
+                                               default=0.3,
+                                               help='Internal branch length cutoff cutting tree. Default is: '
+                                                    '%(default)s')
+    parser_paragone_full_pipeline.add_argument('--cut_deep_paralogs_minimum_number_taxa',
+                                               type=int,
+                                               default=4,
+                                               help='Minimum number of taxa in tree for tree to be retained. Default '
+                                                    'is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--mo',
+                                               action='store_true',
+                                               default=False,
+                                               help='Run the Monophyletic Outgroups (MO) algorithm')
+    parser_paragone_full_pipeline.add_argument('--mi',
+                                               action='store_true',
+                                               default=False,
+                                               help='Run the Maximum Inclusion (MI) algorithm')
+    parser_paragone_full_pipeline.add_argument('--rt',
+                                               action='store_true',
+                                               default=False,
+                                               help='Run the RooTed ingroups (RT) algorithm')
+    parser_paragone_full_pipeline.add_argument('--minimum_taxa',
+                                               type=int,
+                                               default=2,
+                                               help='Minimum number of taxa required. Default is: %(default)s')
+    parser_paragone_full_pipeline.add_argument('--ignore_1to1_orthologs',
+                                               action='store_true',
+                                               default=False,
+                                               help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: '
+                                                    '%(default)s')
 
-
-
-
-    # parser_paragone_full_pipeline.add_argument('--mo',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='Run the Monophyletic Outgroups (MO) algorithm')
-    # parser_paragone_full_pipeline.add_argument('--mi',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='Run the Maximum Inclusion (MI) algorithm')
-    # parser_paragone_full_pipeline.add_argument('--rt',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='Run the RooTed ingroups (RT) algorithm')
     # parser_paragone_full_pipeline.add_argument('--pool',
     #                                      type=int,
     #                                      default=1,

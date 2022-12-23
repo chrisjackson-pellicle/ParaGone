@@ -79,6 +79,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                       threads=mafft_threads,
                                       use_muscle=use_muscle,
                                       logger=logger)
+
                           for fasta_file in target_genes]
 
         for future in future_results:
@@ -141,7 +142,7 @@ def mafft_or_muscle_align(fasta_file,
         with lock:
             counter.value += 1
 
-        return os.path.basename(expected_alignment_file)
+        return os.path.basename(expected_alignment_file), None  # None here as it should already have been processed
 
     except AssertionError:
         if use_muscle:
@@ -242,7 +243,7 @@ def run_trimal(input_folder,
             assert utils.file_exists_and_not_empty(expected_trimmed_alignment_file)
             logger.debug(f'Trimmed alignment exists for {alignment_basename}, skipping...')
 
-            return os.path.basename(expected_trimmed_alignment_file)
+            continue
 
         except AssertionError:
             try:
@@ -263,16 +264,23 @@ def run_trimal(input_folder,
     return trimmed_alignments_directory
 
 
-def run_hmm_cleaner(input_folder, logger=None):
+def run_hmm_cleaner(input_folder,
+                    no_trimming=False,
+                    logger=None):
     """
     Runs HmmCleaner.pl on each alignment within a provided folder.
 
     :param str input_folder: path to a folder containing trimmed fasta alignment files
+    :param bool no_trimming: if True, sequences have NOT been trimmed with trimal
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    output_folder = f'04_alignments_trimmed_hmmcleaned'
+    if no_trimming:
+        output_folder = f'04_alignments_hmmcleaned'
+    else:
+        output_folder = f'04_alignments_trimmed_hmmcleaned'
+
     utils.createfolder(output_folder)
 
     logger.info('')
@@ -523,6 +531,7 @@ def main(args, logger=None):
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
             run_hmm_cleaner(alignments_output_folder,
+                            no_trimming=args.no_trimming,
                             logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
@@ -557,6 +566,7 @@ def main(args, logger=None):
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
             run_hmm_cleaner(alignments_output_folder,
+                            no_trimming=args.no_trimming,
                             logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')

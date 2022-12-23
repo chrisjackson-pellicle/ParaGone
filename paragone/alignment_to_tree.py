@@ -280,7 +280,7 @@ def main(args, logger=None):
     logger.debug(f'{fill}\n')
     logger.debug(args)
 
-    logger.info(f'{"[INFO]:":10} ======> GENERATING TREES FROM PARALOG ALIGNMENTS <======\n')
+    logger.info(f'\n{"[INFO]:":10} ======> GENERATING TREES FROM PARALOG ALIGNMENTS <======\n')
 
     # Checking input directories and files:
     directory_suffix_dict = {args.alignment_directory: '.fasta'}

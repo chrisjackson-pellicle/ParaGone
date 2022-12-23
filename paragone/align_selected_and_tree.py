@@ -727,7 +727,7 @@ def main(args,
     # Checking input directories and files:
     selected_alignments_directory = '09_alignments_from_qc_trees'
     selected_alignments_suffix = 'selected.fasta'
-    qc_alignments_directory = args.qc_alignment_directory
+    qc_alignments_directory = args.qc_alignment_directory  # i.e. with all seqs, before tree quality control
     qc_alignments_suffix = '.fasta'
 
     directory_suffix_dict = {selected_alignments_directory: selected_alignments_suffix,
@@ -744,7 +744,7 @@ def main(args,
     # Add outgroup sequences, both internal (if removed by the tree QC steps) and external (if a fasta file of
     # external outgroup sequences is provided).
     outgroups_added_folder = add_outgroup_seqs(args.qc_alignment_directory,
-                                               args.selected_alignment_directory,
+                                               selected_alignments_directory,
                                                args.internal_outgroups,
                                                args.external_outgroups_file,
                                                list_of_external_outgroups=args.external_outgroups,

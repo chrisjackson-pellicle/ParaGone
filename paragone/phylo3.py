@@ -243,10 +243,14 @@ def reroot(oldroot, newroot):
     n = newroot
     while 1:
         v.append(n)
-        if not n.parent: break
+        from paragone import newick3
+        # print(f'\nv is: {[newick3.tostring(item) for item in v]}')
+        if not n.parent:
+            break
         n = n.parent
-    # print [ x.label for x in v ]
+    # print([x.label for x in v])
     v.reverse()
+    # print(v)
     for i, cp in enumerate(v[:-1]):
         node = v[i + 1]
         # node is current node; cp is current parent

@@ -283,7 +283,7 @@ def main(args,
     logger.debug(f'{fill}\n')
     logger.debug(args)
 
-    logger.info(f'{"[INFO]:":10} ======> TRIMMING TREE TIPS <======\n')
+    logger.info(f'\n{"[INFO]:":10} ======> TRIMMING TREE TIPS <======\n')
 
     # Checking input directories and files:
     tree_file_directory = '05_trees_pre_quality_control'
