@@ -482,7 +482,6 @@ def add_paragone_full_pipeline_parser(subparsers):
                                                default=False,
                                                help='If supplied, run the subcommand using cProfile. Saves a *.csv '
                                                     'file of results')
-
     parser_paragone_full_pipeline.add_argument('--trim_tips_relative_cutoff',
                                                type=float,
                                                default=0.2,
@@ -533,40 +532,4 @@ def add_paragone_full_pipeline_parser(subparsers):
                                                default=False,
                                                help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: '
                                                     '%(default)s')
-
-    # parser_paragone_full_pipeline.add_argument('--pool',
-    #                                      type=int,
-    #                                      default=1,
-    #                                      help='Number of alignments to run concurrently. Default is: %('
-    #                                           'default)s')
-    # parser_paragone_full_pipeline.add_argument('--threads',
-    #                                      type=int,
-    #                                      default=1,
-    #                                      help='Number of threads to use for each concurrent alignment. Default '
-    #                                           'is: %(default)s')
-    # parser_paragone_full_pipeline.add_argument('--no_stitched_contigs',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='If specified, realign mafft alignments with clustal omega. '
-    #                                           'Default is: %(default)s')
-    # parser_paragone_full_pipeline.add_argument('--use_muscle',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='If specified, use muscle rather than mafft for initial '
-    #                                           'alignments. Default is: %(default)s')
-    # parser_paragone_full_pipeline.add_argument('--mafft_algorithm',
-    #                                      default='auto',
-    #                                      help='Algorithm to use for mafft alignments. Default is: %(default)s')
-    # parser_paragone_full_pipeline.add_argument('--no_trimming',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='No not trim alignments using Trimal. Default is: %(default)s')
-    # parser_paragone_full_pipeline.add_argument('--run_profiler',
-    #                                      action='store_true',
-    #                                      dest='run_profiler',
-    #                                      default=False,
-    #                                      help='If supplied, run the subcommand using cProfile. Saves a *.csv '
-    #                                           'file of results')
-
-
     return parser_paragone_full_pipeline

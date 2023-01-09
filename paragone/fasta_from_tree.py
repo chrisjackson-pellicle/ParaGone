@@ -24,7 +24,6 @@ def subsample_alignments(treefile_directory,
                          tree_suffix,
                          alignment_directory,
                          from_cut_deep_paralogs=False,
-                         algorithm_suffix=None,
                          logger=None):
     """
     Takes a pruned/QC'd tree file, finds the original matching alignment, and sub-samples that alignment to recover
@@ -35,7 +34,6 @@ def subsample_alignments(treefile_directory,
     :param str tree_suffix: suffix for the tree files
     :param str alignment_directory: path to the directory containing fasta alignments
     :param bool from_cut_deep_paralogs: if True, process tree file names accordingly to recover gene names
-    :param None/str algorithm_suffix: if extracting seqs from pruned trees, the algorithm suffix mo/rt/mi, else None
     :param logging.Logger logger: a logger object
     :return str, dict output_folder, alignment_filtering_dict: path the output folder with filtered alignments,
     dictionary of filtering stats for each tree/alignment
@@ -45,9 +43,12 @@ def subsample_alignments(treefile_directory,
 
     # Check for trim/clean status of original alignments:
     if from_cut_deep_paralogs:
-        if re.search('hmmcleaned', alignment_directory):
+        if re.search('hmmcleaned', alignment_directory) and re.search('trimmed', alignment_directory):
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed and cleaned')
             alignment_suffix = '.aln.trimmed.hmm.fasta'
+        elif re.search('hmmcleaned', alignment_directory):
+            logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were cleaned but not trimmed')
+            alignment_suffix = '.aln.hmm.fasta'
         elif re.search('trimmed', alignment_directory):
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed but not cleaned')
             alignment_suffix = '.aln.trimmed.fasta'
