@@ -2,7 +2,7 @@
 
 Documentation in progress...
 
-Current version: 1.0.1 (November 2022)
+Current version: 0.0.1rc (January 2023)
 
 ### Purpose
 
@@ -12,7 +12,7 @@ ToDo
 #### Original Yang and Smith orthology inference manuscript, documentation and scripts
 
 
-ParalogGrouper makes use of the **paralogy resolution** (also described as **orthology inference**) approaches described and implemented by Yang and Smith 2014 [here][1]. These approaches have since been adapted for target capture datasets as described in the bioRxiv manuscript [here][2]. The original documentation and scripts can be found [here][3].
+ParaGone makes use of the **paralogy resolution** (also described as **orthology inference**) approaches described and implemented by Yang and Smith 2014 [here][1]. These approaches have since been adapted for target capture datasets as described in the bioRxiv manuscript [here][2]. The original documentation and scripts can be found [here][3].
 
 ---
 
@@ -33,16 +33,16 @@ ParalogGrouper makes use of the **paralogy resolution** (also described as **ort
 ---
 # Setup
 
-We strongly recommend installing ParalogGrouper using [conda](https://docs.conda.io/en/latest/miniconda.html) with a new environment. This will install ParalogGrouper, all required Python packages, and all required external programs. If you have conda installed and the channels `bioconda` and `conda-forge` have already been added, this can be done using the command:
+We strongly recommend installing ParaGone using [conda](https://docs.conda.io/en/latest/miniconda.html) with a new environment. This will install ParaGone, all required Python packages, and all required external programs. If you have conda installed and the channels `bioconda` and `conda-forge` have already been added, this can be done using the command:
 
 ```
-conda create -n paralog_grouper -c chrisjackson-pellicle paralog_grouper
+conda create -n paragone -c chrisjackson-pellicle paragone
 ```
 
 ...followed by:
 
 ```
-conda activate paralog_grouper
+conda activate paragone
 ```
 
 For full installation instructions, please see our wiki page:
@@ -50,7 +50,7 @@ For full installation instructions, please see our wiki page:
 [address](link)
 
 
-Once all dependencies are installed you can download a test dataset [here](link), extract the `*.tar.gz` file, and execute the `run_paralog_grouper_test_dataset.sh` script from the `test_dataset` directory for a demonstration of ParalogGrouper.
+Once all dependencies are installed you can download a test dataset [here](link), extract the `*.tar.gz` file, and execute the `run_paragone_test_dataset.sh` script from the `test_dataset` directory for a demonstration of ParaGone.
 
 
 ----
@@ -93,11 +93,7 @@ It's fine if your `outgroups.fasta` file contains additional sequences. When run
 
 # Pipeline Output
 
-After running the pipeline, output can be found in the folder `results` (unless you have changed the name of the default output folder using the `--outdir <name>` parameter. This will consist of 23 subfolders. If you're just after the aligned .fasta files for each of your target genes as output by each of the paralogy resolution methods, the three main output folders of interest are probably:
-
-- xx
-- xx
-- xx
+ToDo
 
 
 For a full description of ParalogGrouper output, [see the wiki](link).
@@ -106,7 +102,7 @@ For a full description of ParalogGrouper output, [see the wiki](link).
 -----
 # Changelog
 
-**1.0.0 release candidate** *November, 2022*
+**0.0.1rc** *January, 2023*
 
 
 
