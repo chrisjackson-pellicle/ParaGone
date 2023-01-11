@@ -382,3 +382,69 @@ class TextWrapperForwardSlash(TextWrapper):
                          tabsize=tabsize,
                          max_lines=max_lines,
                          placeholder=placeholder)
+
+
+def delete_intermediate_data(logger=None):
+    """
+    Deletes all files and folders produced by ParaGone except for:
+
+    00_logs_and_reports
+    14_pruned_MO
+    15_pruned_MI
+    16_pruned_RT
+    23_MO_final_alignments
+    24_MI_final_alignments
+    25_RT_final_alignments
+    26_MO_final_alignments_trimmed
+    27_MI_final_alignments_trimmed
+    28_RT_final_alignments_trimmed
+
+    :param logging.Logger logger: a logger object
+    :return:
+    """
+
+    files_to_delete = [
+        'external_outgroups_sanitised.fasta',
+        'in_and_outgroups_list.txt'
+    ]
+
+    folders_to_delete = [
+        '01_input_paralog_fasta_with_sanitised_filenames',
+        '02_alignments',
+        '03_alignments_trimmed',
+        '04_alignments_trimmed_hmmcleaned',
+        '05_trees_pre_quality_control',
+        '06_trees_trimmed',
+        '07_trees_trimmed_masked',
+        '08_trees_trimmed_masked_cut',
+        '09_alignments_from_qc_trees',
+        '10_alignments_from_qc_outgroups_added',
+        '11_alignments_from_qc_outgroups_added_trimmed',
+        '12_pre_paralog_resolution_alignments',
+        '13_pre_paralog_resolution_trees',
+        '17_selected_sequences_MO',
+        '18_selected_sequences_MI',
+        '19_selected_sequences_RT',
+        '20_MO_stripped_names',
+        '21_MI_stripped_names',
+        '22_RT_stripped_names'
+    ]
+
+    for folder in folders_to_delete:
+        try:
+            logger.debug(f'Removing folder "{folder}"')
+            shutil.rmtree(folder)
+        except FileNotFoundError:
+            logger.debug(f'Folder "{folder}" not found, can not delete it!')
+        except:
+            raise
+
+    for file in files_to_delete:
+        try:
+            logger.debug(f'Removing file "{file}"')
+            os.remove(file)
+        except FileNotFoundError:
+            logger.debug(f'file "{file}" not found, can not delete it!')
+        except:
+            raise
+

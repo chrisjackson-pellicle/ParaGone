@@ -205,7 +205,6 @@ def main(args,
                              tree_file_suffix,
                              original_alignments_directory,
                              from_cut_deep_paralogs=args.from_cut_deep_paralogs,
-                             algorithm_suffix=algorithm_suffix,
                              logger=logger)
 
     # Write a report of pre-and-post filtering stats for each tree/alignments:

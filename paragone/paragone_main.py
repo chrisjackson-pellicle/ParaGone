@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 1.0.0 release candidate (November 2022)
+ParaGone: paralogy resolution pipeline version 0.0.1rc (January 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -369,14 +369,18 @@ def final_alignments_main(args,
         selected_alignment_directory='19_selected_sequences_RT',
         logger=logger)
 
+    # Remove all intermediate files and folders:
+    if not args.keep_intermediate_files:
+        utils.delete_intermediate_data(logger=logger)
 
-def paragone_full_pipeline_main(args,
-                                log_directory=None,
-                                report_directory=None):
+
+def full_pipeline_main(args,
+                       log_directory=None,
+                       report_directory=None):
     """
     Runs all steps of the ParaGone pipeline
 
-    :param args: argparse namespace with subparser options for function paragone_full_pipeline_main()
+    :param args: argparse namespace with subparser options for function full_pipeline_main()
     :param str log_directory: path to directory for log files
     :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
@@ -386,7 +390,7 @@ def paragone_full_pipeline_main(args,
     parameters = vars(args)
 
     # Create a logger for alignment_to_tree_main:
-    logger = utils.setup_logger(__name__, f'{log_directory}/paragone_full_pipeline')
+    logger = utils.setup_logger(__name__, f'{log_directory}/full_pipeline')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
@@ -528,6 +532,10 @@ def paragone_full_pipeline_main(args,
         selected_alignment_directory='19_selected_sequences_RT',
         logger=logger)
 
+    # Remove all intermediate files and folders:
+    if not args.keep_intermediate_files:
+        utils.delete_intermediate_data(logger=logger)
+
 
 def parse_arguments():
     """
@@ -545,7 +553,7 @@ def parse_arguments():
                          dest='version',
                          action='version',
                          version='%(prog)s 0.0.1rc',
-                         help='Print the paragone version number.')
+                         help='Print the ParaGone version number.')
 
     # Add subparsers:
     subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
@@ -555,7 +563,7 @@ def parse_arguments():
     parser_align_selected_and_tree = paragone_subparsers.add_align_selected_and_tree_parser(subparsers)
     parser_prune_paralogs = paragone_subparsers.add_prune_paralogs_parser(subparsers)
     parser_final_alignments = paragone_subparsers.add_final_alignments_parser(subparsers)
-    parser_paragone_full_pipeline = paragone_subparsers.add_paragone_full_pipeline_parser(subparsers)
+    parser_full_pipeline = paragone_subparsers.add_full_pipeline_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_align.set_defaults(func=check_and_align_main)
@@ -564,7 +572,7 @@ def parse_arguments():
     parser_align_selected_and_tree.set_defaults(func=align_selected_and_tree_main)
     parser_prune_paralogs.set_defaults(func=prune_paralogs_main)
     parser_final_alignments.set_defaults(func=final_alignments_main)
-    parser_paragone_full_pipeline.set_defaults(func=paragone_full_pipeline_main)
+    parser_full_pipeline.set_defaults(func=full_pipeline_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
@@ -579,9 +587,9 @@ def main():
         sys.exit(1)
 
     # Create a directory for logs for each step of the pipeline:
-    utils.createfolder('00_logs_and_reports_resolve_paralogs')
-    log_directory = utils.createfolder('00_logs_and_reports_resolve_paralogs/logs')
-    report_directory = utils.createfolder('00_logs_and_reports_resolve_paralogs/reports')
+    utils.createfolder('00_logs_and_reports')
+    log_directory = utils.createfolder('00_logs_and_reports/logs')
+    report_directory = utils.createfolder('00_logs_and_reports/reports')
 
     # Parse arguments for the command/subcommand used:
     args = parse_arguments()

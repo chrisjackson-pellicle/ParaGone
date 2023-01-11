@@ -188,7 +188,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
     # Iterate over all genes from paralogs dict, and check for internal and/or external outgroups. Write a tsv file
     # of results:
 
-    outgroup_coverage_report = f'00_logs_and_reports_resolve_paralogs/reports/outgroup_coverage_report.tsv'
+    outgroup_coverage_report = f'00_logs_and_reports/reports/outgroup_coverage_report.tsv'
 
     with open(outgroup_coverage_report, 'w') as tsv_report:
         number_of_paralog_files = len(paralog_dict)
