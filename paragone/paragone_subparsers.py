@@ -10,22 +10,8 @@ import textwrap
 import sys
 
 title = textwrap.dedent(
-#     fr"""
-#
-#  _____      ATCTATCTATAC..........
-# |  _  \
-# | |_| |   _____   _____     _____    _____     _____    _   __     _____
-# |  ___/ /  _   | |  _  \  /  _   |  /  _   |  /  _  \  | |/   \   |  _  |
-# | |    |  |_|  | | |  -- |  |_|  | |  |_|  | |  |_|  | |    \  \  |  __/
-# |_|     \ __/|_| |_|      \ __/|_|  \___   |  \_____/  |_|   |__| |_____|
-#                                         |  |
-#                                     _ _/  /      .......ATCGACTGCACGTGACTCG
-#                                     \___ /
-#     """)
 
-
-
-fr"""
+    fr"""
 
  _____      ATCTATCTATAC.......       ___        
 |  _  \                             /  ___\            
@@ -101,11 +87,11 @@ def add_check_and_align_parser(subparsers):
                                         default=False,
                                         help='If specified, realign mafft alignments with clustal omega. Default is: '
                                              '%(default)s')
-    parser_check_and_align.add_argument('--use_muscle',
-                                        action='store_true',
-                                        default=False,
-                                        help='If specified, use muscle rather than mafft for initial alignments. '
-                                             'Default is: %(default)s')
+    # parser_check_and_align.add_argument('--use_muscle',
+    #                                     action='store_true',
+    #                                     default=False,
+    #                                     help='If specified, use muscle rather than mafft for initial alignments. '
+    #                                          'Default is: %(default)s')
     parser_check_and_align.add_argument('--mafft_algorithm',
                                         default='auto',
                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
@@ -261,11 +247,11 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 default=False,
                                                 help='If specified, realign mafft alignments with clustal omega. '
                                                      'Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--use_muscle',
-                                                action='store_true',
-                                                default=False,
-                                                help='If specified, use muscle rather than mafft for initial '
-                                                     'alignments. Default is: %(default)s')
+    # parser_align_selected_and_tree.add_argument('--use_muscle',
+    #                                             action='store_true',
+    #                                             default=False,
+    #                                             help='If specified, use muscle rather than mafft for initial '
+    #                                                  'alignments. Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
                                                 help='Algorithm to use for mafft alignments. Default is: %(default)s')
@@ -402,11 +388,11 @@ def add_final_alignments_parser(subparsers):
                                          default=False,
                                          help='If specified, realign mafft alignments with clustal omega. '
                                               'Default is: %(default)s')
-    parser_final_alignments.add_argument('--use_muscle',
-                                         action='store_true',
-                                         default=False,
-                                         help='If specified, use muscle rather than mafft for initial '
-                                              'alignments. Default is: %(default)s')
+    # parser_final_alignments.add_argument('--use_muscle',
+    #                                      action='store_true',
+    #                                      default=False,
+    #                                      help='If specified, use muscle rather than mafft for initial '
+    #                                           'alignments. Default is: %(default)s')
     parser_final_alignments.add_argument('--mafft_algorithm',
                                          default='auto',
                                          help='Algorithm to use for mafft alignments. Default is: %(default)s')

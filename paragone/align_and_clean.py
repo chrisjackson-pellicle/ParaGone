@@ -28,12 +28,12 @@ from concurrent.futures import wait
 from paragone import utils
 
 
-def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
-                                          algorithm='auto',
-                                          pool_threads=1,
-                                          mafft_threads=2,
-                                          use_muscle=False,
-                                          logger=None):
+def mafft_align_multiprocessing(fasta_to_align_folder,
+                                algorithm='auto',
+                                pool_threads=1,
+                                mafft_threads=2,
+                                # use_muscle=False,
+                                logger=None):
     """
     Generate alignments via function <mafft_or_muscle_align> using multiprocessing.
 
@@ -41,7 +41,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    :param bool use_muscle: if True, use muscle instead of mafft for alignments
+    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
@@ -49,10 +49,10 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     output_folder = f'02_alignments'
     utils.createfolder(output_folder)
 
-    if use_muscle:
-        logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
-    else:
-        logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
+    # if use_muscle:
+    #     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
+    # else:
+    logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
     # Filter out any input files with fewer than four sequences:
     target_genes = []
@@ -69,7 +69,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
         manager = Manager()
         lock = manager.Lock()
         counter = manager.Value('i', 0)
-        future_results = [pool.submit(mafft_or_muscle_align,
+        future_results = [pool.submit(mafft_align,
                                       fasta_file,
                                       algorithm,
                                       output_folder,
@@ -77,7 +77,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      use_muscle=use_muscle,
+                                      # use_muscle=use_muscle,
                                       logger=logger)
 
                           for fasta_file in target_genes]
@@ -108,17 +108,17 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
     return output_folder
 
 
-def mafft_or_muscle_align(fasta_file,
-                          algorithm,
-                          output_folder,
-                          counter,
-                          lock,
-                          num_files_to_process,
-                          threads=1,
-                          use_muscle=False,
-                          logger=None):
+def mafft_align(fasta_file,
+                algorithm,
+                output_folder,
+                counter,
+                lock,
+                num_files_to_process,
+                threads=1,
+                # use_muscle=False,
+                logger=None):
     """
-    Use mafft or muscle to align a fasta file of sequences, using the algorithm (if mafft) and number of threads
+    Use mafft to align a fasta file of sequences, using the algorithm (default is 'auto') and number of threads
     provided. Returns filename of the output alignment.
 
     :param str fasta_file: path to a fasta file
@@ -128,7 +128,7 @@ def mafft_or_muscle_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    :param bool use_muscle: if True, use muscle instead of mafft for alignments
+    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
     """
@@ -145,40 +145,40 @@ def mafft_or_muscle_align(fasta_file,
         return os.path.basename(expected_alignment_file), None  # None here as it should already have been processed
 
     except AssertionError:
-        if use_muscle:
-            logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
-            muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
-            stdout, stderr = muscle_cline()
+        # if use_muscle:
+        #     logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
+        #     muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
+        #     stdout, stderr = muscle_cline()
+        #
+        #     logger.debug(f'stdout is: {stdout}')
+        #     logger.debug(f'stderr is: {stderr}')
+        # else:
 
-            logger.debug(f'stdout is: {stdout}')
-            logger.debug(f'stderr is: {stderr}')
+        if algorithm == 'auto':
+            mafft_cline = (MafftCommandline(auto='true', adjustdirection='true', thread=threads, input=fasta_file))
         else:
+            mafft_cline = (MafftCommandline(algorithm, adjustdirection='true', thread=threads, input=fasta_file))
 
-            if algorithm == 'auto':
-                mafft_cline = (MafftCommandline(auto='true', adjustdirection='true', thread=threads, input=fasta_file))
-            else:
-                mafft_cline = (MafftCommandline(algorithm, adjustdirection='true', thread=threads, input=fasta_file))
+        logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
-            logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
-            stdout, stderr = mafft_cline()
+        stdout, stderr = mafft_cline()
+        logger.debug(f'stdout is: {stdout}')
+        logger.debug(f'stderr is: {stderr}')
 
-            logger.debug(f'stdout is: {stdout}')
-            logger.debug(f'stderr is: {stderr}')
+        with open(expected_alignment_file, 'w') as alignment_file:
+            alignment_file.write(stdout)
 
-            with open(expected_alignment_file, 'w') as alignment_file:
-                alignment_file.write(stdout)
-
-            # If mafft has reversed any sequences, remove the prefix "_R_" from such sequence names:
-            seqs_renamed_list = remove_r_prefix(expected_alignment_file, logger=logger)
+        # If mafft has reversed any sequences, remove the prefix "_R_" from such sequence names:
+        seqs_renamed_list = remove_r_prefix(expected_alignment_file, logger=logger)
 
         with lock:
             counter.value += 1
             logger.debug(f'Aligned file {fasta_file_basename}')
 
-        if use_muscle:
-            return os.path.basename(expected_alignment_file), None
-        else:
-            return os.path.basename(expected_alignment_file), seqs_renamed_list
+        # if use_muscle:
+        #     return os.path.basename(expected_alignment_file), None
+        # else:
+        return os.path.basename(expected_alignment_file), seqs_renamed_list
 
     finally:
         with lock:
@@ -293,10 +293,14 @@ def run_hmm_cleaner(input_folder,
 
         alignment_basename = os.path.basename(alignment)
 
-        command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
+        # command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
+        command = f'HmmCleaner.pl {alignment}'
 
         host = socket.gethostname()
-        if host == '192-168-1-102.tpgi.com.au' or host == 'RBGs-MacBook-Air.local' or host == '192-168-1-113.tpgi.com.au':
+        if host == '192-168-1-102.tpgi.com.au' or \
+                host == 'RBGs-MacBook-Air.local' or \
+                host == '192-168-1-113.tpgi.com.au' or \
+                host == '192-168-1-101.tpgi.com.au':
             command = f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/perl ' \
                       f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/HmmCleaner.pl {alignment}'
 
@@ -316,7 +320,7 @@ def run_hmm_cleaner(input_folder,
             logger.debug(f'hmmcleaner stdout is: {result.stdout}')
             logger.debug(f'hmmcleaner stderr is: {result.stderr}')
 
-            # Filter out empty sequences comprising only dashes, and post-hmmcleaner alignments where all sequences
+            # Filter out empty sequences comprising only dashes, and post-HmmCleaner alignments where all sequences
             # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
             with open(f'{input_folder}/{hmm_file}', 'r') as hmm_fasta_handle:
                 good_seqs = []
@@ -511,12 +515,12 @@ def main(args, logger=None):
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
 
-        alignments_output_folder = mafft_or_muscle_align_multiprocessing(
+        alignments_output_folder = mafft_align_multiprocessing(
             gene_fasta_directory,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            use_muscle=args.use_muscle,
+            # use_muscle=args.use_muscle,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
@@ -540,12 +544,12 @@ def main(args, logger=None):
         logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
 
         # Align with MAFFT first to reverse complement any paralog sequences that need it:
-        alignments_output_folder = mafft_or_muscle_align_multiprocessing(
+        alignments_output_folder = mafft_align_multiprocessing(
             gene_fasta_directory,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            use_muscle=args.use_muscle,
+            # use_muscle=args.use_muscle,
             logger=logger)
 
         alignments_output_folder = clustalo_align_multiprocessing(

@@ -22,18 +22,18 @@ from paragone import utils
 from paragone.align_and_clean import run_trimal
 
 
-def mafft_or_muscle_align(fasta_file,
-                          algorithm,
-                          output_folder,
-                          counter,
-                          lock,
-                          num_files_to_process,
-                          threads=1,
-                          use_muscle=False,
-                          logger=None):
+def mafft_align(fasta_file,
+                algorithm,
+                output_folder,
+                counter,
+                lock,
+                num_files_to_process,
+                threads=1,
+                # use_muscle=False,
+                logger=None):
     """
-    Use mafft or muscle to align a fasta file of sequences, using the algorithm (if mafft) and number of threads
-    provided. Trims alignment with Trimal if no_stitched_contigs=False. Returns filename of the output alignment.
+    Use mafft to align a fasta file of sequences, using the algorithm (default is 'auto') and number of threads
+    provided. Returns filename of the output alignment.
 
     :param str fasta_file: path to a fasta file
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
@@ -42,7 +42,7 @@ def mafft_or_muscle_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    :param bool use_muscle: if True, use muscle instead of mafft for alignments
+    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
     """
@@ -59,27 +59,27 @@ def mafft_or_muscle_align(fasta_file,
         return os.path.basename(expected_alignment_file)
 
     except AssertionError:
-        if use_muscle:
-            logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
-            muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
-            stdout, stderr = muscle_cline()
-
-            logger.debug(f'stdout is: {stdout}')
-            logger.debug(f'stderr is: {stderr}')
+        # if use_muscle:
+        #     logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
+        #     muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
+        #     stdout, stderr = muscle_cline()
+        #
+        #     logger.debug(f'stdout is: {stdout}')
+        #     logger.debug(f'stderr is: {stderr}')
+        # else:
+        if algorithm == 'auto':
+            mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
         else:
-            if algorithm == 'auto':
-                mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
-            else:
-                mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
+            mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
 
-            logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
-            stdout, stderr = mafft_cline()
+        logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
-            logger.debug(f'stdout is: {stdout}')
-            logger.debug(f'stderr is: {stderr}')
+        stdout, stderr = mafft_cline()
+        logger.debug(f'stdout is: {stdout}')
+        logger.debug(f'stderr is: {stderr}')
 
-            with open(expected_alignment_file, 'w') as alignment_file:
-                alignment_file.write(stdout)
+        with open(expected_alignment_file, 'w') as alignment_file:
+            alignment_file.write(stdout)
 
         with lock:
             counter.value += 1
@@ -93,32 +93,32 @@ def mafft_or_muscle_align(fasta_file,
                              f' {counter.value}/{num_files_to_process}')
 
 
-def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
-                                          alignments_output_folder,
-                                          algorithm='auto',
-                                          pool_threads=1,
-                                          mafft_threads=2,
-                                          use_muscle=False,
-                                          logger=None):
+def mafft_align_multiprocessing(fasta_to_align_folder,
+                                alignments_output_folder,
+                                algorithm='auto',
+                                pool_threads=1,
+                                mafft_threads=2,
+                                # use_muscle=False,
+                                logger=None):
     """
-    Generate alignments via function <mafft_or_muscle_align> using multiprocessing.
+    Generate alignments via function <mafft_align> using multiprocessing.
 
     :param str fasta_to_align_folder: path to folder containing input fasta files
     :param str alignments_output_folder: name of folder for output alignments
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    :param bool use_muscle: if True, use muscle instead of mafft for alignments
+    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
     utils.createfolder(alignments_output_folder)
 
-    if use_muscle:
-        logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
-    else:
-        logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
+    # if use_muscle:
+    #     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
+    # else:
+    logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
     # Filter out any input files with fewer than four sequences:
     target_genes = []
@@ -135,7 +135,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
         manager = Manager()
         lock = manager.Lock()
         counter = manager.Value('i', 0)
-        future_results = [pool.submit(mafft_or_muscle_align,
+        future_results = [pool.submit(mafft_align,
                                       fasta_file,
                                       algorithm,
                                       alignments_output_folder,
@@ -143,7 +143,7 @@ def mafft_or_muscle_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      use_muscle=use_muscle,
+                                      # use_muscle=use_muscle,
                                       logger=logger)
 
                           for fasta_file in target_genes]
@@ -342,15 +342,15 @@ def main(args,
                            stripped_names_folder)
 
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
-        logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
+        logger.debug(f'Running without no_stitched_contigs option - aligning with mafft only')
 
-        alignments_output_folder = mafft_or_muscle_align_multiprocessing(
+        alignments_output_folder = mafft_align_multiprocessing(
             stripped_names_folder,
             alignments_output_folder,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            use_muscle=args.use_muscle,
+            # use_muscle=args.use_muscle,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
@@ -361,8 +361,8 @@ def main(args,
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
-    elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
-        logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
+    elif args.no_stitched_contigs:  # Align with Clustal Omega.
+        logger.debug(f'Running with no_stitched_contigs option - aligning with clustal omega')
 
         alignments_output_folder = clustalo_align_multiprocessing(
             stripped_names_folder,
