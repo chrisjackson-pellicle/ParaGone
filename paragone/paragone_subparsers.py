@@ -6,6 +6,41 @@
 Contains argument subparsers
 """
 
+import textwrap
+import sys
+
+title = textwrap.dedent(
+#     fr"""
+#
+#  _____      ATCTATCTATAC..........
+# |  _  \
+# | |_| |   _____   _____     _____    _____     _____    _   __     _____
+# |  ___/ /  _   | |  _  \  /  _   |  /  _   |  /  _  \  | |/   \   |  _  |
+# | |    |  |_|  | | |  -- |  |_|  | |  |_|  | |  |_|  | |    \  \  |  __/
+# |_|     \ __/|_| |_|      \ __/|_|  \___   |  \_____/  |_|   |__| |_____|
+#                                         |  |
+#                                     _ _/  /      .......ATCGACTGCACGTGACTCG
+#                                     \___ /
+#     """)
+
+
+
+fr"""
+
+ _____      ATCTATCTATAC.......       ___        
+|  _  \                             / ____\            
+| |_| |   _____   _____     _____  / /   __    _____    _   _     _____              
+|  ___/ /  _   | |  _  \  /  _   | | | |_  \  /  _  \  | |/  \   |  _  |        
+| |    |  |_|  | | |  -- |  |_|  | | |___| | |  |_|  | |    \ \  |  __/              
+|_|     \ __/ _| |_|      \ __/ _|  \ _____/  \_____/  |_|   |_| |_____|      
+                                   
+                                         .......ATCGACTGCACGTGACTCG        
+                                   
+    """)
+
+sys.stderr.write(title)
+sys.stderr.flush()
+
 
 def add_check_and_align_parser(subparsers):
     """
@@ -16,8 +51,8 @@ def add_check_and_align_parser(subparsers):
     """
 
     parser_check_and_align = subparsers.add_parser('check_and_align',
-                                                   help='Check input files and outgroup coverage; generate per-gene '
-                                                        'paralog alignments; optionally trim and/or clean alignments')
+                                                   help='Check input files and outgroup coverage;\ngenerate per-gene '
+                                                        'paralog alignments;\ntrim and/or clean alignments (optional)')
     parser_check_and_align.add_argument('gene_fasta_directory',
                                         type=str,
                                         help='Directory contains fasta files with paralog sequences')
@@ -142,8 +177,8 @@ def add_qc_trees_and_extract_fasta(subparsers):
     """
 
     parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_extract_fasta',
-                                                      help='Quality control trees; for remaining tips, '
-                                                           'extract corresponding fasta sequences')
+                                                      help='Quality control trees;\nextract fasta sequences '
+                                                           'corresponding to remaining tips')
     # parser_qc_trees_and_fasta.add_argument('treefile_directory',
     #                                        type=str,
     #                                        help='directory containing tree newick files')
@@ -287,7 +322,7 @@ def add_prune_paralogs_parser(subparsers):
 
     parser_prune_paralogs = subparsers.add_parser('prune_paralogs',
                                                   help='Prune paralogs from tree using one or more of the '
-                                                       'algorithms: Monophyletic Outgroups (MO), RooTed ingroups ('
+                                                       'algorithms: \nMonophyletic Outgroups (MO), RooTed ingroups ('
                                                        'RT), Maximum Inclusion (MI)')
     parser_prune_paralogs.add_argument('--mo',
                                        action='store_true',
@@ -337,9 +372,9 @@ def add_final_alignments_parser(subparsers):
     """
 
     parser_final_alignments = subparsers.add_parser('final_alignments',
-                                                    help='Recover fasta sequences for pruned trees. Strip names of '
-                                                         'paralog designations (e.g. .main, .0, .1 etc), and perform '
-                                                         'a final alignment')
+                                                    help='Recover fasta sequences for pruned trees;\nstrip names of '
+                                                         'paralog designations (e.g. .main, .0, .1 etc);\nperform '
+                                                         'final alignments')
     parser_final_alignments.add_argument('--mo',
                                          action='store_true',
                                          default=False,

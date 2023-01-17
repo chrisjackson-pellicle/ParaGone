@@ -556,7 +556,7 @@ def parse_arguments():
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
-    subparsers = parser.add_subparsers(title='Subcommands for paragone', description='Valid subcommands:')
+    subparsers = parser.add_subparsers(title='Subcommands for paragone', metavar='', )
     parser_check_and_align = paragone_subparsers.add_check_and_align_parser(subparsers)
     parser_alignment_to_tree = paragone_subparsers.add_alignment_to_tree_parser(subparsers)
     parser_qc_trees_and_extract_fasta = paragone_subparsers.add_qc_trees_and_extract_fasta(subparsers)
