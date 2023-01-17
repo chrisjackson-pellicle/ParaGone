@@ -184,7 +184,8 @@ def check_dependencies(logger=None):
                    'clustalo',
                    'iqtree',
                    'FastTreeMP',
-                   'HmmCleaner.pl']
+                   'HmmCleaner.pl',
+                   'trimal']
 
     logger.info(f'{"[INFO]:":10} Checking for external dependencies:\n')
 
