@@ -130,7 +130,7 @@ def write_cut_report(collated_subtree_data,
     report_filename = f'{report_directory}/trees_trimmed_masked_cut_report.tsv'
 
     logger.info('')
-    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing cut deep paralogs report to file: "{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
     logger.info(f'{fill}')

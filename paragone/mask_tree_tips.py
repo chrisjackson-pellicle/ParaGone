@@ -25,6 +25,7 @@ from paragone import utils
 
 def mask_monophyletic_tips(curroot,
                            unamiguous_characters_dict,
+                           min_tips,
                            tree_name=None,
                            logger=None):
     """
@@ -33,6 +34,7 @@ def mask_monophyletic_tips(curroot,
 
     :param phylo3.Node curroot: tree object parsed by newick3.parse
     :param dict unamiguous_characters_dict: dictionary of sequence name to number of unambiguous characters
+    :param int min_tips: the minimum number of tips in a tree after masking tips
     :param str tree_name: file name of the tree being examined
     :param logging.Logger logger: a logger object
     :return phylo3.Node/None,collections.defaultdict  curroot/None,pruned_monophyletic_tips_dict : pruned tree object of more than four tips,
@@ -42,9 +44,9 @@ def mask_monophyletic_tips(curroot,
     going = True
 
     pruned_monophyletic_tips_dict = defaultdict(list)
-    trees_with_fewer_than_four_tips_dict = {}
+    trees_with_fewer_than_min_tips_dict = {}
 
-    while going and len(curroot.leaves()) >= 4:
+    while going and len(curroot.leaves()) >= min_tips:
         going = False
         for node in curroot.iternodes():  # walk through nodes
             if not node.istip:
@@ -69,23 +71,24 @@ def mask_monophyletic_tips(curroot,
 
                         node = node.prune()
 
-                    if len(curroot.leaves()) >= 4:
+                    if len(curroot.leaves()) >= min_tips:
                         if (node == curroot and node.nchildren == 2) or (node != curroot and node.nchildren == 1):
                             node, curroot = remove_kink(node, curroot)
                     else:
-                        logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than four tips after removal of '
-                                       f'monophyletic tips!')
-                        trees_with_fewer_than_four_tips_dict[tree_name] = curroot
-                        return None, pruned_monophyletic_tips_dict, trees_with_fewer_than_four_tips_dict
+                        logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than {min_tips} tips after '
+                                       f'removal of monophyletic tips!')
+                        trees_with_fewer_than_min_tips_dict[tree_name] = curroot
+                        return None, pruned_monophyletic_tips_dict, trees_with_fewer_than_min_tips_dict
 
                     going = True
                     break
 
-    return curroot, pruned_monophyletic_tips_dict, trees_with_fewer_than_four_tips_dict
+    return curroot, pruned_monophyletic_tips_dict, trees_with_fewer_than_min_tips_dict
 
 
 def mask_paraphyletic_tips(curroot,
                            unamiguous_characters_dict,
+                           min_tips,
                            tree_name=None,
                            logger=None):
     """
@@ -94,6 +97,7 @@ def mask_paraphyletic_tips(curroot,
 
     :param phylo3.Node curroot: tree object parsed by newick3.parse
     :param dict unamiguous_characters_dict: dictionary of sequence name to number of unambiguous characters
+    :param int min_tips: the minimum number of tips in a tree after masking tips
     :param str tree_name: file name of the tree being examined
     :param logging.Logger logger: a logger object
     :return:
@@ -102,9 +106,9 @@ def mask_paraphyletic_tips(curroot,
     going = True
 
     pruned_paraphyletic_tips_dict = defaultdict(list)
-    trees_with_fewer_than_four_tips_dict = {}
+    trees_with_fewer_than_min_tips_dict = {}
 
-    while going and len(curroot.leaves()) >= 4:
+    while going and len(curroot.leaves()) >= min_tips:
         going = False
         for node in curroot.iternodes():  # walk through nodes
             if not node.istip:
@@ -134,23 +138,24 @@ def mask_paraphyletic_tips(curroot,
 
                         node = node.prune()
 
-                    if len(curroot.leaves()) >= 4:
+                    if len(curroot.leaves()) >= min_tips:
                         if (node == curroot and node.nchildren == 2) or (node != curroot and node.nchildren == 1):
                             node, curroot = remove_kink(node, curroot)
                     else:
-                        logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than four tips after removal of '
-                                       f'paraphyletic tips!')
-                        trees_with_fewer_than_four_tips_dict[tree_name] = curroot
-                        return None, pruned_paraphyletic_tips_dict, trees_with_fewer_than_four_tips_dict
+                        logger.warning(f'{"[WARNING]:":10} Tree {tree_name} has fewer than {min_tips} tips after '
+                                       f'removal of paraphyletic tips!')
+                        trees_with_fewer_than_min_tips_dict[tree_name] = curroot
+                        return None, pruned_paraphyletic_tips_dict, trees_with_fewer_than_min_tips_dict
 
                     going = True
                     break
 
-    return curroot, pruned_paraphyletic_tips_dict
+    return curroot, pruned_paraphyletic_tips_dict, trees_with_fewer_than_min_tips_dict
 
 
 def write_mask_report(collated_mask_report_dict,
                       report_directory,
+                      min_tips,
                       logger=None):
     """
     Writes a *.tsv report detailing which tips were masked (removed) from each tree, and why.
@@ -158,6 +163,7 @@ def write_mask_report(collated_mask_report_dict,
     :param dict collated_mask_report_dict: dictionary of default dicts for mono and (optional) paraphyletic cut-off
     tips/data
     :param str report_directory: path to directory for report files
+    :param int min_tips: the minimum number of tips in a tree after masking tips
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -165,7 +171,7 @@ def write_mask_report(collated_mask_report_dict,
     report_filename = f'{report_directory}/trees_trimmed_masked_report.tsv'
 
     logger.info('')
-    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing trim tips report to file: "{report_filename}"',
+    fill = utils.fill_forward_slash(f'{"[INFO]:":10} Writing mask tips report to file: "{report_filename}"',
                                     width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
 
     logger.info(f'{fill}')
@@ -202,14 +208,14 @@ def write_mask_report(collated_mask_report_dict,
             tree_stats.append('N/A')
 
         try:
-            check = dictionaries['less_than_four_taxa_after_masking_mono']
+            check = dictionaries['less_than_min_taxa_after_masking_mono']
             assert len(check) != 0
             tree_stats.append('Y')
         except AssertionError:
             tree_stats.append('N')
 
         try:
-            check = dictionaries['less_than_four_taxa_after_masking_para']
+            check = dictionaries['less_than_min_taxa_after_masking_para']
             assert len(check) != 0
             tree_stats.append('Y')
         except KeyError:
@@ -225,8 +231,8 @@ def write_mask_report(collated_mask_report_dict,
                             f'Retained tip names\t'
                             f'Paraphyletic tips removed ("masked")\t'
                             f'Retained tip names\t'
-                            f'Masked trees < four taxa after masking mono\t'
-                            f'Masked trees < four taxa after masking para'
+                            f'Masked trees < {min_tips} taxa after masking mono\t'
+                            f'Masked trees < {min_tips} taxa after masking para'
                             f'\n')
 
         for stats in all_tree_stats_for_report:
@@ -314,15 +320,16 @@ def main(args,
         # This is designed to filter alleles or close paralogs:
         curroot, \
         pruned_monophyletic_tips_dict, \
-        trees_with_fewer_than_four_tips_mono_dict = \
+        trees_with_fewer_than_min_tips_mono_dict = \
             mask_monophyletic_tips(intree,
                                    unamiguous_characters_dict,
+                                   args.min_tips,
                                    tree_name=tree_file_basename,
                                    logger=logger)
 
         collated_mask_report_dict[tree_file_basename]['monophyletic_tips'] = pruned_monophyletic_tips_dict
-        collated_mask_report_dict[tree_file_basename]['less_than_four_taxa_after_masking_mono'] = \
-            trees_with_fewer_than_four_tips_mono_dict
+        collated_mask_report_dict[tree_file_basename][f'less_than_min_taxa_after_masking_mono'] = \
+            trees_with_fewer_than_min_tips_mono_dict
 
         if not curroot:
             logger.warning(f'No masked tree produced for {tree_file_basename}!')
@@ -332,15 +339,17 @@ def main(args,
         # from same taxon name:
         if args.mask_tips_remove_paraphyletic_tips:
             curroot, \
-            pruned_paraphyletic_tips_dict, trees_with_fewer_than_four_tips_para_dict\
+            pruned_paraphyletic_tips_dict, \
+            trees_with_fewer_than_min_tips_para_dict\
                 = mask_paraphyletic_tips(curroot,
                                          unamiguous_characters_dict,
+                                         args.min_tips,
                                          tree_name=tree_file_basename,
                                          logger=logger)
 
             collated_mask_report_dict[tree_file_basename]['paraphyletic_tips'] = pruned_paraphyletic_tips_dict
-            collated_mask_report_dict[tree_file_basename]['less_than_four_taxa_after_masking_para'] = \
-                trees_with_fewer_than_four_tips_para_dict
+            collated_mask_report_dict[tree_file_basename]['less_than_min_taxa_after_masking_para'] = \
+                trees_with_fewer_than_min_tips_para_dict
 
         if not curroot:
             logger.warning(f'No masked tree produced for {tree_file_basename}!')
