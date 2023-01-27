@@ -253,7 +253,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     :return str output_folder: name of the output folder containing alignments
     """
 
-    output_folder = f'12_pre_paralog_resolution_alignments'
+    output_folder = f'11_pre_paralog_resolution_alignments'
     utils.createfolder(output_folder)
 
     # if use_muscle:
@@ -386,7 +386,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     :return str output_folder: name of the output folder containing alignments
     """
 
-    output_folder = f'12_pre_paralog_resolution_alignments'
+    output_folder = f'11_pre_paralog_resolution_alignments'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -762,7 +762,7 @@ def main(args,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
-        trimmed_output_folder = f'11_alignments_from_qc_outgroups_added_trimmed'
+        trimmed_output_folder = f'12_pre_paralog_resolution_alignments_trimmed'
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
@@ -799,7 +799,7 @@ def main(args,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
-        trimmed_output_folder = f'11_alignments_from_qc_outgroups_added_trimmed'
+        trimmed_output_folder = f'12_pre_paralog_resolution_alignments_trimmed'
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
