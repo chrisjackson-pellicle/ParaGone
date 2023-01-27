@@ -23,7 +23,6 @@ ParaGone makes use of the **paralogy resolution** (also described as **orthology
     * [biopython](http://biopython.org/wiki/Main_Page) 1.79 or later
     
 * [MAFFT](link)
-* [MUSCLE](link)
 * [ClustalOmega](link) 
 * [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl)
 * [Trimal](link)
