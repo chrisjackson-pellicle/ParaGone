@@ -63,6 +63,7 @@ def check_contrast_outlier(node0,
 
 def remove_a_tip(root,
                  tip_node,
+                 min_tips,
                  tree_name=None,
                  logger=None):
     """
@@ -70,6 +71,7 @@ def remove_a_tip(root,
 
     :param phylo3.Node root: tree object parsed by newick3.parse
     :param phylo3.Node tip_node:
+    :param int min_tips: the minimum number of tips in a tree after trimming tips
     :param str tree_name: name of the tree e.g. 6886.paralogs.aln.hmm.trimmed.fasta.treefile
     :param logging.Logger logger: a logger object
     :return phylo3.Node/None root/None: pruned tree if more than four tips remaining, else None
@@ -77,18 +79,19 @@ def remove_a_tip(root,
 
     node = tip_node.prune()
 
-    if len(root.leaves()) > 3:
+    if len(root.leaves()) >= min_tips:
         node, root = remove_kink(node, root)
         return root
     else:
         logger.warning(f'{"[WARNING]:":10} After removing tip {tip_node.label}, tree {tree_name} has fewer than '
-                       f'four tips left.')
+                       f'{min_tips} tips left.')
         return None
 
 
 def trim(curroot,
          relative_cutoff,
          absolute_cutoff,
+         min_tips,
          tree_name=None,
          logger=None):
     """
@@ -97,6 +100,7 @@ def trim(curroot,
     :param phylo3.Node curroot: tree object parsed by newick3.parse
     :param float relative_cutoff: relative cutoff for removing tree tips
     :param float absolute_cutoff: absolute cutoff for removing tree tips
+    :param int min_tips: the minimum number of tips in a tree after trimming tips
     :param str tree_name: name of the tree e.g. 6886.paralogs.aln.hmm.trimmed.fasta.treefile
     :param logging.Logger logger: a logger object
     :return:
@@ -126,6 +130,7 @@ def trim(curroot,
                     # print(nodes_above_absolute_cutoff)
                     curroot = remove_a_tip(curroot,
                                            node,
+                                           min_tips,
                                            tree_name=tree_name,
                                            logger=logger)
                     going = True
@@ -192,12 +197,14 @@ def trim(curroot,
 
 def write_trim_report(collated_trim_report_dict,
                       report_directory,
+                      min_tips,
                       logger=None):
     """
     Writes a *.tsv report detailing which tips were trimmed from each tree, and why.
 
     :param dict collated_trim_report_dict: dictionary of default dicts for absolute and relative cut-off tips/reasons
     :param str report_directory: path to directory for report files
+    :param int min_tips: the minimum number of tips in a tree after trimming tips
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -237,13 +244,13 @@ def write_trim_report(collated_trim_report_dict,
             tree_stats.append('N/A')
 
         try:
-            check = dictionaries['trimmed_trees_greater_than_four_taxa']
+            check = dictionaries[f'trimmed_trees_greater_than_{min_tips}_taxa']
             tree_stats.append('Y')
         except KeyError:
             tree_stats.append('N')
 
         try:
-            check = dictionaries['trimmed_trees_fewer_than_four_taxa']
+            check = dictionaries[f'trimmed_trees_fewer_than_{min_tips}_taxa']
             tree_stats.append('Y')
         except KeyError:
             tree_stats.append('N')
@@ -313,6 +320,7 @@ def main(args,
             trim(intree,
                  float(args.trim_tips_relative_cutoff),
                  float(args.trim_tips_absolute_cutoff),
+                 args.min_tips,
                  tree_name=basename,
                  logger=logger)
 
@@ -320,16 +328,17 @@ def main(args,
         collated_trim_report_dict[basename]['relative_cutoff'] = nodes_above_relative_cutoff
 
         if trimmed_tree:
-            collated_trim_report_dict[basename]['trimmed_trees_greater_than_four_taxa'] = trimmed_tree
+            collated_trim_report_dict[basename][f'trimmed_trees_greater_than_{args.min_tips}_taxa'] = trimmed_tree
             with open(f'{output_folder}/{basename}.tt', 'w') as outfile_handle:
                 outfile_handle.write(newick3.tostring(trimmed_tree) + ";\n")
         else:
-            collated_trim_report_dict[basename]['trimmed_trees_fewer_than_four_taxa'] = trimmed_tree
+            collated_trim_report_dict[basename][f'trimmed_trees_fewer_than_{args.min_tips}_taxa'] = trimmed_tree
             logger.warning(f'{"[WARNING]:":10} No trimmed tree produced for {basename}!')
 
     # Write a report of tips trimmed from each tree, and why:
     write_trim_report(collated_trim_report_dict,
                       report_directory,
+                      args.min_tips,
                       logger=logger)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished trimming tips of input trees. Trimmed trees have been written to '

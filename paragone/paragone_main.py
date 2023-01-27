@@ -18,6 +18,7 @@ For a list of available subcommands, run:
 import argparse
 import sys
 import cProfile
+import textwrap
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'ParaGone requires Python 3.6 or higher.'
@@ -585,6 +586,24 @@ def main():
     if len(sys.argv) == 1:
         print(__doc__)
         sys.exit(1)
+
+    title = textwrap.dedent(
+
+        fr"""
+
+     _____      ATCTATCTATAC.......       ___        
+    |  _  \                             /  ___\            
+    | |_| |   _____   _____     _____  / /   __    _____    _   __     _____              
+    |  ___/ /  _   | |  _  \  /  _   | | | |_  \  /  _  \  | |/   \   |  _  |        
+    | |    |  |_|  | | |  -- |  |_|  | | |___| | |  |_|  | |    \  \  |  __/              
+    |_|     \ __/ _| |_|      \ __/ _|  \ ____ /  \_____/  |_|   |__| |_____|      
+
+                                             .......ATCGACTGCACGTGACTCG        
+
+        """)
+
+    sys.stderr.write(title)
+    sys.stderr.flush()
 
     # Create a directory for logs for each step of the pipeline:
     utils.createfolder('00_logs_and_reports')

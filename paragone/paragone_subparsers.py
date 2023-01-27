@@ -9,23 +9,23 @@ Contains argument subparsers
 import textwrap
 import sys
 
-title = textwrap.dedent(
-
-    fr"""
-
- _____      ATCTATCTATAC.......       ___        
-|  _  \                             /  ___\            
-| |_| |   _____   _____     _____  / /   __    _____    _   __     _____              
-|  ___/ /  _   | |  _  \  /  _   | | | |_  \  /  _  \  | |/   \   |  _  |        
-| |    |  |_|  | | |  -- |  |_|  | | |___| | |  |_|  | |    \  \  |  __/              
-|_|     \ __/ _| |_|      \ __/ _|  \ ____ /  \_____/  |_|   |__| |_____|      
-                                   
-                                         .......ATCGACTGCACGTGACTCG        
-                                   
-    """)
-
-sys.stderr.write(title)
-sys.stderr.flush()
+# title = textwrap.dedent(
+#
+#     fr"""
+#
+#  _____      ATCTATCTATAC.......       ___
+# |  _  \                             /  ___\
+# | |_| |   _____   _____     _____  / /   __    _____    _   __     _____
+# |  ___/ /  _   | |  _  \  /  _   | | | |_  \  /  _  \  | |/   \   |  _  |
+# | |    |  |_|  | | |  -- |  |_|  | | |___| | |  |_|  | |    \  \  |  __/
+# |_|     \ __/ _| |_|      \ __/ _|  \ ____ /  \_____/  |_|   |__| |_____|
+#
+#                                          .......ATCGACTGCACGTGACTCG
+#
+#     """)
+#
+# sys.stderr.write(title)
+# sys.stderr.flush()
 
 
 def add_check_and_align_parser(subparsers):
@@ -172,6 +172,12 @@ def add_qc_trees_and_extract_fasta(subparsers):
     #                                        type=str,
     #                                        default='.treefile',
     #                                        help='Suffix for newick tree files. Default is: %(default)s')
+    parser_qc_trees_and_fasta.add_argument('--min_tips',
+                                           type=int,
+                                           default=4,
+                                           help='The minimum number of tips in a tree after trimming tips; if below '
+                                                'this value, no output tree is written. Default '
+                                                'is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--trim_tips_relative_cutoff',
                                            type=float,
                                            default=0.2,
