@@ -34,12 +34,14 @@ def count_taxa(node):
 
 def cut_long_internal_branches(curroot,
                                internal_branch_length_cutoff,
+                               min_tips,
                                logger=None):
     """
     Cut long branches and output all subtrees with at least 4 tips
 
     :param phylo3.Node curroot: tree object parsed by newick3.parse
     :param float internal_branch_length_cutoff: internal branches >= the length will be cut
+    :param int min_tips: the minimum number of tips in a tree after pruning deep paralogs
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -71,27 +73,29 @@ def cut_long_internal_branches(curroot,
                                  f'is greater than the internal_branch_length_cutoff. child0_node.length + '
                                  f'child1_node.length is: {child0_node.length + child1_node.length}')
 
-                    if count_taxa(child0_node) >= 4:
+                    if count_taxa(child0_node) >= min_tips:
                         subtrees.append(child0_node)
                     else:
                         subtrees_discarded[newick3.tostring(child0_node)] = \
                             f'Node length ({node.length}) > cutoff ({internal_branch_length_cutoff}); both ' \
                             f'children not tips; combined length of child0_node branch ({child0_node.length}) and ' \
-                            f'child1_node branch ({child0_node.length}) > cutoff; child0_node has fewer than 4 taxa'
+                            f'child1_node branch ({child0_node.length}) > cutoff; child0_node has fewer than ' \
+                            f'{min_tips} taxa'
 
                         logger.debug(f'Discarding child0_node subtree {newick3.tostring(child0_node)} as it has fewer '
-                                     f'than 4 taxa')
+                                     f'than {min_tips} taxa')
 
-                    if count_taxa(child1_node) >= 4:
+                    if count_taxa(child1_node) >= min_tips:
                         subtrees.append(child1_node)
                     else:
                         subtrees_discarded[newick3.tostring(child1_node)] = \
                             f'Node length ({node.length}) > cutoff ({internal_branch_length_cutoff}); both ' \
                             f'children not tips; combined length of child0_node branch ({child0_node.length}) and ' \
-                            f'child1_node branch ({child0_node.length}) > cutoff; child1_node has fewer than 4 taxa'
+                            f'child1_node branch ({child0_node.length}) > cutoff; child1_node has fewer than ' \
+                            f'{min_tips} taxa'
 
                         logger.debug(f'Discarding child1_node subtree {newick3.tostring(child1_node)} as it has fewer '
-                                     f'than 4 taxa')
+                                     f'than {min_tips} taxa')
 
                 else:  # recover entire child clade of node as a subtree
                     logger.debug(f'Internal node of length {node.length} with {len(get_front_labels(node))} tips '
@@ -106,23 +110,25 @@ def cut_long_internal_branches(curroot,
                     going = True
                 break
 
-    if count_taxa(curroot) >= 4:
+    if count_taxa(curroot) >= min_tips:
         subtrees.append(curroot)  # write out the residue after cutting
     else:
-        subtrees_discarded[newick3.tostring(curroot)] = 'After cutting, remaining tree has fewer than 4 taxa'
-        logger.debug(f'After cutting, remaining tree has fewer than 4 taxa')
+        subtrees_discarded[newick3.tostring(curroot)] = f'After cutting, remaining tree has fewer than {min_tips} taxa'
+        logger.debug(f'After cutting, remaining tree has fewer than {min_tips} taxa')
 
     return subtrees, subtrees_discarded
 
 
 def write_cut_report(collated_subtree_data,
                      report_directory,
+                     min_tips,
                      logger=None):
     """
     Writes a *.tsv report detailing which retained subtree count, and which subtrees were discarded.
 
     :param dict collated_subtree_data: dictionary of default dicts for retained and discarded subtrees
     :param str report_directory: path to directory for report files
+    :param int min_tips: the minimum number of tips in a tree after trimming tips
     :param logging.Logger logger: a logger object
     :return:
     """
@@ -141,7 +147,7 @@ def write_cut_report(collated_subtree_data,
         report_handle.write(f'Tree_name\t'
                             f'Num subtrees retained after cutting\t'
                             f'Num subtrees discarded after cutting\t'
-                            f'Number of subtrees discarded after cutting as < min taxa\n')
+                            f'Number of subtrees discarded after cutting as < {min_tips} taxa\n')
 
         for input_tree, dictionaries in collated_subtree_data.items():
 
@@ -229,9 +235,9 @@ def main(args,
         raw_tree_size = len(get_front_labels(intree))  # includes paralogs
         num_taxa = count_taxa(intree)  # Unique taxon names only
 
-        if num_taxa < args.cut_deep_paralogs_minimum_number_taxa:
-            logger.warning(f'{"[WARNING]:":10} Tree {tree_file_basename} has {num_taxa} unique taxon name, '
-                           f'less than the minimum number of {args.cut_deep_paralogs_minimum_number_taxa} specified. '
+        if num_taxa < args.min_tips:
+            logger.warning(f'{"[WARNING]:":10} Tree {tree_file_basename} has {num_taxa} unique taxon names, '
+                           f'less than the minimum number of {args.min_tips} specified. '
                            f'Skipping tree...')
         else:
             logger.debug(f'{"[INFO]:":10} Tree {tree_file_basename} has {raw_tree_size} tips and {num_taxa} unique '
@@ -241,6 +247,7 @@ def main(args,
             subtrees, subtrees_discarded_during_cutting = \
                 cut_long_internal_branches(intree,
                                            args.cut_deep_paralogs_internal_branch_length_cutoff,
+                                           args.min_tips,
                                            logger=logger)
 
             # Capture data for each tree in dictionary for report writing:
@@ -249,8 +256,7 @@ def main(args,
                 subtrees_discarded_during_cutting
 
             if len(subtrees) == 0:
-                logger.warning(f'{"[WARNING]:":10} No tree with at least {args.cut_deep_paralogs_minimum_number_taxa} '
-                               f'was generated')
+                logger.warning(f'{"[WARNING]:":10} No tree with at least {args.min_tips} was generated')
 
             else:
                 count = 0
@@ -258,7 +264,7 @@ def main(args,
                 subtrees_discarded_min_taxa_filtering = {}
 
                 for subtree in subtrees:
-                    if count_taxa(subtree) >= args.cut_deep_paralogs_minimum_number_taxa:
+                    if count_taxa(subtree) >= args.min_tips:
                         count += 1
 
                         if subtree.nchildren == 2:  # fix bifurcating roots from cutting
@@ -273,11 +279,11 @@ def main(args,
                         subtree_sizes.append(str(len(subtree.leaves())))
                     else:
                         logger.debug(f'Post cut filtering: subtree {newick3.tostring(subtree)} discarded as fewer '
-                                     f'than minimum_number_taxa value of {args.cut_deep_paralogs_minimum_number_taxa}')
+                                     f'than --min_tips value of {args.min_tips}')
 
                         subtrees_discarded_min_taxa_filtering[newick3.tostring(subtree)] = \
-                            f'Post cut filtering: subtree discarded as fewer than minimum_number_taxa value of' \
-                            f' {args.cut_deep_paralogs_minimum_number_taxa}'
+                            f'Post cut filtering: subtree discarded as fewer than --min_tips value of' \
+                            f' {args.min_tips}'
 
                 # Capture data for each tree in dictionary for report writing:
                 collated_subtree_data[tree_file_basename]['subtrees_discarded_min_taxa_filtering'] = \
@@ -285,11 +291,13 @@ def main(args,
 
                 subtree_sizes_joined = ', '.join(subtree_sizes)
 
-                logger.info(f'{"[INFO]:":10} Subtree(s) written: {count}. Sizes (tip numbers) were: {subtree_sizes_joined}')
+                logger.info(f'{"[INFO]:":10} Subtree(s) written: {count}. Sizes (tip numbers) were:'
+                            f' {subtree_sizes_joined}')
 
     # Write a report of tips trimmed from each tree, and why:
     write_cut_report(collated_subtree_data,
                      report_directory,
+                     min_tips,
                      logger=logger)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished cutting putative deep paralogs. Trees/subtrees have been '

@@ -175,9 +175,9 @@ def add_qc_trees_and_extract_fasta(subparsers):
     parser_qc_trees_and_fasta.add_argument('--min_tips',
                                            type=int,
                                            default=4,
-                                           help='The minimum number of tips in a tree after trimming tips; if below '
-                                                'this value, no output tree is written. Default '
-                                                'is: %(default)s')
+                                           help='The minimum number of tips in a tree after trimming/masking tips or '
+                                                'pruning deep paralogs; if below this value, no output tree is '
+                                                'written. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--trim_tips_relative_cutoff',
                                            type=float,
                                            default=0.2,
@@ -201,11 +201,11 @@ def add_qc_trees_and_extract_fasta(subparsers):
                                            type=float,
                                            default=0.3,
                                            help='Internal branch length cutoff cutting tree. Default is: %(default)s')
-    parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_minimum_number_taxa',
-                                           type=int,
-                                           default=4,
-                                           help='Minimum number of taxa in tree for tree to be retained. Default is: '
-                                                '%(default)s')
+    # parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_minimum_number_taxa',
+    #                                        type=int,
+    #                                        default=4,
+    #                                        help='Minimum number of taxa in tree for tree to be retained. Default is: '
+    #                                             '%(default)s')
     parser_qc_trees_and_fasta.add_argument('--run_profiler',
                                            action='store_true',
                                            dest='run_profiler',
