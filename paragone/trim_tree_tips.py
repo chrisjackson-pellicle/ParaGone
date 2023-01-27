@@ -263,8 +263,8 @@ def write_trim_report(collated_trim_report_dict,
                             f'Tip names\t'
                             f'Tips removed > relative cutoff\t'
                             f'Tip names\t'
-                            f'Trimmed trees > four taxa\t'
-                            f'Trimmed trees < four taxa'
+                            f'Trimmed trees > {min_tips} taxa\t'
+                            f'Trimmed trees < {min_tips} taxa'
                             f'\n')
 
         for stats in all_tree_stats_for_report:
