@@ -12,7 +12,7 @@ ToDo
 #### Original Yang and Smith orthology inference manuscript, documentation and scripts
 
 
-ParaGone makes use of the **paralogy resolution** (also described as **orthology inference**) approaches described and implemented by Yang and Smith 2014 [here][1]. These approaches have since been adapted for target capture datasets as described in the bioRxiv manuscript [here][2]. The original documentation and scripts can be found [here][3].
+ParaGone makes use of the **paralogy resolution** (also described as **orthology inference**) approaches described and implemented by Yang and Smith 2014 [here][1]. These approaches have since been adapted for target capture datasets as described in the manuscript [here][2]. The original documentation and scripts can be found [here][3].
 
 ---
 
@@ -106,5 +106,5 @@ For a full description of ParaGone output, [see the wiki](https://github.com/chr
 
 
 [1]: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4209138/ "Link to the Yang and Smith 2014 manuscript"
-[2]: https://www.biorxiv.org/content/10.1101/2020.08.21.261925v2 "Link to Yang 2021 bioarchives manuscript"
+[2]: https://pubmed.ncbi.nlm.nih.gov/33978764/ "Link to Morales-Briones 2021 manuscript"
 [3]: https://bitbucket.org/dfmoralesb/target_enrichment_orthology/src/master/ "Link to Yang and Smith Bitbucket"
