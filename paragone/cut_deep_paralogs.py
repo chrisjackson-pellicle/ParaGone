@@ -297,7 +297,7 @@ def main(args,
     # Write a report of tips trimmed from each tree, and why:
     write_cut_report(collated_subtree_data,
                      report_directory,
-                     min_tips,
+                     args.min_tips,
                      logger=logger)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished cutting putative deep paralogs. Trees/subtrees have been '
