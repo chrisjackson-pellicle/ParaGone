@@ -363,6 +363,7 @@ def main(args,
     # Write a report of tips trimmed from each tree, and why:
     write_mask_report(collated_mask_report_dict,
                       report_directory,
+                      args.min_tips,
                       logger=logger)
 
     fill = textwrap.fill(f'{"[INFO]:":10} Finished masking tips of input trees. Masked trees have been written to '
