@@ -330,7 +330,7 @@ def add_prune_paralogs_parser(subparsers):
                                        help='Run the RooTed ingroups (RT) algorithm')
     parser_prune_paralogs.add_argument('--minimum_taxa',
                                        type=int,
-                                       default=2,
+                                       default=4,
                                        help='Minimum number of taxa required. Default is: %(default)s')
     parser_prune_paralogs.add_argument('--ignore_1to1_orthologs',
                                        action='store_true',
