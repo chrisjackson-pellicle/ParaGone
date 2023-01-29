@@ -72,7 +72,7 @@ def add_outgroup_seqs(qc_alignment_directory,
     if not file_of_external_outgroups and not list_of_internal_outgroups:
         logger.warning(f'{"[WARNING]:":10} No external or internal outgroups supplied!')
 
-    output_folder = f'10_alignments_from_qc_outgroups_added'
+    output_folder = f'10_sequences_from_qc_outgroups_added'
     output_folder = utils.createfolder(output_folder)  # for the outgroups added fasta files
 
     # Read in original paralog fasta files, and create a dictionary of gene_id:list_of_seq_names for taxa in
@@ -725,7 +725,7 @@ def main(args,
     logger.info(f'{"[INFO]:":10} ======> ALIGNMENT AND TREE FROM SELECTED SEQUENCES <======\n')
 
     # Checking input directories and files:
-    selected_alignments_directory = '09_alignments_from_qc_trees'
+    selected_alignments_directory = '09_sequences_from_qc_trees'
     selected_alignments_suffix = 'selected.fasta'
     qc_alignments_directory = args.qc_alignment_directory  # i.e. with all seqs, before tree quality control
     qc_alignments_suffix = '.fasta'
