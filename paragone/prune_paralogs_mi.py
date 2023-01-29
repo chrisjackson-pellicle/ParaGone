@@ -407,6 +407,7 @@ def main(args,
                         trim_tree_tips.trim(tree,
                                             args.relative_tip_cutoff,
                                             args.absolute_tip_cutoff,
+                                            args.min_tips,
                                             tree_name=treefile_basename,
                                             logger=logger)
 
