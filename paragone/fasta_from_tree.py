@@ -154,7 +154,7 @@ def main(args,
         original_alignments_directory = args.mask_tips_alignment_directory
         treefile_directory = '08_trees_trimmed_masked_cut'
         tree_file_suffix = '.subtree'
-        output_folder = f'09_alignments_from_qc_trees'
+        output_folder = f'09_sequences_from_qc_trees'
 
         logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO QC TREES <======\n')
 
