@@ -407,7 +407,7 @@ def main(args,
                         trim_tree_tips.trim(tree,
                                             args.relative_tip_cutoff,
                                             args.absolute_tip_cutoff,
-                                            args.pruned_orthologs_below_minimum_taxa,
+                                            args.minimum_taxa,
                                             tree_name=treefile_basename,
                                             logger=logger)
 
