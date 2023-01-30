@@ -153,6 +153,13 @@ def main(args,
     logger.info('')
 
     trimmed = False  # set default, only relevant for paralogy pruning algorithms
+    if algorithm_suffix in ['mo', 'mi', 'rt']:
+        if os.path.isdir('12_pre_paralog_resolution_alignments_trimmed'):
+            original_alignments_directory = '12_pre_paralog_resolution_alignments_trimmed'
+            trimmed = True
+        else:
+            original_alignments_directory = '11_pre_paralog_resolution_alignments'
+            trimmed = False
 
     if args.from_cut_deep_paralogs:
         original_alignments_directory = args.mask_tips_alignment_directory
@@ -163,14 +170,6 @@ def main(args,
         logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO QC TREES <======\n')
 
     if algorithm_suffix in ['mo']:
-        if os.path.isdir('12_pre_paralog_resolution_alignments_trimmed'):
-            original_alignments_directory = '12_pre_paralog_resolution_alignments_trimmed'
-            trimmed = True
-        else:
-            original_alignments_directory = '11_pre_paralog_resolution_alignments'
-            trimmed = False
-
-        # original_alignments_directory = '12_pre_paralog_resolution_alignments'
         treefile_directory = '14_pruned_MO'
         tree_file_suffix = '.tre'
         output_folder = f'17_selected_sequences_MO'
@@ -178,7 +177,6 @@ def main(args,
         logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO MO TREES <======\n')
 
     if algorithm_suffix in ['mi']:
-        original_alignments_directory = '12_pre_paralog_resolution_alignments'
         treefile_directory = '15_pruned_MI'
         tree_file_suffix = '.tre'
         output_folder = f'18_selected_sequences_MI'
@@ -186,7 +184,6 @@ def main(args,
         logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO MI TREES <======\n')
 
     if algorithm_suffix in ['rt']:
-        original_alignments_directory = '12_pre_paralog_resolution_alignments'
         treefile_directory = '16_pruned_RT'
         tree_file_suffix = '.tre'
         output_folder = f'19_selected_sequences_RT'
