@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.1rc (January 2023)
+ParaGone: paralogy resolution pipeline version 0.0.2rc (January 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -553,7 +553,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.1rc',
+                         version='%(prog)s 0.0.2rc',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
