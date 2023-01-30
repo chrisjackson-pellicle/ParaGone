@@ -159,7 +159,12 @@ def main(args,
         logger.info(f'{"[INFO]:":10} ======> RECOVERING FASTA SEQUENCES CORRESPONDING TO QC TREES <======\n')
 
     if algorithm_suffix in ['mo']:
-        original_alignments_directory = '12_pre_paralog_resolution_alignments'
+        if os.path.isdir('12_pre_paralog_resolution_alignments_trimmed'):
+            original_alignments_directory = '12_pre_paralog_resolution_alignments_trimmed'
+        else:
+            original_alignments_directory = '11_pre_paralog_resolution_alignments'
+
+        # original_alignments_directory = '12_pre_paralog_resolution_alignments'
         treefile_directory = '14_pruned_MO'
         tree_file_suffix = '.tre'
         output_folder = f'17_selected_sequences_MO'
@@ -189,12 +194,6 @@ def main(args,
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
-
-    # # Create output folder:
-    # if args.from_cut_deep_paralogs:
-    #     output_folder = f'09_alignments_from_qc_trees'
-    # elif args.from_prune_paralogs:
-    #     output_folder = f'22_selected_sequences_{algorithm_suffix}_batches'
 
     utils.createfolder(output_folder)
 

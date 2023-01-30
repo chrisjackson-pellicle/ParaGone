@@ -394,11 +394,6 @@ def add_final_alignments_parser(subparsers):
                                          default=False,
                                          help='If specified, realign mafft alignments with clustal omega. '
                                               'Default is: %(default)s')
-    # parser_final_alignments.add_argument('--use_muscle',
-    #                                      action='store_true',
-    #                                      default=False,
-    #                                      help='If specified, use muscle rather than mafft for initial '
-    #                                           'alignments. Default is: %(default)s')
     parser_final_alignments.add_argument('--mafft_algorithm',
                                          default='auto',
                                          help='Algorithm to use for mafft alignments. Default is: %(default)s')
@@ -549,7 +544,7 @@ def add_full_pipeline_parser(subparsers):
                                       help='Run the RooTed ingroups (RT) algorithm')
     parser_full_pipeline.add_argument('--minimum_taxa',
                                       type=int,
-                                      default=2,
+                                      default=4,
                                       help='Minimum number of taxa required. Default is: %(default)s')
     parser_full_pipeline.add_argument('--ignore_1to1_orthologs',
                                       action='store_true',
