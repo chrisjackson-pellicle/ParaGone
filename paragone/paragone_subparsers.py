@@ -165,13 +165,6 @@ def add_qc_trees_and_extract_fasta(subparsers):
     parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_extract_fasta',
                                                       help='Quality control trees;\nextract fasta sequences '
                                                            'corresponding to remaining tips')
-    # parser_qc_trees_and_fasta.add_argument('treefile_directory',
-    #                                        type=str,
-    #                                        help='directory containing tree newick files')
-    # parser_qc_trees_and_fasta.add_argument('--tree_file_suffix',
-    #                                        type=str,
-    #                                        default='.treefile',
-    #                                        help='Suffix for newick tree files. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--min_tips',
                                            type=int,
                                            default=4,
@@ -442,10 +435,10 @@ def add_full_pipeline_parser(subparsers):
                                       help='From paralog filename, number of fields to extract gene name. '
                                            'Default is: %(default)s')
     parser_full_pipeline.add_argument('--external_outgroups_file',
-                                               type=str,
-                                               default=None,
-                                               help='File in fasta format with additional outgroup sequences to add '
-                                                    'to each gene')
+                                      type=str,
+                                      default=None,
+                                      help='File in fasta format with additional outgroup sequences to add '
+                                           'to each gene')
     parser_full_pipeline.add_argument('--external_outgroup',
                                       action='append',
                                       type=str,
@@ -476,11 +469,6 @@ def add_full_pipeline_parser(subparsers):
                                       default=False,
                                       help='If specified, realign mafft alignments with clustal omega. '
                                            'Default is: %(default)s')
-    parser_full_pipeline.add_argument('--use_muscle',
-                                      action='store_true',
-                                      default=False,
-                                      help='If specified, use muscle rather than mafft for initial '
-                                           'alignments. Default is: %(default)s')
     parser_full_pipeline.add_argument('--mafft_algorithm',
                                       default='auto',
                                       help='Algorithm to use for mafft alignments. Default is: %(default)s')
@@ -508,6 +496,12 @@ def add_full_pipeline_parser(subparsers):
                                       default=False,
                                       help='If supplied, run the subcommand using cProfile. Saves a *.csv '
                                            'file of results')
+    parser_full_pipeline.add_argument('--min_tips',
+                                      type=int,
+                                      default=4,
+                                      help='The minimum number of tips in a tree after trimming/masking tips or '
+                                           'pruning deep paralogs; if below this value, no output tree is written. '
+                                           'Default is: %(default)s')
     parser_full_pipeline.add_argument('--trim_tips_relative_cutoff',
                                       type=float,
                                       default=0.2,
