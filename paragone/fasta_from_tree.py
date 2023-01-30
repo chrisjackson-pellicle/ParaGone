@@ -23,6 +23,7 @@ def subsample_alignments(treefile_directory,
                          output_folder,
                          tree_suffix,
                          alignment_directory,
+                         trimmed=False,
                          from_cut_deep_paralogs=False,
                          logger=None):
     """
@@ -33,6 +34,7 @@ def subsample_alignments(treefile_directory,
     :param str output_folder: path to output folder for selected fasta alignments
     :param str tree_suffix: suffix for the tree files
     :param str alignment_directory: path to the directory containing fasta alignments
+    :param bool trimmed: if True, final pre-resolution tree alignments were trimmed with TrimAl
     :param bool from_cut_deep_paralogs: if True, process tree file names accordingly to recover gene names
     :param logging.Logger logger: a logger object
     :return str, dict output_folder, alignment_filtering_dict: path the output folder with filtered alignments,
@@ -56,7 +58,7 @@ def subsample_alignments(treefile_directory,
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were neither trimmed or cleaned')
             alignment_suffix = '.aln.fasta'
     else:
-        alignment_suffix = '.outgroup_added.aln.fasta'
+        alignment_suffix = '.outgroup_added.aln.fasta' if not trimmed else '.outgroup_added.aln.trimmed.fasta'
 
     # Capture number of sequences pre and post filtering in a dictionary for report:
     alignment_filtering_dict = {}
@@ -150,6 +152,8 @@ def main(args,
 
     logger.info('')
 
+    trimmed = False  # set default, only relevant for paralogy pruning algorithms
+
     if args.from_cut_deep_paralogs:
         original_alignments_directory = args.mask_tips_alignment_directory
         treefile_directory = '08_trees_trimmed_masked_cut'
@@ -161,8 +165,10 @@ def main(args,
     if algorithm_suffix in ['mo']:
         if os.path.isdir('12_pre_paralog_resolution_alignments_trimmed'):
             original_alignments_directory = '12_pre_paralog_resolution_alignments_trimmed'
+            trimmed = True
         else:
             original_alignments_directory = '11_pre_paralog_resolution_alignments'
+            trimmed = False
 
         # original_alignments_directory = '12_pre_paralog_resolution_alignments'
         treefile_directory = '14_pruned_MO'
@@ -203,6 +209,7 @@ def main(args,
                              output_folder,
                              tree_file_suffix,
                              original_alignments_directory,
+                             trimmed=trimmed,
                              from_cut_deep_paralogs=args.from_cut_deep_paralogs,
                              logger=logger)
 
