@@ -351,7 +351,7 @@ def mafft_align(fasta_file,
         else:
             mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
 
-        logger.info(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
+        logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
         stdout, stderr = mafft_cline()
         logger.debug(f'stdout is: {stdout}')
