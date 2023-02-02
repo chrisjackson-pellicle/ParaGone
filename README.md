@@ -62,7 +62,7 @@ https://github.com/chrisjackson-pellicle/ParaGone/wiki/Tutorial
 
 ### Paralog sequences
 
-A folder containing a fasta file for each gene. Each fasta file contains the 'main' contig selected by HybPiper for each sample. Where HybPiper has detected putative paralog contigs, these sequences are also included; in such cases, the main contig has the fasta header suffix .main, whereas putative paralogs have the suffix .0, .1 etc.
+A folder containing a fasta file for each gene. Each fasta file contains the 'main' contig selected by HybPiper for each sample. Where HybPiper has detected putative paralog contigs, these sequences are also included; in such cases, the main contig has the fasta header suffix `.main`, whereas putative paralogs have the suffix `.0`, `.1` etc.
 
 ### Outgroup sequences
 
