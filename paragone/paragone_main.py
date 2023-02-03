@@ -583,10 +583,6 @@ def parse_arguments():
 
 def main():
 
-    if len(sys.argv) == 1:
-        print(__doc__)
-        sys.exit(1)
-
     title = textwrap.dedent(
 
         fr"""
@@ -604,6 +600,10 @@ def main():
 
     sys.stderr.write(title)
     sys.stderr.flush()
+
+    if len(sys.argv) == 1:
+        sys.stderr.write(__doc__)
+        sys.exit(1)
 
     # Create a directory for logs for each step of the pipeline:
     utils.createfolder('00_logs_and_reports')
