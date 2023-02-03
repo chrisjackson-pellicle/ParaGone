@@ -166,7 +166,7 @@ def add_outgroup_seqs(qc_alignment_directory,
     # Write the IN and OUT taxon text file required by some paralogy resolution methods (MO, RT):
     if list_of_internal_outgroups:
         ingroup_taxon_names = [name for name in all_paralog_taxon_names if name not in list_of_internal_outgroups]
-        logger.info(f'ingroup_taxon_names: {ingroup_taxon_names}')
+        logger.debug(f'ingroup_taxon_names: {ingroup_taxon_names}')
     else:
         ingroup_taxon_names = [name for name in all_paralog_taxon_names]
         logger.debug(f'ingroup_taxon_names: {ingroup_taxon_names}')
@@ -202,8 +202,11 @@ def filter_internal_outgroups(internal_outgroup_dict,
     # Check of there are paralogs for any internal outgroup:
     for taxon_id, sequence_list in internal_outgroup_dict[gene_id].items():
         if len(sequence_list) > 1:
-            logger.info(f'Taxon {taxon_id} is an internal outgroup, and has more than one sequence for gene '
-                        f'{gene_id}. Only the sequence most divergent from the ingroup taxa will be retained.')
+            fill = textwrap.fill(f'{"[INFO]:":10} Taxon {taxon_id} is an internal outgroup, and has more than one '
+                                 f'sequence for gene {gene_id}. Only the sequence most divergent from the ingroup '
+                                 f'taxa will be retained.',
+                                 width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+            logger.info(f'{fill}')
 
             seq_to_keep_distance = 0.0  # default value, same at every position
             seq_to_keep = None
@@ -238,7 +241,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                                 algorithm='auto',
                                 pool_threads=1,
                                 mafft_threads=1,
-                                # use_muscle=False,
                                 logger=None):
 
     """
@@ -256,9 +258,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     output_folder = f'11_pre_paralog_resolution_alignments'
     utils.createfolder(output_folder)
 
-    # if use_muscle:
-    #     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
-    # else:
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
     # Filter out any input files with fewer than four sequences:
@@ -307,7 +306,6 @@ def mafft_align(fasta_file,
                 lock,
                 num_files_to_process,
                 threads=1,
-                # use_muscle=False,
                 logger=None):
     """
     Use mafft to align a fasta file of sequences, using the algorithm (default is 'auto') and number of threads
@@ -337,14 +335,6 @@ def mafft_align(fasta_file,
         return os.path.basename(expected_alignment_file)
 
     except AssertionError:
-        # if use_muscle:
-        #     logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
-        #     muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
-        #     stdout, stderr = muscle_cline()
-        #
-        #     logger.debug(f'stdout is: {stdout}')
-        #     logger.debug(f'stderr is: {stderr}')
-        # else:
 
         if algorithm == 'auto':
             mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))

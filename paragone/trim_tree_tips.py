@@ -121,13 +121,10 @@ def trim(curroot,
             # Check if node is a tip, and remove it if branch length is greater than absolute cutoff:
             if node.nchildren == 0:  # at the tip
                 node.data['len'] = node.length
-                # print(f'node.length is; {node.length}')
-                # print(f'absolute_cutoff is: {absolute_cutoff}')
                 if node.length > absolute_cutoff:
                     logger.debug(f'Tip {node.label} is on a branch with length {node.length}. Absolute cutoff is '
                                  f'{absolute_cutoff}. This tip will be removed.')
                     nodes_above_absolute_cutoff[node.label].extend([node.length, absolute_cutoff])
-                    # print(nodes_above_absolute_cutoff)
                     curroot = remove_a_tip(curroot,
                                            node,
                                            min_tips,
@@ -154,7 +151,7 @@ def trim(curroot,
                                                          logger=logger)
                 # if outlier != None:
                 if outlier:
-                    nodes_above_relative_cutoff[outlier.label].extend([reason, 'birfurcating internal node'])
+                    nodes_above_relative_cutoff[outlier.label].extend([reason, 'bifurcating internal node'])
                     curroot = remove_a_tip(curroot,
                                            outlier,
                                            min_tips,

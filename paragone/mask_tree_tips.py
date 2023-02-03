@@ -228,9 +228,9 @@ def write_mask_report(collated_mask_report_dict,
     with open(report_filename, 'w') as report_handle:
         report_handle.write(f'Tree name\t'
                             f'Monophyletic tips removed ("masked")\t'
-                            f'Retained tip names\t'
+                            f'Removed tip names\t'
                             f'Paraphyletic tips removed ("masked")\t'
-                            f'Retained tip names\t'
+                            f'Removed tip names\t'
                             f'Masked trees < {min_tips} taxa after masking mono\t'
                             f'Masked trees < {min_tips} taxa after masking para'
                             f'\n')
