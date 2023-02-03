@@ -157,6 +157,7 @@ def trim(curroot,
                     nodes_above_relative_cutoff[outlier.label].extend([reason, 'birfurcating internal node'])
                     curroot = remove_a_tip(curroot,
                                            outlier,
+                                           min_tips,
                                            tree_name=tree_name,
                                            logger=logger)
                     going = True  # need to keep checking
