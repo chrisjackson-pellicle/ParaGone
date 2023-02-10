@@ -80,7 +80,8 @@ def prune_paralogs_rt(curroot,
                 ortho_dict[f'inclade_{inclade_count}'].append(newick3.tostring(ortho))
             else:
                 logger.debug(f'Ortho from rooted ingroup clade for tree {treefile_basename} has fewer taxa than the '
-                             f'min_ingroup_taxa os {min_ingroup_taxa}. Skipping ortho...')
+                             f'min_ingroup_taxa of {min_ingroup_taxa}. Ortho is:\n{newick3.tostring(ortho)}\nSkipping '
+                             f'ortho...')
 
                 ortho_dict_fewer_than_min_taxa[f'inclade_{inclade_count}'].append(newick3.tostring(ortho))
 

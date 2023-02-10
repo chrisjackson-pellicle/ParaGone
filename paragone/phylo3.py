@@ -101,12 +101,20 @@ class Node:
         return p
 
     def graft(self, node):
+        # print('BEAGLE GRAFTING')
+        # print(f'nide is: {paragone.newick3.tostring(node)}')
         parent = self.parent
+        # print(f'parent: {paragone.newick3.tostring(parent)}')
         parent.remove_child(self)
+        # print(f'parent: {paragone.newick3.tostring(parent)}')
         n = Node()
+        # print(f'n: {paragone.newick3.tostring(n)}')
         n.add_child(self)
+        # print(f'n: {paragone.newick3.tostring(n)}')
         n.add_child(node)
+        # print(f'n: {paragone.newick3.tostring(n)}')
         parent.add_child(n)
+        # print(f'parent final: {paragone.newick3.tostring(parent)}')
 
     def leaf_distances(self, store=None, measure=BRANCHLENGTH):
         """

@@ -26,7 +26,7 @@ Infer orthologs by using monophyletic, non-repeating outgroups
 If not to output 1-to-1 orthologs, for example, already analysed these
 set OUTPUT_1to1_ORTHOLOGS to False
 """
-
+import copy
 import os
 import sys
 from collections import defaultdict
@@ -44,7 +44,7 @@ def reroot_with_monophyletic_outgroups(root,
                                        outgroups,
                                        logger=None):
     """
-    Check if outgroups are monophyletic and non-repeating and reroot, otherwise return None
+    Check if outgroups are monophyletic and non-repeating and re-root, otherwise return None
 
     :param phylo3.Node root: tree object parsed by newick3.parse
     :param list outgroups: a list of outgroup taxon names present in the tree
@@ -98,8 +98,9 @@ def reroot_with_monophyletic_outgroups(root,
                 # print(f'front_in_names: {front_in_names}')
                 # print(f'back_out_names: {back_out_names}')
                 # print(f'back_in_names: {back_in_names}')
-                newroot = node.parent  # ingroup at back, outgroup in front CJJ added .parent - bugfix?
-                # print(f'newroot:\n{newick3.tostring(newroot)}')
+                # newroot = node  # ingroup at back, outgroup in front
+                newroot = node.parent  # CJJ added .parent - bugfix?
+                # print(f'newroot ingroup at back:\n{newick3.tostring(newroot)}')
                 break
 
             if front_in_names > 0 and front_out_names == 0 and back_in_names == 0 and back_out_names > 0:
@@ -110,8 +111,8 @@ def reroot_with_monophyletic_outgroups(root,
                 # print(f'back_out_names: {back_out_names}')
                 # print(f'back_in_names: {back_in_names}')
                 # newroot = node.parent  # ingroup in front, outgroup at back
-                newroot = node  # ingroup in front, outgroup at back CJJ removed .parent - bugfix?
-                # print(f'newroot:\n{newick3.tostring(newroot)}')
+                newroot = node  # CJJ removed .parent - bugfix?
+                # print(f'newroot ingroup in front:\n{newick3.tostring(newroot)}')
                 break
 
         if newroot:
@@ -125,7 +126,7 @@ def prune_paralogs_from_rerooted_homotree(root,
                                           outgroups,
                                           logger=None):
     """
-    Prunes a tree containing monophletic outgroup sequences to recover the ingroup clade with the largest number of
+    Prunes a tree containing monophyletic outgroup sequences to recover the ingroup clade with the largest number of
     non-repeating taxon names. Returns a tree containing the outgroup sequences as well as ingroup sequences.
 
     :param phylo3.Node root: tree object parsed by newick3.parse
@@ -149,9 +150,9 @@ def prune_paralogs_from_rerooted_homotree(root,
     if out0 == 0 and out1 == 0:  # 0 and 1 are the ingroup clades
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set1 = set(tree_utils.get_front_names(node1))
-        if len(name_set0.intersection(name_set1)) > 0:
-
-            if len(name_set0) > len(name_set1):  # cut the side with fewer taxa
+        if len(name_set0.intersection(name_set1)) > 0:  # i.e. clades contain overlapping taxon names
+            # cut the side with fewer taxa:
+            if len(name_set0) > len(name_set1):
                 logger.debug(f'Cutting node1: {newick3.tostring(node1)}')
                 root.remove_child(node1)
                 node1.prune()
@@ -163,8 +164,10 @@ def prune_paralogs_from_rerooted_homotree(root,
     elif out1 == 0 and out2 == 0:  # 1 and 2 are the ingroup clades
         name_set1 = set(tree_utils.get_front_names(node1))
         name_set2 = set(tree_utils.get_front_names(node2))
-        if len(name_set1.intersection(name_set2)) > 0:
-            if len(name_set1) > len(name_set2):  # cut the side with fewer taxa
+
+        if len(name_set1.intersection(name_set2)) > 0:  # i.e. clades contain overlapping taxon names
+            # cut the side with fewer taxa:
+            if len(name_set1) > len(name_set2):
                 logger.debug(f'Cutting node2: {newick3.tostring(node2)}')
                 root.remove_child(node2)
                 node2.prune()
@@ -176,8 +179,9 @@ def prune_paralogs_from_rerooted_homotree(root,
     elif out0 == 0 and out2 == 0:  # 0 and 2 are the ingroup clades
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set2 = set(tree_utils.get_front_names(node2))
-        if len(name_set0.intersection(name_set2)) > 0:
-            if len(name_set0) > len(name_set2):  # cut the side with fewer taxa
+        if len(name_set0.intersection(name_set2)) > 0:  # i.e. clades contain overlapping taxon names
+            # cut the side with fewer taxa:
+            if len(name_set0) > len(name_set2):
                 root.remove_child(node2)
                 logger.debug(f'Cutting node2: {newick3.tostring(node2)}')
                 node2.prune()
@@ -202,14 +206,90 @@ def prune_paralogs_from_rerooted_homotree(root,
             name_set0 = set(tree_utils.get_front_names(child0))
             name_set1 = set(tree_utils.get_front_names(child1))
             if len(name_set0.intersection(name_set1)) > 0:
-                if len(name_set0) > len(name_set1):  # cut the side with fewer taxa
+                # cut the side with fewer taxa:
+                if len(name_set0) > len(name_set1):
                     node.remove_child(child1)
+                    logger.debug(f'Cutting child1: {newick3.tostring(child1)}')
                     child1.prune()
                 else:
                     node.remove_child(child0)
+                    logger.debug(f'Cutting child0: {newick3.tostring(child0)}')
                     child0.prune()
                 node, root = tree_utils.remove_kink(node, root)  # no re-rooting here
                 break
+
+    return root
+
+
+def prune_paralogs_from_rerooted_homotree_cjj(root,
+                                              outgroups,
+                                              logger=None):
+    """
+    Prunes a tree containing monophyletic outgroup sequences to recover the ingroup clade with the largest number of
+    non-repeating taxon names. Returns a tree containing the outgroup sequences as well as ingroup sequences.
+
+    :param phylo3.Node root: tree object parsed by newick3.parse
+    :param list outgroups: list of outgroup names recovered from in_and_outgroup_list file
+    :param logging.Logger logger: a logger object
+    :return phylo3.Node root: tree object after pruning with Monophyletic Outgroups (MO) algorithm
+    """
+
+    if len(tree_utils.get_front_names(root)) == len(set(tree_utils.get_front_names(root))):
+        return root  # no pruning needed CJJ This is same as 1to1_orthologs, isn't it?
+
+    # Check for duplications at the root first. One or two of the trifurcating root clades are ingroup clades:
+    node0, node1, node2 = root.children[0], root.children[1], root.children[2]
+    out0, out1, out2 = len(tree_utils.get_front_outgroup_names(node0, outgroups)), \
+                       len(tree_utils.get_front_outgroup_names(node1, outgroups)), \
+                       len(tree_utils.get_front_outgroup_names(node2, outgroups))
+
+    logger.debug(f'Outgroup taxon count in node0, node1, node2 is: {out0}, {out1}, {out2}')
+
+    # Identify the ingroup clades:
+    ingroup_clade_0 = None
+    ingroup_clade_1 = None
+
+    if out0 == 0 and out1 == 0:  # 0 and 1 are the ingroup clades
+        outgroup_clade = node2
+        ingroup_clade_0 = node0
+        ingroup_clade_1 = node1
+    elif out1 == 0 and out2 == 0:  # 1 and 2 are the ingroup clades
+        outgroup_clade = node0
+        ingroup_clade_0 = node1
+        ingroup_clade_1 = node2
+    elif out0 == 0 and out2 == 0:  # 0 and 2 are the ingroup clades
+        outgroup_clade = node1
+        ingroup_clade_0 = node0
+        ingroup_clade_1 = node2
+
+    candidate_nodes_dict = dict()
+    node_count = 0
+    for ingroup_clade in [ingroup_clade_0, ingroup_clade_1]:
+        # print(f'\nINGROUP CLADE: {ingroup_clade}')
+        # CJJ chech for any name overlap here and return whole tree if none (i.e. no paralogs)
+
+        for node in ingroup_clade.iternodes(order=0):  # PREORDER, root to tip
+            if node.istip:
+                continue
+            # print(newick3.tostring(node))
+            if len(tree_utils.get_front_names(node)) == len(set(tree_utils.get_front_names(node))):
+                # print(f'node_{node_count} contains no duplicated taxon names:\n{newick3.tostring(node)}')
+                # print(f'parent node is :\n{newick3.tostring(node.parent)}')
+                node_count += 1
+                candidate_nodes_dict[f'node_{node_count}'] = \
+                    [node, newick3.tostring(node), len(tree_utils.get_front_names(node))]
+
+    node_with_most_non_duplicated_taxa = max(candidate_nodes_dict, key=lambda key: candidate_nodes_dict[key][2])
+
+    node_with_most_non_duplicated_taxa = candidate_nodes_dict[node_with_most_non_duplicated_taxa][0]
+
+    node_with_most_non_duplicated_taxa_string = newick3.tostring(node_with_most_non_duplicated_taxa)
+
+    outgroup_clade_string = newick3.tostring(outgroup_clade)
+
+    output_tree = f'({outgroup_clade_string.strip()},{node_with_most_non_duplicated_taxa_string.strip()});'
+
+    root = newick3.parse(output_tree)
 
     return root
 
@@ -518,12 +598,17 @@ def main(args,
 
                     logger.info(f'{fill}')
 
-                    ortho = prune_paralogs_from_rerooted_homotree(curroot,
-                                                                  outgroups,
-                                                                  logger=logger)
+                    ortho = prune_paralogs_from_rerooted_homotree_cjj(curroot,
+                                                                      outgroups,
+                                                                      logger=logger)
+
+                    # ortho = prune_paralogs_from_rerooted_homotree(curroot,
+                    #                                               outgroups,
+                    #                                               logger=logger)
 
                     # Filter out pruned trees that have fewer ingroup taxa than the minimum_taxa value:
-                    ingroup_names_mo = tree_utils.get_front_ingroup_names(curroot, ingroups)
+                    ingroup_names_mo = tree_utils.get_front_ingroup_names(curroot, ingroups)  # CJJ should be ortho,
+                    # not current?
                     logger.debug(f'Ingroup taxa in ortho after MO pruning: {ingroup_names_mo}')
 
                     if len(set(ingroup_names_mo)) >= args.minimum_taxa:

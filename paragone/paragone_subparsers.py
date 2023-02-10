@@ -246,11 +246,6 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 default=False,
                                                 help='If specified, realign mafft alignments with clustal omega. '
                                                      'Default is: %(default)s')
-    # parser_align_selected_and_tree.add_argument('--use_muscle',
-    #                                             action='store_true',
-    #                                             default=False,
-    #                                             help='If specified, use muscle rather than mafft for initial '
-    #                                                  'alignments. Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
                                                 help='Algorithm to use for mafft alignments. Default is: %(default)s')
