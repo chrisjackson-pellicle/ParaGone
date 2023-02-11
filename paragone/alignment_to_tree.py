@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Takes a trimmed, Hmmcleaned alignment, and produces a tree via FastTreeMP or IQTree
+Takes a trimmed, hmmcleaned alignment, and produces a tree via FastTreeMP or IQTree
 """
 
 import logging
@@ -35,7 +35,6 @@ def fasttree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    # input_folder_basename = os.path.basename(alignments_folder)
     output_folder = f'05_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
@@ -158,7 +157,6 @@ def iqtree_multiprocessing(alignments_folder,
     :return str output_folder: path to output folder containing tree files
     """
 
-    # input_folder_basename = os.path.basename(alignments_folder)
     output_folder = f'05_trees_pre_quality_control'
     utils.createfolder(output_folder)
 
