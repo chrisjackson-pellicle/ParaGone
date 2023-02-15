@@ -215,7 +215,7 @@ def align_selected_and_tree_main(args,
     parameters = vars(args)
 
     # Create a logger for qc_trees_and_extract_fasta_main:
-    logger = utils.setup_logger(__name__, f'{log_directory}/qc_trees_and_extract_fasta')
+    logger = utils.setup_logger(__name__, f'{log_directory}/align_selected_and_tree')
 
     # check for external dependencies:
     if utils.check_dependencies(logger=logger):
