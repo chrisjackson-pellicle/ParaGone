@@ -336,11 +336,11 @@ def final_alignments_main(args,
             algorithm_suffix='mo',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='17_selected_sequences_MO',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='17_selected_sequences_MO',
+            logger=logger)
 
     # Extract fasta for the Maximum Inclusion (MI) algorithm:
     if args.mi:
@@ -350,11 +350,11 @@ def final_alignments_main(args,
             algorithm_suffix='mi',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='18_selected_sequences_MI',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='18_selected_sequences_MI',
+            logger=logger)
 
     # Extract fasta for the RooTed outgroups (RT) algorithm:
     if args.rt:
@@ -364,11 +364,11 @@ def final_alignments_main(args,
             algorithm_suffix='rt',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='19_selected_sequences_RT',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='19_selected_sequences_RT',
+            logger=logger)
 
     # Remove all intermediate files and folders:
     if not args.keep_intermediate_files:
@@ -497,11 +497,11 @@ def full_pipeline_main(args,
             algorithm_suffix='mo',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='17_selected_sequences_MO',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='17_selected_sequences_MO',
+            logger=logger)
 
     # Extract fasta for the Maximum Inclusion (MI) algorithm:
     if args.mi:
@@ -512,11 +512,11 @@ def full_pipeline_main(args,
             algorithm_suffix='mi',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='18_selected_sequences_MI',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='18_selected_sequences_MI',
+            logger=logger)
 
     # Extract fasta for the RooTed outgroups (RT) algorithm:
     if args.rt:
@@ -527,11 +527,11 @@ def full_pipeline_main(args,
             algorithm_suffix='rt',
             logger=logger)
 
-    strip_names_and_align.main(
-        args,
-        report_directory,
-        selected_alignment_directory='19_selected_sequences_RT',
-        logger=logger)
+        strip_names_and_align.main(
+            args,
+            report_directory,
+            selected_alignment_directory='19_selected_sequences_RT',
+            logger=logger)
 
     # Remove all intermediate files and folders:
     if not args.keep_intermediate_files:
