@@ -275,7 +275,7 @@ def run_hmm_cleaner(input_folder,
         alignment_basename = os.path.basename(alignment)
 
         # command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
-        command = f'HmmCleaner.pl {alignment}'
+        command = f'perl $(which HmmCleaner.pl) {alignment}'
 
         host = socket.gethostname()
         if host == '192-168-1-102.tpgi.com.au' or \
@@ -342,8 +342,12 @@ def run_hmm_cleaner(input_folder,
                 os.remove(f'{input_folder}/{hmm_file}')
 
                 # Move the HmmCleaner score and log files to new output directory
-                shutil.move(f'{input_folder}/{hmm_score}', f'{output_folder}/{hmm_score_output}')
-                shutil.move(f'{input_folder}/{hmm_log}', f'{output_folder}/{hmm_log_output}')
+                # shutil.move(f'{input_folder}/{hmm_score}', f'{output_folder}/{hmm_score_output}')
+                # shutil.move(f'{input_folder}/{hmm_log}', f'{output_folder}/{hmm_log_output}')
+
+                # Delete the HmmCleaner score and log files:
+                os.remove(f'{input_folder}/{hmm_score}')
+                os.remove(f'{input_folder}/{hmm_log}')
 
         except subprocess.CalledProcessError as exc:
             logger.error(f'hmmcleaner FAILED. Output is: {exc}')
