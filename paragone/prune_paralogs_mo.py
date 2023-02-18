@@ -266,7 +266,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
     node_count = 0
     for ingroup_clade in [ingroup_clade_0, ingroup_clade_1]:
         # print(f'\nINGROUP CLADE: {ingroup_clade}')
-        # CJJ chech for any name overlap here and return whole tree if none (i.e. no paralogs)
+        # CJJ check for any name overlap here and return whole tree if none (i.e. no paralogs)
 
         for node in ingroup_clade.iternodes(order=0):  # PREORDER, root to tip
             if node.istip:
@@ -607,8 +607,9 @@ def main(args,
                     #                                               logger=logger)
 
                     # Filter out pruned trees that have fewer ingroup taxa than the minimum_taxa value:
-                    ingroup_names_mo = tree_utils.get_front_ingroup_names(curroot, ingroups)  # CJJ should be ortho,
+                    # ingroup_names_mo = tree_utils.get_front_ingroup_names(curroot, ingroups)  # CJJ should be ortho,
                     # not current?
+                    ingroup_names_mo = tree_utils.get_front_ingroup_names(ortho, ingroups)
                     logger.debug(f'Ingroup taxa in ortho after MO pruning: {ingroup_names_mo}')
 
                     if len(set(ingroup_names_mo)) >= args.minimum_taxa:
