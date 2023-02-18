@@ -6,27 +6,6 @@
 Contains argument subparsers
 """
 
-import textwrap
-import sys
-
-# title = textwrap.dedent(
-#
-#     fr"""
-#
-#  _____      ATCTATCTATAC.......       ___
-# |  _  \                             /  ___\
-# | |_| |   _____   _____     _____  / /   __    _____    _   __     _____
-# |  ___/ /  _   | |  _  \  /  _   | | | |_  \  /  _  \  | |/   \   |  _  |
-# | |    |  |_|  | | |  -- |  |_|  | | |___| | |  |_|  | |    \  \  |  __/
-# |_|     \ __/ _| |_|      \ __/ _|  \ ____ /  \_____/  |_|   |__| |_____|
-#
-#                                          .......ATCGACTGCACGTGACTCG
-#
-#     """)
-#
-# sys.stderr.write(title)
-# sys.stderr.flush()
-
 
 def add_check_and_align_parser(subparsers):
     """
