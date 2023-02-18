@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.2rc (January 2023)
+ParaGone: paralogy resolution pipeline version 0.0.3rc (February 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -553,7 +553,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.2rc',
+                         version='%(prog)s 0.0.3rc',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
@@ -605,13 +605,13 @@ def main():
         sys.stderr.write(__doc__)
         sys.exit(1)
 
+    # Parse arguments for the command/subcommand used:
+    args = parse_arguments()
+
     # Create a directory for logs for each step of the pipeline:
     utils.createfolder('00_logs_and_reports')
     log_directory = utils.createfolder('00_logs_and_reports/logs')
     report_directory = utils.createfolder('00_logs_and_reports/reports')
-
-    # Parse arguments for the command/subcommand used:
-    args = parse_arguments()
 
     # Run the function associated with the subcommand, with or without cProfile:
     if args.run_profiler:
