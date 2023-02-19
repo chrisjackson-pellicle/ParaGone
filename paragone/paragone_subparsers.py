@@ -66,11 +66,6 @@ def add_check_and_align_parser(subparsers):
                                         default=False,
                                         help='If specified, realign mafft alignments with clustal omega. Default is: '
                                              '%(default)s')
-    # parser_check_and_align.add_argument('--use_muscle',
-    #                                     action='store_true',
-    #                                     default=False,
-    #                                     help='If specified, use muscle rather than mafft for initial alignments. '
-    #                                          'Default is: %(default)s')
     parser_check_and_align.add_argument('--mafft_algorithm',
                                         default='auto',
                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
@@ -232,26 +227,26 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 action='store_true',
                                                 default=False,
                                                 help='No not trim alignments using Trimal. Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--external_outgroups_file',
-                                                type=str,
-                                                default=None,
-                                                help='file in fasta format with additional outgroup sequences to add '
-                                                     'to each gene')
-    parser_align_selected_and_tree.add_argument('--external_outgroup',
-                                                action='append',
-                                                type=str,
-                                                dest='external_outgroups',
-                                                default=None,
-                                                help='If one or more taxon names are provided, only use these '
-                                                     'sequences from the user-provided external_outgroups_file')
-    parser_align_selected_and_tree.add_argument('--internal_outgroup',
-                                                action='append',
-                                                type=str,
-                                                dest='internal_outgroups',
-                                                default=None,
-                                                help='Taxon name to use as an internal outgroup (i.e. present in input '
-                                                     'paralog files). Note that this parameter can be specified one '
-                                                     'or more times.')
+    # parser_align_selected_and_tree.add_argument('--external_outgroups_file',
+    #                                             type=str,
+    #                                             default=None,
+    #                                             help='file in fasta format with additional outgroup sequences to add '
+    #                                                  'to each gene')
+    # parser_align_selected_and_tree.add_argument('--external_outgroup',
+    #                                             action='append',
+    #                                             type=str,
+    #                                             dest='external_outgroups',
+    #                                             default=None,
+    #                                             help='If one or more taxon names are provided, only use these '
+    #                                                  'sequences from the user-provided external_outgroups_file')
+    # parser_align_selected_and_tree.add_argument('--internal_outgroup',
+    #                                             action='append',
+    #                                             type=str,
+    #                                             dest='internal_outgroups',
+    #                                             default=None,
+    #                                             help='Taxon name to use as an internal outgroup (i.e. present in input '
+    #                                                  'paralog files). Note that this parameter can be specified one '
+    #                                                  'or more times.')
     parser_align_selected_and_tree.add_argument('--generate_bootstraps',
                                                 action='store_true',
                                                 default=False,

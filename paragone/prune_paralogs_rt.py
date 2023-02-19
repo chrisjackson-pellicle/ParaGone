@@ -252,7 +252,7 @@ def main(args,
     treefile_directory = '13_pre_paralog_resolution_trees'
     tree_file_suffix = '.treefile'
     directory_suffix_dict = {treefile_directory: tree_file_suffix}
-    in_and_outgroups_list = 'in_and_outgroups_list.txt'
+    in_and_outgroups_list = '00_logs_and_reports/reports/in_and_outgroups_list.tsv'
     file_list = [in_and_outgroups_list]
 
     utils.check_inputs(directory_suffix_dict,

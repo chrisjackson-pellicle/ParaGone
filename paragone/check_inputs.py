@@ -72,8 +72,9 @@ def sanitise_gene_names(paralogs_folder,
 
     # Sanitise gene names in the external outgroup fasta file, if provided:
     if file_of_external_outgroups:
-        outgroup_file_base, ext = os.path.splitext(os.path.basename(file_of_external_outgroups))
-        sanitised_external_outgroups_filename = f'external_outgroups_sanitised{ext}'
+        # outgroup_file_base, ext = os.path.splitext(os.path.basename(file_of_external_outgroups))
+        # sanitised_external_outgroups_filename = f'external_outgroups_sanitised{ext}'
+        sanitised_external_outgroups_filename = f'external_outgroups_sanitised.fasta'
 
         fill = textwrap.fill(f'{"[INFO]:":10} Sanitising outgroup fasta file. Any dots/periods (".") in the gene name '
                              f'component of the sequence fasta headers will be replaced with underscores ("_").  '
@@ -116,6 +117,9 @@ def check_outgroup_coverage(folder_of_paralog_files,
     corresponding to samples within the existing paralog fasta file), or within a file of external outgroup sequences
     (i.e. new taxa to add as outgroups). Writes a report of gene coverage and the corresponding outgroup(s).
 
+    Writes a log file listing the internal and external outgroup taxa, for using with command `paragone
+    align_selected_and_tree`.
+
     :param str folder_of_paralog_files:
     :param list/None list_of_internal_outgroups:
     :param str/None file_of_external_outgroups:
@@ -136,7 +140,6 @@ def check_outgroup_coverage(folder_of_paralog_files,
         seqs = SeqIO.parse(fasta, 'fasta')
         for seq in seqs:
             paralog_dict[gene_id].append(seq.name)
-
 
     # Read in external outgroups file, and create a dictionary of gene_id:list_of_seq_names:
     if file_of_external_outgroups:  # dict not created if no outgroups file provided
@@ -162,7 +165,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
                 internal_outgroup_coverage_dict[gene].append('No internal outgroup')
 
     # If filtering the external outgroups for specified taxa (i.e. if a list of taxon names to select from the
-    # external outgroup file is provided),check whether there is a sequence for each taxon name for each gene,
+    # external outgroup file is provided), check whether there is a sequence for each taxon name for each gene,
     # and create a dictionary:
     external_outgroup_coverage_dict = defaultdict(list)
     if file_of_external_outgroups and list_of_external_outgroups:
@@ -189,6 +192,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
     # of results:
 
     outgroup_coverage_report = f'00_logs_and_reports/reports/outgroup_coverage_report.tsv'
+    outgroup_taxon_list = f'00_logs_and_reports/reports/outgroup_taxon_list.tsv'
 
     with open(outgroup_coverage_report, 'w') as tsv_report:
         number_of_paralog_files = len(paralog_dict)
@@ -228,6 +232,25 @@ def check_outgroup_coverage(folder_of_paralog_files,
         logger.info(fill_2)
         logger.info(fill_3)
         logger.info(fill_4)
+
+        # Write a log file of outgroup and ingroup taxa; used in command `paragone align_selected_and_tree`:
+        internal_ingroups = set(taxon for gene_name, taxon_list in internal_outgroup_coverage_dict.items() for taxon
+                                in taxon_list if taxon not in ['No internal outgroup'])
+
+        external_ingroups = set(taxon for gene_name, taxon_list in external_outgroup_coverage_dict.items() for taxon
+                                in taxon_list if taxon not in ['No external outgroup'])
+
+        with open(outgroup_taxon_list, 'w') as outgroup_taxon_list_handle:
+            for taxon in internal_ingroups:
+                outgroup_taxon_list_handle.write(f'INTERNAL_OUTGROUP\t{taxon}\n')
+            for taxon in external_ingroups:
+                outgroup_taxon_list_handle.write(f'EXTERNAL_OUTGROUP\t{taxon}\n')
+
+        fill = textwrap.fill(f'{"[INFO]:":10} An outgroup taxon list has been written to file "'
+                             f'{outgroup_taxon_list}".',
+                             width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+        logger.info(fill)
 
 
 def batch_input_files(gene_fasta_directory,

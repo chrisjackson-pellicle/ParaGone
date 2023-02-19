@@ -40,8 +40,9 @@ from paragone.align_and_clean import run_trimal
 def add_outgroup_seqs(qc_alignment_directory,
                       selected_alignment_directory,
                       list_of_internal_outgroups,
-                      file_of_external_outgroups,
-                      list_of_external_outgroups=None,
+                      list_of_external_outgroups,
+                      # file_of_external_outgroups,
+                      # list_of_external_outgroups=None,
                       logger=None):
     """
     Check the number of genes that have an outgroup sequence in either the list_of_internal_outgroups (i.e.
@@ -60,8 +61,9 @@ def add_outgroup_seqs(qc_alignment_directory,
     :param str qc_alignment_directory:
     :param str selected_alignment_directory:
     :param list list_of_internal_outgroups:
-    :param str file_of_external_outgroups:
-    :param list_of_external_outgroups:
+    :param list list_of_external_outgroups:
+    # :param str file_of_external_outgroups:
+    # :param list_of_external_outgroups:
     :param logging.Logger logger: a logger object
     :return str output_folder: name of output folder containing fasta with outgroups added
     """
@@ -69,7 +71,8 @@ def add_outgroup_seqs(qc_alignment_directory,
     logger.debug(f'list_of_internal_outgroups: {list_of_internal_outgroups}')
     logger.debug(f'list_of_external_outgroups_to_select: {list_of_external_outgroups}')
 
-    if not file_of_external_outgroups and not list_of_internal_outgroups:
+    # if not file_of_external_outgroups and not list_of_internal_outgroups:
+    if len(list_of_internal_outgroups) == 0 and len(list_of_external_outgroups) == 0:
         logger.warning(f'{"[WARNING]:":10} No external or internal outgroups supplied!')
 
     output_folder = f'10_sequences_from_qc_outgroups_added'
@@ -94,7 +97,7 @@ def add_outgroup_seqs(qc_alignment_directory,
         if list_of_internal_outgroups:
             alignment = AlignIO.read(original_alignment, 'fasta')
 
-            # Create an MultipleSeqAlignment object for ingroup sequences only, and take the first 10 sequences from
+            # Create a MultipleSeqAlignment object for ingroup sequences only, and take the first 10 sequences from
             # the ingroup alignment for distance matrix calculations:
             alignment_ingroup_seqs_only = []
             ingroup_count = 0
@@ -123,20 +126,25 @@ def add_outgroup_seqs(qc_alignment_directory,
     # Read in external outgroups file if present, and create a dictionary of gene_id:list_of_seq_names, either for all
     # seqs if no external outgroup taxa specified, or for specified taxa only:
     external_outgroup_dict = defaultdict(list)
-    if file_of_external_outgroups:  # dict not populated if no outgroups file provided
-        seqs = SeqIO.parse(file_of_external_outgroups, 'fasta')
-        for seq in seqs:
-            gene_id = seq.name.split('-')[-1]  # get gene id e.g. '4471'
-            taxon = '-'.join(seq.name.split('-')[:-1])  # e.g. 'AMBTR'
-            if list_of_external_outgroups:
+
+    # if file_of_external_outgroups:  # dict not populated if no outgroups file provided
+    if list_of_external_outgroups != 0:
+        try:
+            seqs = SeqIO.parse('external_outgroups_sanitised.fasta', 'fasta')
+            for seq in seqs:
+                gene_id = seq.name.split('-')[-1]  # get gene id e.g. '4471'
+                taxon = '-'.join(seq.name.split('-')[:-1])  # e.g. 'AMBTR'
+                # if list_of_external_outgroups:
                 if taxon in list_of_external_outgroups:
                     seq.name = taxon  # i.e. we don't want the suffix e.g. '4471' present in the fasta file
                     seq.id = taxon
                     external_outgroup_dict[gene_id].append(seq)
-            else:
-                seq.name = taxon  # i.e. we don't want the suffix e.g. '4471' present in the fasta file
-                seq.id = taxon
-                external_outgroup_dict[gene_id].append(seq)
+                # else:
+                #     seq.name = taxon  # i.e. we don't want the suffix e.g. '4471' present in the fasta file
+                #     seq.id = taxon
+                #     external_outgroup_dict[gene_id].append(seq)
+        except FileNotFoundError:
+            logger.error(f'Expected file "external_outgroups_sanitised.fasta" not found!')
 
     all_external_outgroup_taxon_names = \
         set([seq.name for gene_id, seq_list in external_outgroup_dict.items() for seq in seq_list])
@@ -170,7 +178,7 @@ def add_outgroup_seqs(qc_alignment_directory,
     else:
         ingroup_taxon_names = [name for name in all_paralog_taxon_names]
         logger.debug(f'ingroup_taxon_names: {ingroup_taxon_names}')
-    with open(f'in_and_outgroups_list.txt', 'w') as group_list:
+    with open(f'00_logs_and_reports/reports/in_and_outgroups_list.tsv', 'w') as group_list:
         if list_of_internal_outgroups:
             for taxon in list_of_internal_outgroups:
                 group_list.write(f'OUT\t{taxon}\n')
@@ -724,20 +732,48 @@ def main(args,
                              qc_alignments_directory: qc_alignments_suffix}
     file_list = []
 
-    if args.external_outgroups_file:
-        file_list.append(args.external_outgroups_file)
+    # if args.external_outgroups_file:
+    #     file_list.append(args.external_outgroups_file)
 
     utils.check_inputs(directory_suffix_dict,
                        file_list,
                        logger=logger)
 
+    # Get a list of internal and external taxon names from log file "outgroup_taxon_list.tsv":
+    try:
+        internal_outgroup_taxa = []
+        external_outgroup_taxa = []
+
+        with open(f'00_logs_and_reports/reports/outgroup_taxon_list.tsv', 'r') as outgroup_taxon_handle:
+            lines = outgroup_taxon_handle.readlines()
+            for line in lines:
+                outgroup_type, taxon = line.split()
+                if outgroup_type == 'INTERNAL_OUTGROUP':
+                    internal_outgroup_taxa.append(taxon)
+                if outgroup_type == 'EXTERNAL_OUTGROUP':
+                    external_outgroup_taxa.append(taxon)
+
+        logger.info(f'{"[INFO]:":10} External outgroup taxa: {external_outgroup_taxa}')
+        logger.info(f'{"[INFO]:":10} Internal outgroup taxa: {internal_outgroup_taxa}')
+
+    except FileNotFoundError:
+        logger.error(f'{"[ERROR]:":10} No outgroup taxon list found at '
+                     f'00_logs_and_reports/reports/outgroup_taxon_list.tsv')
+        sys.exit()
+
     # Add outgroup sequences, both internal (if removed by the tree QC steps) and external (if a fasta file of
     # external outgroup sequences is provided).
+    # outgroups_added_folder = add_outgroup_seqs(args.qc_alignment_directory,
+    #                                            selected_alignments_directory,
+    #                                            args.internal_outgroups,
+    #                                            args.external_outgroups_file,
+    #                                            list_of_external_outgroups=args.external_outgroups,
+    #                                            logger=logger)
+
     outgroups_added_folder = add_outgroup_seqs(args.qc_alignment_directory,
                                                selected_alignments_directory,
-                                               args.internal_outgroups,
-                                               args.external_outgroups_file,
-                                               list_of_external_outgroups=args.external_outgroups,
+                                               internal_outgroup_taxa,
+                                               external_outgroup_taxa,
                                                logger=logger)
 
     if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
@@ -748,7 +784,6 @@ def main(args,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            # use_muscle=args.use_muscle,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
