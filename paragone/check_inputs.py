@@ -5,9 +5,9 @@
 """
 - Checks gene names in paralog files and the external outgroup file (if provided) for period/dots, and converts them to
   underscores.
-- Checks if there is an outgroup (internal or external) for each gene paralog fasta file.
-- Takes a folder of fasta files, and splits them in to batch folders according to the number provided by parameter
-  --batch_size.
+- Checks if there is an outgroup (internal or external) for each gene paralog fasta file, and writes a *.tsv report
+  file.
+- Writes a  *.tsv file listing all specified 'internal' and 'external' outgroups.
 """
 
 import logging
@@ -72,8 +72,6 @@ def sanitise_gene_names(paralogs_folder,
 
     # Sanitise gene names in the external outgroup fasta file, if provided:
     if file_of_external_outgroups:
-        # outgroup_file_base, ext = os.path.splitext(os.path.basename(file_of_external_outgroups))
-        # sanitised_external_outgroups_filename = f'external_outgroups_sanitised{ext}'
         sanitised_external_outgroups_filename = f'external_outgroups_sanitised.fasta'
 
         fill = textwrap.fill(f'{"[INFO]:":10} Sanitising outgroup fasta file. Any dots/periods (".") in the gene name '
@@ -190,7 +188,6 @@ def check_outgroup_coverage(folder_of_paralog_files,
 
     # Iterate over all genes from paralogs dict, and check for internal and/or external outgroups. Write a tsv file
     # of results:
-
     outgroup_coverage_report = f'00_logs_and_reports/reports/outgroup_coverage_report.tsv'
     outgroup_taxon_list = f'00_logs_and_reports/reports/outgroup_taxon_list.tsv'
 
@@ -233,7 +230,8 @@ def check_outgroup_coverage(folder_of_paralog_files,
         logger.info(fill_3)
         logger.info(fill_4)
 
-        # Write a log file of outgroup and ingroup taxa; used in command `paragone align_selected_and_tree`:
+        # Write a log file of 'internal' and 'external' outgroup taxa; used in the command `paragone
+        # align_selected_and_tree`:
         internal_ingroups = set(taxon for gene_name, taxon_list in internal_outgroup_coverage_dict.items() for taxon
                                 in taxon_list if taxon not in ['No internal outgroup'])
 
@@ -251,44 +249,6 @@ def check_outgroup_coverage(folder_of_paralog_files,
                              width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
 
         logger.info(fill)
-
-
-def batch_input_files(gene_fasta_directory,
-                      batch_size=20,
-                      logger=None):
-    """
-    Takes a folder of fasta files, and splits them in to batch folders according to the number provided by
-    parameter batch_size.
-
-    :param str gene_fasta_directory: path to input fasta files with sanitised filenames
-    :param int batch_size: number of fasta files per batch; default is 20
-    :param logging.Logger logger: a logger object
-    :return:
-    """
-
-    output_directory_for_batch_folders = f'02_batch_sanitised_paralog_folders'
-    utils.createfolder(output_directory_for_batch_folders)
-
-    fill = textwrap.fill(f'{"[INFO]:":10} Sanitised paralog fasta files will be split in to batches of size'
-                         f' {batch_size}. Batch folders will be written to directory: '
-                         f'"{output_directory_for_batch_folders}".',
-                         width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
-    logger.info(fill)
-
-    fasta_file_list = glob.glob(f'{gene_fasta_directory}/*.fasta')
-
-    def chunks(lst, n):
-        """Yield successive n-sized chunks from lst."""
-        for i in range(0, len(lst), n):
-            yield lst[i:i + n]
-
-    batches = list(chunks(fasta_file_list, batch_size))
-    batch_num = 1
-    for batch in batches:
-        utils.createfolder(f'{output_directory_for_batch_folders}/batch_{batch_num}')
-        for fasta_file in batch:
-            shutil.copy(fasta_file, f'{output_directory_for_batch_folders}/batch_{batch_num}')
-        batch_num += 1
 
 
 ########################################################################################################################

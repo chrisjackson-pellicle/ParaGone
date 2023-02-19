@@ -273,17 +273,7 @@ def run_hmm_cleaner(input_folder,
     for alignment in glob.glob(f'{input_folder}/*.fasta'):
 
         alignment_basename = os.path.basename(alignment)
-
-        # command = f'/usr/bin/perl /usr/local/bin/HmmCleaner.pl {alignment}'
         command = f'perl $(which HmmCleaner.pl) {alignment}'
-
-        host = socket.gethostname()
-        if host == '192-168-1-102.tpgi.com.au' or \
-                host == 'RBGs-MacBook-Air.local' or \
-                host == '192-168-1-113.tpgi.com.au' or \
-                host == '192-168-1-101.tpgi.com.au':
-            command = f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/perl ' \
-                      f'/Users/chrisjackson/perl5/perlbrew/perls/perl-5.26.2/bin/HmmCleaner.pl {alignment}'
 
         logger.debug(f'Trying command {command}')
 
@@ -291,8 +281,6 @@ def run_hmm_cleaner(input_folder,
         hmm_score = re.sub('.fasta', '_hmm.score', str(alignment_basename))  # output by HmmCleaner.pl
         hmm_log = re.sub('.fasta', '_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
         hmm_file_output = re.sub('.fasta', '.hmm.fasta', str(alignment_basename))  # Desired filename
-        hmm_score_output = re.sub('.fasta', '.hmm.score', str(alignment_basename))
-        hmm_log_output = re.sub('.fasta', '.hmm.log', str(alignment_basename))
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
@@ -340,10 +328,6 @@ def run_hmm_cleaner(input_folder,
 
                 # Remove the original HmmCleaner output fasta file:
                 os.remove(f'{input_folder}/{hmm_file}')
-
-                # Move the HmmCleaner score and log files to new output directory
-                # shutil.move(f'{input_folder}/{hmm_score}', f'{output_folder}/{hmm_score_output}')
-                # shutil.move(f'{input_folder}/{hmm_log}', f'{output_folder}/{hmm_log_output}')
 
                 # Delete the HmmCleaner score and log files:
                 os.remove(f'{input_folder}/{hmm_score}')
