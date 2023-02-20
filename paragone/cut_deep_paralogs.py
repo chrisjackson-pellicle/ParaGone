@@ -149,7 +149,7 @@ def write_cut_report(collated_subtree_data,
                             f'Num subtrees discarded after cutting\t'
                             f'Number of subtrees discarded after cutting as < {min_tips} taxa\n')
 
-        for input_tree, dictionaries in collated_subtree_data.items():
+        for input_tree, dictionaries in sorted(collated_subtree_data.items()):
 
             subtrees_dict = dictionaries['subtrees']
             subtrees_discarded_during_cutting_dict = dictionaries['subtrees_discarded_during_cutting']

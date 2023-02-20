@@ -57,7 +57,7 @@ def write_mi_report(report_directory,
 
     all_tree_stats_for_report = []
 
-    for tree_name, dictionaries in tree_stats_collated_dict.items():
+    for tree_name, dictionaries in sorted(tree_stats_collated_dict.items()):
 
         tree_stats = [tree_name]
 

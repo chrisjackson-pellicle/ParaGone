@@ -110,7 +110,7 @@ def write_mask_report(collated_mask_report_dict,
 
     all_tree_stats_for_report = []
 
-    for tree_name, dictionaries in collated_mask_report_dict.items():
+    for tree_name, dictionaries in sorted(collated_mask_report_dict.items()):
 
         tree_stats = [tree_name]
 

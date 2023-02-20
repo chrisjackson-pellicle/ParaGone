@@ -753,11 +753,16 @@ def main(args,
                 if outgroup_type == 'EXTERNAL_OUTGROUP':
                     external_outgroup_taxa.append(taxon)
 
-        logger.info(f'{"[INFO]:":10} External outgroup taxa: {external_outgroup_taxa}')
-        logger.info(f'{"[INFO]:":10} Internal outgroup taxa: {internal_outgroup_taxa}')
+        fill = utils.fill_forward_slash(f'{"[INFO]:":10} External outgroup taxa: {external_outgroup_taxa}',
+                                        width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+        logger.info(f'{fill}')
+
+        fill = utils.fill_forward_slash(f'{"[INFO]:":10} Internal outgroup taxa: {internal_outgroup_taxa}',
+                                        width=90, subsequent_indent=' ' * 11, break_on_forward_slash=True)
+        logger.info(f'{fill}')
 
     except FileNotFoundError:
-        logger.error(f'{"[ERROR]:":10} No outgroup taxon list found at '
+        logger.error(f'{"[ERROR]:":10} No outgroup taxon list found at '    
                      f'00_logs_and_reports/reports/outgroup_taxon_list.tsv')
         sys.exit()
 
