@@ -86,6 +86,8 @@ def subsample_alignments(treefile_directory,
                 if tree_terminals[j].name == alignment[k].id:
                     subalignment.append(alignment[k])
 
+        assert len(tree_terminals) == len(subalignment)
+
         # Capture data:
         alignment_filtering_dict[tree_basename] = [len(tree_terminals), len(alignment), len(subalignment)]
 
@@ -101,8 +103,7 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
                                  algorithm_suffix,
                                  logger=None):
     """
-    Writes a *.tsv report detailing number of tips in QC'd tree, number of sequences in original QC'd alignment,
-    and number of sequences in filtered alignment.
+    Writes a *.tsv report detailing number of tips in QC'd tree, and number of sequences in original QC'd alignment.
 
     :param dict alignment_filtering_dict: dictionary of filtering stats for each tree/alignment
     :param str report_directory: path to directory for report files
@@ -123,11 +124,10 @@ def write_fasta_from_tree_report(alignment_filtering_dict,
     logger.info(f'{fill}')
 
     with open(report_filename, 'w') as report_handle:
-        report_handle.write(f'tree file\tNumber of tree tips\tNumber seqs in original alignment\tNumber seqs '
-                            f'filtered alignment\n')
+        report_handle.write(f'tree file\tNumber of tree tips\tNumber seqs in original alignment\n')
 
-        for tree_name, stats in alignment_filtering_dict.items():
-            report_handle.write(f'{tree_name}\t{stats[0]}\t{stats[1]}\t{stats[2]}\n')
+        for tree_name, stats in sorted(alignment_filtering_dict.items()):
+            report_handle.write(f'{tree_name}\t{stats[0]}\t{stats[1]}\n')
 
 
 def main(args,

@@ -93,8 +93,7 @@ def write_mask_report(collated_mask_report_dict,
     """
     Writes a *.tsv report detailing which tips were masked (removed) from each tree, and why.
 
-    :param dict collated_mask_report_dict: dictionary of default dicts for mono and (optional) paraphyletic cut-off
-    tips/data
+    :param dict collated_mask_report_dict: dictionary of default dicts for mono cut-off tips/data
     :param str report_directory: path to directory for report files
     :param int min_tips: the minimum number of tips in a tree after masking tips
     :param logging.Logger logger: a logger object
@@ -126,31 +125,9 @@ def write_mask_report(collated_mask_report_dict,
             tree_stats.append('N/A')
 
         try:
-            check = dictionaries['paraphyletic_tips']
-            assert len(check) != 0
-            tree_stats.append(len(check))  # This doesn't record actual unambiguous character counts
-            tips = [key for key in check.keys()]
-            tree_stats.append('; '.join(tips))
-        except KeyError:
-            tree_stats.append('0')
-            tree_stats.append('N/A')
-        except AssertionError:
-            tree_stats.append('0')
-            tree_stats.append('N/A')
-
-        try:
             check = dictionaries['less_than_min_taxa_after_masking_mono']
             assert len(check) != 0
             tree_stats.append('Y')
-        except AssertionError:
-            tree_stats.append('N')
-
-        try:
-            check = dictionaries['less_than_min_taxa_after_masking_para']
-            assert len(check) != 0
-            tree_stats.append('Y')
-        except KeyError:
-            tree_stats.append('N')
         except AssertionError:
             tree_stats.append('N')
 
@@ -160,10 +137,7 @@ def write_mask_report(collated_mask_report_dict,
         report_handle.write(f'Tree name\t'
                             f'Monophyletic tips removed ("masked")\t'
                             f'Removed tip names\t'
-                            f'Paraphyletic tips removed ("masked")\t'
-                            f'Removed tip names\t'
-                            f'Masked trees < {min_tips} taxa after masking mono\t'
-                            f'Masked trees < {min_tips} taxa after masking para'
+                            f'Masked trees < {min_tips} taxa after masking mono'
                             f'\n')
 
         for stats in all_tree_stats_for_report:

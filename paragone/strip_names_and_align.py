@@ -9,11 +9,10 @@ Strip sequence names, ready for concatenation, and aligns each fasta file using 
 import sys
 import os
 import re
-import subprocess
 import textwrap
 import glob
 from Bio import SeqIO, AlignIO
-from Bio.Align.Applications import MafftCommandline, ClustalOmegaCommandline, MuscleCommandline
+from Bio.Align.Applications import MafftCommandline, ClustalOmegaCommandline
 from concurrent.futures.process import ProcessPoolExecutor
 from multiprocessing import Manager
 from concurrent.futures import wait
@@ -29,7 +28,6 @@ def mafft_align(fasta_file,
                 lock,
                 num_files_to_process,
                 threads=1,
-                # use_muscle=False,
                 logger=None):
     """
     Use mafft to align a fasta file of sequences, using the algorithm (default is 'auto') and number of threads
@@ -42,7 +40,6 @@ def mafft_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
     """
@@ -59,14 +56,7 @@ def mafft_align(fasta_file,
         return os.path.basename(expected_alignment_file)
 
     except AssertionError:
-        # if use_muscle:
-        #     logger.info(f'{"[INFO]:":10} Alignment will be performed using MUSCLE rather than MAFFT!')
-        #     muscle_cline = MuscleCommandline(input=fasta_file, out=expected_alignment_file)
-        #     stdout, stderr = muscle_cline()
-        #
-        #     logger.debug(f'stdout is: {stdout}')
-        #     logger.debug(f'stderr is: {stderr}')
-        # else:
+
         if algorithm == 'auto':
             mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
         else:
@@ -98,7 +88,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                                 algorithm='auto',
                                 pool_threads=1,
                                 mafft_threads=2,
-                                # use_muscle=False,
                                 logger=None):
     """
     Generate alignments via function <mafft_align> using multiprocessing.
@@ -108,16 +97,12 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
     utils.createfolder(alignments_output_folder)
 
-    # if use_muscle:
-    #     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MUSCLE...')
-    # else:
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
     # Filter out any input files with fewer than four sequences:
@@ -143,7 +128,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      # use_muscle=use_muscle,
                                       logger=logger)
 
                           for fasta_file in target_genes]
@@ -276,9 +260,6 @@ def strip_names_for_concat(selected_alignment_directory,
     :return
     """
 
-    # input_folder_basename = os.path.basename(selected_alignment_directory)
-    # output_folder = f'23_{input_folder_basename}_stripped_names'
-
     utils.createfolder(output_folder)
 
     for alignment in glob.glob(f'{selected_alignment_directory}/*.fasta'):
@@ -290,8 +271,6 @@ def strip_names_for_concat(selected_alignment_directory,
             seq.description = ''
         with open(f'{output_folder}/{re.sub(".fasta", "_stripped.fasta", alignment_basename)}', 'w') as stripped:
             AlignIO.write(seqs, stripped, 'fasta')
-
-    # return output_folder
 
 
 def main(args,
@@ -350,7 +329,6 @@ def main(args,
             algorithm=args.mafft_algorithm,
             pool_threads=args.pool,
             mafft_threads=args.threads,
-            # use_muscle=args.use_muscle,
             logger=logger)
 
         # Perform optional trimming with TrimAl:
