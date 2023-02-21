@@ -4,6 +4,8 @@ Documentation in progress...
 
 Current version: 0.0.3rc (Februrary 2023)
 
+-----
+
 ### Purpose
 
 ParaGone is a Python package (with external dependencies) designed to identify ortholog groups from a set of paralog sequences. For phylogetic analyses, the correct inference of ortholog groups is critical in groups showing frequent gene or genome duplication, such as many families of land plants in which polyploidy is prevalent. Phylogenetic analysis of unrecognized paralogous gene copies can produce incorrect topologies, as the evolutionary history of gene families interferes with the evolutionary history of species lineages. 
