@@ -2,17 +2,18 @@
 
 Documentation in progress...
 
-Current version: 0.0.1rc (January 2023)
+Current version: 0.0.3rc (Februrary 2023)
+
+-----
 
 ### Purpose
 
-ToDo
+ParaGone is a Python package (with external dependencies) designed to identify ortholog groups from a set of paralog sequences from multiple taxa. This process has been decribed as both **paralogy resolution** and **orthology inference**. For phylogenetic analyses, the correct inference of ortholog groups is critical in groups showing frequent gene or genome duplication, such as many families of land plants in which polyploidy is prevalent. Phylogenetic analysis of unrecognized paralogous gene copies can produce incorrect topologies, as the evolutionary history of gene families interferes with the evolutionary history of species lineages. 
 
+ParaGone implements multiple different algorithms to infer ortholog groups. These algorithms are applied to gene trees that contain paralogs, and ortholog groups are inferred based on algorithm-specific parsing of the tree topologies. The pipeline uses algorithms described and implemented by **Yang and Smith 2014** [here][1]. These approaches have since been adapted for target capture datasets as described in the manuscript [here][2]. The original documentation and scripts can be found [here][3]. 
 
-#### Original Yang and Smith orthology inference manuscript, documentation and scripts
+ParaGone provides a single installable package that comprises many of the original Yang and Smith scripts, together with new pipeline steps and modules. The Yang and Smith scripts used have been updated, modified, and extended. In addition, the ParaGone pipeline includes many new report and logging files, allowing the user to trace the processing of input paralog sequences through the pipeline for all orthology inference algorithms employed. The pipeline can be run with a single command, or via six discreet steps. 
 
-
-ParaGone makes use of the **paralogy resolution** (also described as **orthology inference**) approaches described and implemented by Yang and Smith 2014 [here][1]. These approaches have since been adapted for target capture datasets as described in the manuscript [here][2]. The original documentation and scripts can be found [here][3].
 
 ---
 
