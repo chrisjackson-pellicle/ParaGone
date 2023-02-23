@@ -455,20 +455,16 @@ def add_full_pipeline_parser(subparsers):
                                       type=float,
                                       default=0.4,
                                       help='Absolute cutoff for removing tree tips. Default is: %(default)s')
-    parser_full_pipeline.add_argument('--mask_tips_remove_paraphyletic_tips',
-                                      action='store_true',
-                                      default=False,
-                                      help='Remove paraphyletic tree tips. Default is: %(default)s')
     parser_full_pipeline.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
                                       type=float,
                                       default=0.3,
                                       help='Internal branch length cutoff cutting tree. Default is: '
                                            '%(default)s')
-    parser_full_pipeline.add_argument('--cut_deep_paralogs_minimum_number_taxa',
-                                      type=int,
-                                      default=4,
-                                      help='Minimum number of taxa in tree for tree to be retained. Default '
-                                           'is: %(default)s')
+    # parser_full_pipeline.add_argument('--cut_deep_paralogs_minimum_number_taxa',
+    #                                   type=int,
+    #                                   default=4,
+    #                                   help='Minimum number of taxa in tree for tree to be retained. Default '
+    #                                        'is: %(default)s')
     parser_full_pipeline.add_argument('--mo',
                                       action='store_true',
                                       default=False,

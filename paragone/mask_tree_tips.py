@@ -37,7 +37,8 @@ def mask_monophyletic_tips(curroot,
     :param int min_tips: the minimum number of tips in a tree after masking tips
     :param str tree_name: file name of the tree being examined
     :param logging.Logger logger: a logger object
-    :return phylo3.Node/None,collections.defaultdict  curroot/None,pruned_monophyletic_tips_dict : pruned tree object of more than four tips,
+    :return phylo3.Node/None,collections.defaultdict  curroot/None,pruned_monophyletic_tips_dict : pruned tree object
+    of more than four tips,
     else None, default dictionary (list) of removed tips and associated data
     """
 
