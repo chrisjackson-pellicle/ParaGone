@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.4rc (February 2023)
+ParaGone: paralogy resolution pipeline version 0.0.5rc (February 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -19,6 +19,7 @@ import argparse
 import sys
 import cProfile
 import textwrap
+import platform
 
 # f-strings will produce a 'SyntaxError: invalid syntax' error if not supported by Python version:
 f'ParaGone requires Python 3.6 or higher.'
@@ -93,6 +94,15 @@ def check_and_align_main(args,
             logger.info(f'{" "* 10} {parameter}: {value}')
     logger.info('')
 
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
+
     # Check input files:
     check_inputs.main(
         args,
@@ -136,6 +146,15 @@ def alignment_to_tree_main(args,
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
 
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
+
     # Produce trees from alignments:
     alignment_to_tree.main(
         args,
@@ -173,6 +192,15 @@ def qc_trees_and_extract_fasta_main(args,
         if parameter not in ['func', 'from_cut_deep_paralogs']:
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
+
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
 
     # Trim tips from the input tree if above threshold lengths:
     trim_tree_tips.main(
@@ -231,6 +259,15 @@ def align_selected_and_tree_main(args,
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
 
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
+
     align_selected_and_tree.main(
         args,
         report_directory,
@@ -268,6 +305,15 @@ def prune_paralogs_main(args,
         if not parameter == 'func':
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
+
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
 
     # Check if at least one pruning algorithm was provided:
     if not args.mo and not args.mi and not args.rt:
@@ -327,6 +373,15 @@ def final_alignments_main(args,
         if not parameter == 'func':
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
+
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
 
     # Extract fasta for the Monophyletic Outgroups (MO) algorithm:
     if args.mo:
@@ -406,6 +461,15 @@ def full_pipeline_main(args,
         if not parameter == 'func':
             logger.info(f'{" " * 10} {parameter}: {value}')
     logger.info('')
+
+    # Log system details for debugging:
+    utils.get_platform_info(logger=logger)
+
+    if platform.system() == 'Darwin':
+        utils.check_macos_version(logger=logger)
+
+    # Log ulimit details for debugging:
+    utils.get_ulimit_info(logger=logger)
 
     # Check input files:
     check_inputs.main(
@@ -553,7 +617,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.4rc',
+                         version='%(prog)s 0.0.5rc',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
