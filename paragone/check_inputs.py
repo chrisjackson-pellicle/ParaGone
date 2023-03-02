@@ -197,7 +197,7 @@ def check_outgroup_coverage(folder_of_paralog_files,
         num_paralog_files_with_external_outgroup = 0
         num_paralog_files_with_both_internal_and_external_outgroup = 0
         tsv_report.write(f'Gene_name\tInternal_outgroup_taxa\tExternal_outgroup_taxa\n')
-        for gene, sequences in paralog_dict.items():
+        for gene, sequences in sorted(paralog_dict.items()):
             internal_outgroups = internal_outgroup_coverage_dict[gene]
             external_outgroups = external_outgroup_coverage_dict[gene]
             if len(internal_outgroups) != 0 and 'No internal outgroup' not in internal_outgroups:
