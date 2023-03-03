@@ -633,7 +633,7 @@ def main(args,
                     logger.info(f'{"[INFO]:":10} Outgroup non-monophyletic for tree {treefile_basename}')
 
                     tree_stats_collated[treefile_basename]['non_monophyletic_outgroups'] = \
-                        newick3.tostring(curroot)
+                        newick3.tostring(intree)
 
     # Write a *.tsv report file:
     write_mo_report(report_directory,
