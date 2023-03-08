@@ -389,7 +389,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     output_folder = f'{input_folder_basename}_clustal'
     utils.createfolder(output_folder)
 
-    logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
+    logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
     target_genes = [file for file in sorted(glob.glob(f'{fasta_to_align_folder}/*.fasta'))]
 
     with ProcessPoolExecutor(max_workers=pool_threads) as pool:
@@ -425,8 +425,8 @@ def clustalo_align(fasta_file,
                    threads=1,
                    logger=None):
     """
-    Use clustal omega to align a fasta file of sequences, using the number of threads provided. Trims alignment with
-    Trimal. Returns filename of the alignment produced.
+    Use Clustal Omega to align a fasta file of sequences, using the number of threads provided.
+    Returns filename of the alignment produced.
 
     :param str fasta_file: path to a fasta file
     :param str output_folder: name of output folder for alignments
