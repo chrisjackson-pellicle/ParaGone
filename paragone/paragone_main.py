@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.6rc (February 2023)
+ParaGone: paralogy resolution pipeline version 0.0.7rc (March 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -46,7 +46,7 @@ from paragone import paragone_subparsers
 from paragone import check_inputs
 from paragone import align_and_clean
 from paragone import alignment_to_tree
-from paragone import trim_tree_tips
+from paragone import trim_trees_treeshrink
 from paragone import mask_tree_tips
 from paragone import cut_deep_paralogs
 from paragone import fasta_from_tree
@@ -202,8 +202,8 @@ def qc_trees_and_extract_fasta_main(args,
     # Log ulimit details for debugging:
     utils.get_ulimit_info(logger=logger)
 
-    # Trim tips from the input tree if above threshold lengths:
-    trim_tree_tips.main(
+    # Trim tips from the input tree using TreeShrink:
+    trim_trees_treeshrink.main(
         args,
         report_directory,
         logger=logger)
@@ -495,8 +495,8 @@ def full_pipeline_main(args,
         args,
         logger=logger)
 
-    # Trim tips from the input tree if above threshold lengths:
-    trim_tree_tips.main(
+    # Trim tips from the input tree using TreeShrink:
+    trim_trees_treeshrink.main(
         args,
         report_directory,
         logger=logger)
@@ -617,7 +617,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.6rc',
+                         version='%(prog)s 0.0.7rc',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
