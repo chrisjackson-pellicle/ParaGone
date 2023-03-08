@@ -258,7 +258,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
-    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
@@ -291,7 +290,6 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                                       lock,
                                       num_files_to_process=len(target_genes),
                                       threads=mafft_threads,
-                                      # use_muscle=use_muscle,
                                       logger=logger)
                           for fasta_file in target_genes]
 
@@ -345,9 +343,9 @@ def mafft_align(fasta_file,
     except AssertionError:
 
         if algorithm == 'auto':
-            mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
+            mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
         else:
-            mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
+            mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
 
         logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
