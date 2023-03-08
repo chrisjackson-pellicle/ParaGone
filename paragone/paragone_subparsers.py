@@ -61,14 +61,21 @@ def add_check_and_align_parser(subparsers):
                                         default=1,
                                         help='Number of threads to use for each concurrent alignment. Default '
                                              'is: %(default)s')
-    parser_check_and_align.add_argument('--no_stitched_contigs',
+    parser_check_and_align.add_argument('--use_clustal',
                                         action='store_true',
                                         default=False,
-                                        help='If specified, realign mafft alignments with clustal omega. Default is: '
+                                        help='If specified, realign MAFFT alignments with clustal omega. Default is: '
                                              '%(default)s')
     parser_check_and_align.add_argument('--mafft_algorithm',
                                         default='auto',
-                                        help='Algorithm to use for mafft alignments. Default is: %(default)s')
+                                        help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
+    parser_check_and_align.add_argument('--mafft_adjustdirection',
+                                        action='store_true',
+                                        default=False,
+                                        help='Allow MAFFT to generate reverse complement sequences, as necessary, '
+                                             'and align them together with the remaining sequences. Note that '
+                                             'the first sequence is assumed to be in the correct orientation. Default '
+                                             'is: %(default)s')
     parser_check_and_align.add_argument('--no_trimming',
                                         action='store_true',
                                         default=False,
@@ -145,14 +152,11 @@ def add_qc_trees_and_extract_fasta(subparsers):
                                            help='The minimum number of tips in a tree after trimming/masking tips or '
                                                 'pruning deep paralogs; if below this value, no output tree is '
                                                 'written. Default is: %(default)s')
-    parser_qc_trees_and_fasta.add_argument('--trim_tips_relative_cutoff',
+    parser_qc_trees_and_fasta.add_argument('--treeshrink_q_value',
                                            type=float,
-                                           default=0.2,
-                                           help='Relative cutoff for removing tree tips. Default is: %(default)s')
-    parser_qc_trees_and_fasta.add_argument('--trim_tips_absolute_cutoff',
-                                           type=float,
-                                           default=0.4,
-                                           help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+                                           default=0.20,
+                                           help='q value for TreeShrink; the quantile(s) to set threshold. Default '
+                                                'is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
                                            type=str,
                                            help='directory containing original fasta alignment files')
@@ -214,11 +218,11 @@ def add_align_selected_and_tree_parser(subparsers):
     parser_align_selected_and_tree.add_argument('--no_stitched_contigs',
                                                 action='store_true',
                                                 default=False,
-                                                help='If specified, realign mafft alignments with clustal omega. '
+                                                help='If specified, realign MAFFT alignments with clustal omega. '
                                                      'Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
-                                                help='Algorithm to use for mafft alignments. Default is: %(default)s')
+                                                help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
     parser_align_selected_and_tree.add_argument('--no_trimming',
                                                 action='store_true',
                                                 default=False,
@@ -330,11 +334,11 @@ def add_final_alignments_parser(subparsers):
     parser_final_alignments.add_argument('--no_stitched_contigs',
                                          action='store_true',
                                          default=False,
-                                         help='If specified, realign mafft alignments with clustal omega. '
+                                         help='If specified, realign MAFFT alignments with clustal omega. '
                                               'Default is: %(default)s')
     parser_final_alignments.add_argument('--mafft_algorithm',
                                          default='auto',
-                                         help='Algorithm to use for mafft alignments. Default is: %(default)s')
+                                         help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
     parser_final_alignments.add_argument('--no_trimming',
                                          action='store_true',
                                          default=False,
@@ -409,18 +413,25 @@ def add_full_pipeline_parser(subparsers):
                                       default=1,
                                       help='Number of threads to use for each concurrent alignment. Default '
                                            'is: %(default)s')
-    parser_full_pipeline.add_argument('--no_stitched_contigs',
+    parser_full_pipeline.add_argument('--use_clustal',
                                       action='store_true',
                                       default=False,
-                                      help='If specified, realign mafft alignments with clustal omega. '
+                                      help='If specified, realign MAFFT alignments with clustal omega. '
                                            'Default is: %(default)s')
     parser_full_pipeline.add_argument('--mafft_algorithm',
                                       default='auto',
-                                      help='Algorithm to use for mafft alignments. Default is: %(default)s')
+                                      help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
     parser_full_pipeline.add_argument('--no_trimming',
                                       action='store_true',
                                       default=False,
                                       help='No not trim alignments using Trimal. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--mafft_adjustdirection',
+                                      action='store_true',
+                                      default=False,
+                                      help='Allow MAFFT to generate reverse complement sequences, as necessary, '
+                                           'and align them together with the remaining sequences. Note that '
+                                           'the first sequence is assumed to be in the correct orientation. Default '
+                                           'is: %(default)s')
     parser_full_pipeline.add_argument('--no_cleaning',
                                       action='store_true',
                                       default=False,
@@ -447,14 +458,11 @@ def add_full_pipeline_parser(subparsers):
                                       help='The minimum number of tips in a tree after trimming/masking tips or '
                                            'pruning deep paralogs; if below this value, no output tree is written. '
                                            'Default is: %(default)s')
-    parser_full_pipeline.add_argument('--trim_tips_relative_cutoff',
+    parser_full_pipeline.add_argument('--treeshrink_q_value',
                                       type=float,
-                                      default=0.2,
-                                      help='Relative cutoff for removing tree tips. Default is: %(default)s')
-    parser_full_pipeline.add_argument('--trim_tips_absolute_cutoff',
-                                      type=float,
-                                      default=0.4,
-                                      help='Absolute cutoff for removing tree tips. Default is: %(default)s')
+                                      default=0.20,
+                                      help='q value for TreeShrink; the quantile(s) to set threshold. Default '
+                                           'is: %(default)s')
     parser_full_pipeline.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
                                       type=float,
                                       default=0.3,
