@@ -30,14 +30,18 @@ from paragone import utils
 
 def mafft_align_multiprocessing(fasta_to_align_folder,
                                 algorithm='auto',
+                                adjust_direction=False,
                                 pool_threads=1,
                                 mafft_threads=2,
                                 logger=None):
     """
     Generate alignments via function <mafft_align> using multiprocessing.
 
+    https://mafft.cbrc.jp/alignment/software/adjustdirection.html
+
     :param str fasta_to_align_folder: path to folder containing input fasta files
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
+    :param bool adjust_direction: if True, enable the --adjustdirection flag in MAFFT
     :param int pool_threads: number of alignments to run concurrently
     :param int mafft_threads: number of threads to use for each concurrent alignment
     :param logging.Logger logger: a logger object
@@ -48,6 +52,15 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     utils.createfolder(output_folder)
 
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
+
+    if adjust_direction:
+        fill = textwrap.fill (f'{"[INFO]:":10} The MAFFT flag "--adjustdirection" is set. This allow MAFFT to '
+                              f'generate reverse complement sequences, as necessary, and align them together with the '
+                              f'remaining sequences. Note that MAFFT assumes that the first sequence in the input '
+                              f'*.fasta file is in the correct orientation!',
+                              width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+        logger.info(f'{fill}')
 
     # Filter out any input files with fewer than four sequences:
     target_genes = []
@@ -67,6 +80,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
         future_results = [pool.submit(mafft_align,
                                       fasta_file,
                                       algorithm,
+                                      adjust_direction,
                                       output_folder,
                                       counter,
                                       lock,
@@ -104,6 +118,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
 
 def mafft_align(fasta_file,
                 algorithm,
+                adjust_direction,
                 output_folder,
                 counter,
                 lock,
@@ -116,6 +131,7 @@ def mafft_align(fasta_file,
 
     :param str fasta_file: path to a fasta file
     :param str algorithm: algorithm to use for mafft alignment; default is 'auto'
+    :param bool adjust_direction: if True, enable the --adjustdirection flag in MAFFT
     :param str output_folder: name of output folder for alignments
     :param multiprocessing.managers.ValueProxy counter: shared counter for fasta files processed
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
@@ -139,9 +155,16 @@ def mafft_align(fasta_file,
     except AssertionError:
 
         if algorithm == 'auto':
-            mafft_cline = (MafftCommandline(auto='true', adjustdirection='true', thread=threads, input=fasta_file))
+            if adjust_direction:
+                mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file, adjustdirection=True))
+            else:
+                mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
+
         else:
-            mafft_cline = (MafftCommandline(algorithm, adjustdirection='true', thread=threads, input=fasta_file))
+            if adjust_direction:
+                mafft_cline = (MafftCommandline(algorithm,thread=threads, input=fasta_file, adjustdirection=True))
+            else:
+                mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
 
         logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
@@ -481,12 +504,13 @@ def main(args, logger=None):
                        file_list,
                        logger=logger)
 
-    if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
+    if not args.use_clustal:
         logger.debug(f'Running without no_stitched_contigs option - aligning with mafft only')
 
         alignments_output_folder = mafft_align_multiprocessing(
             gene_fasta_directory,
             algorithm=args.mafft_algorithm,
+            adjust_direction=args.mafft_adjustdirection,
             pool_threads=args.pool,
             mafft_threads=args.threads,
             logger=logger)
@@ -508,22 +532,31 @@ def main(args, logger=None):
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
-    elif args.no_stitched_contigs:  # Re-align with Clustal Omega.
-        logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
+    elif args.use_clustal:  # Re-align with Clustal Omega to better align short sequences
+        logger.debug(f'Running with use_clustal option - aligning/realigning with Clustal Omega')
 
-        # Align with MAFFT first to reverse complement any paralog sequences that need it:
-        alignments_output_folder = mafft_align_multiprocessing(
-            gene_fasta_directory,
-            algorithm=args.mafft_algorithm,
-            pool_threads=args.pool,
-            mafft_threads=args.threads,
-            logger=logger)
+        if args.mafft_adjustdirection:  # Align with MAFFT first to revcomp any paralog sequences that need it:
 
-        alignments_output_folder = clustalo_align_multiprocessing(
-            alignments_output_folder,
-            pool_threads=args.pool,
-            clustalo_threads=args.threads,
-            logger=logger)
+            alignments_output_folder = mafft_align_multiprocessing(
+                gene_fasta_directory,
+                algorithm=args.mafft_algorithm,
+                adjust_direction=args.mafft_adjustdirection,
+                pool_threads=args.pool,
+                mafft_threads=args.threads,
+                logger=logger)
+
+            alignments_output_folder = clustalo_align_multiprocessing(
+                alignments_output_folder,
+                pool_threads=args.pool,
+                clustalo_threads=args.threads,
+                logger=logger)
+
+        else:
+            alignments_output_folder = clustalo_align_multiprocessing(
+                gene_fasta_directory,
+                pool_threads=args.pool,
+                clustalo_threads=args.threads,
+                logger=logger)
 
         # Perform optional trimming with TrimAl:
         trimmed_output_folder = '03_alignments_trimmed'
