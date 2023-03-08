@@ -64,8 +64,10 @@ def add_check_and_align_parser(subparsers):
     parser_check_and_align.add_argument('--use_clustal',
                                         action='store_true',
                                         default=False,
-                                        help='If specified, realign MAFFT alignments with clustal omega. Default is: '
-                                             '%(default)s')
+                                        help='If specified, alignments are performed using Clustal Omega rather than '
+                                             'MAFFT. If the flag "--mafft_adjustdirection" is also provided, '
+                                             'alignments are performed with MAFFT first, followed by realignment '
+                                             'using with Clustal Omega. Default is: %(default)s')
     parser_check_and_align.add_argument('--mafft_algorithm',
                                         default='auto',
                                         help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
@@ -215,11 +217,14 @@ def add_align_selected_and_tree_parser(subparsers):
                                                 default=1,
                                                 help='Number of threads to use for each concurrent alignment/tree. '
                                                      'Default is: %(default)s')
-    parser_align_selected_and_tree.add_argument('--no_stitched_contigs',
+    parser_align_selected_and_tree.add_argument('--use_clustal',
                                                 action='store_true',
                                                 default=False,
-                                                help='If specified, realign MAFFT alignments with clustal omega. '
-                                                     'Default is: %(default)s')
+                                                help='If specified, alignments are performed using Clustal Omega '
+                                                     'rather than MAFFT. If the flag "--mafft_adjustdirection" is '
+                                                     'also provided, alignments are performed with MAFFT first, '
+                                                     'followed by realignment using with Clustal Omega. Default is: '
+                                                     '%(default)s')
     parser_align_selected_and_tree.add_argument('--mafft_algorithm',
                                                 default='auto',
                                                 help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
@@ -331,11 +336,13 @@ def add_final_alignments_parser(subparsers):
                                          default=1,
                                          help='Number of threads to use for each concurrent alignment. Default '
                                               'is: %(default)s')
-    parser_final_alignments.add_argument('--no_stitched_contigs',
+    parser_final_alignments.add_argument('--use_clustal',
                                          action='store_true',
                                          default=False,
-                                         help='If specified, realign MAFFT alignments with clustal omega. '
-                                              'Default is: %(default)s')
+                                         help='If specified, alignments are performed using Clustal Omega rather than '
+                                              'MAFFT. If the flag "--mafft_adjustdirection" is also provided, '
+                                              'alignments are performed with MAFFT first, followed by realignment '
+                                              'using with Clustal Omega. Default is: %(default)s')
     parser_final_alignments.add_argument('--mafft_algorithm',
                                          default='auto',
                                          help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
@@ -416,8 +423,10 @@ def add_full_pipeline_parser(subparsers):
     parser_full_pipeline.add_argument('--use_clustal',
                                       action='store_true',
                                       default=False,
-                                      help='If specified, realign MAFFT alignments with clustal omega. '
-                                           'Default is: %(default)s')
+                                      help='If specified, alignments are performed using Clustal Omega rather than '
+                                           'MAFFT. If the flag "--mafft_adjustdirection" is also provided, '
+                                           'alignments are performed with MAFFT first, followed by realignment '
+                                           'using with Clustal Omega. Default is: %(default)s')
     parser_full_pipeline.add_argument('--mafft_algorithm',
                                       default='auto',
                                       help='Algorithm to use for MAFFT alignments. Default is: %(default)s')
