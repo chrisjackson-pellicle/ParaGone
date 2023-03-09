@@ -15,9 +15,9 @@ import subprocess
 import shutil
 from ete3 import Tree
 
-from paragone import phylo3
 from paragone.tree_utils import *
 from paragone import utils
+
 
 def write_trim_report(collated_trim_report_dict,
                       report_directory,
