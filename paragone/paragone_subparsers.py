@@ -156,7 +156,7 @@ def add_qc_trees_and_extract_fasta(subparsers):
                                                 'written. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--treeshrink_q_value',
                                            type=float,
-                                           default=0.20,
+                                           default=0.05,
                                            help='q value for TreeShrink; the quantile(s) to set threshold. Default '
                                                 'is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
@@ -469,7 +469,7 @@ def add_full_pipeline_parser(subparsers):
                                            'Default is: %(default)s')
     parser_full_pipeline.add_argument('--treeshrink_q_value',
                                       type=float,
-                                      default=0.20,
+                                      default=0.05,
                                       help='q value for TreeShrink; the quantile(s) to set threshold. Default '
                                            'is: %(default)s')
     parser_full_pipeline.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
