@@ -521,5 +521,11 @@ def add_delete_intermediate_files_parser(subparsers):
     parser_delete_intermediate_files = subparsers.add_parser('delete_intermediate_files',
                                                              help='Deletes all intermediate files and folders after '
                                                                   'the full pipline has been run')
+    parser_delete_intermediate_files.add_argument('--run_profiler',
+                                                  action='store_true',
+                                                  dest='run_profiler',
+                                                  default=False,
+                                                  help='If supplied, run the subcommand using cProfile. Saves a *.csv '
+                                                       'file of results')
 
     return parser_delete_intermediate_files

@@ -600,6 +600,28 @@ def full_pipeline_main(args,
         utils.delete_intermediate_data(logger=logger)
 
 
+def delete_intermediate_files_main(args,
+                                   log_directory=None,
+                                   report_directory=None):
+    """
+    Delete all intermediate files and folders.
+
+    :param args: argparse namespace with subparser options for function full_pipeline_main()
+    :param str log_directory: path to directory for log files
+    :param str report_directory: path to directory for report files
+    :return: None: no return value specified; default is None
+    """
+
+    # Create a logger for delete_intermediate_files_main:
+    logger = utils.setup_logger(__name__, f'{log_directory}/delete_intermediate_files')
+
+    logger.info(f'{"[INFO]:":10} Deleting all intermediate files and folder...')
+
+    utils.delete_intermediate_data(logger=logger)
+
+    logger.info(f'{"[INFO]:":10} Done!')
+
+
 def parse_arguments():
     """
     Creates main parser and add subparsers. Parses command line arguments
@@ -627,6 +649,7 @@ def parse_arguments():
     parser_prune_paralogs = paragone_subparsers.add_prune_paralogs_parser(subparsers)
     parser_final_alignments = paragone_subparsers.add_final_alignments_parser(subparsers)
     parser_full_pipeline = paragone_subparsers.add_full_pipeline_parser(subparsers)
+    parser_delete_intermediate_files = paragone_subparsers.add_delete_intermediate_files_parser(subparsers)
 
     # Set functions for subparsers:
     parser_check_and_align.set_defaults(func=check_and_align_main)
@@ -636,6 +659,7 @@ def parse_arguments():
     parser_prune_paralogs.set_defaults(func=prune_paralogs_main)
     parser_final_alignments.set_defaults(func=final_alignments_main)
     parser_full_pipeline.set_defaults(func=full_pipeline_main)
+    parser_delete_intermediate_files.set_defaults(func=delete_intermediate_files_main)
 
     # Parse and return all arguments:
     arguments = parser.parse_args()
