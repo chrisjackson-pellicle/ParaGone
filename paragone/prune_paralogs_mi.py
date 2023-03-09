@@ -393,8 +393,8 @@ def main(args,
 
                 count = 1
 
-                pruned_orthologs_relative_cutoffs = {}
-                pruned_orthologs_absolute_cutoffs = {}
+                # pruned_orthologs_relative_cutoffs = {}
+                # pruned_orthologs_absolute_cutoffs = {}
                 pruned_orthologs_above_minimum_taxa = []
                 pruned_orthologs_below_minimum_taxa = []
 

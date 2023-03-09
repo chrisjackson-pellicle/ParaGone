@@ -538,8 +538,6 @@ def full_pipeline_main(args,
 
     # Run the Maximum Inclusion (MI) algorithm:
     if args.mi:
-        # args.relative_tip_cutoff = args.trim_tips_relative_cutoff
-        # args.absolute_tip_cutoff = args.trim_tips_absolute_cutoff
         prune_paralogs_mi.main(
             args,
             report_directory,
