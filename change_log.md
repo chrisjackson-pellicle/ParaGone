@@ -4,4 +4,4 @@
 - Fix bug in MO pruning step when outgroups not monophyletic.
 - Rename flag `--no_stitched_contigs` to `--use_clustal`. Only run MAFFT first if flag `--mafft_adjustdirection` is also supplied.
 - Remove the trim tips step from the MI pruning stage; seqs are extracted from the MI pruned trees, so long branches are not a concern at this point.
-- HmmCleaner now runs in parallel using multiprocessing
+- HmmCleaner now runs in parallel using multiprocessing.
