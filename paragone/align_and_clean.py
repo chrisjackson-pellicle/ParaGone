@@ -22,6 +22,7 @@ import shutil
 from Bio import SeqIO, AlignIO
 from Bio.Align.Applications import MafftCommandline, ClustalOmegaCommandline
 from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures import as_completed
 from multiprocessing import Manager
 from concurrent.futures import wait
 
@@ -312,7 +313,18 @@ def run_hmm_cleaner_multiprocessing(alignments_to_clean_folder,
 
         for future in future_results:
             future.add_done_callback(utils.done_callback)
-        wait(future_results, return_when="ALL_COMPLETED")
+
+        # Log any messages from the HmmCleaner processes to the main log:
+        for future in as_completed(future_results):
+            try:
+                cleaned_alignment, log_list = future.result()
+                if log_list:
+                    for item in log_list:
+                        logger.debug(item)
+            except:
+                raise
+
+        wait(future_results, return_when="ALL_COMPLETED")  # redundant, but...
 
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.hmm.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
@@ -359,16 +371,24 @@ def run_hmm_cleaner(alignment,
         with lock:
             counter.value += 1
 
-        return os.path.basename(expected_cleaned_alignment)
+        return os.path.basename(expected_cleaned_alignment), None  # log_list None as already processed
 
     except AssertionError:
+
+        log_list = []
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
+
+            # For log when a listener thread is implemented:
             logger.debug(f'hmmcleaner check_returncode() is: {result.check_returncode()}')
             logger.debug(f'hmmcleaner stdout is: {result.stdout}')
             logger.debug(f'hmmcleaner stderr is: {result.stderr}')
+
+            log_list.append(f'hmmcleaner check_returncode() is: {result.check_returncode()}')
+            log_list.append(f'hmmcleaner stdout is: {result.stdout}')
+            log_list.append(f'hmmcleaner stderr is: {result.stderr}')
 
             # Filter out empty sequences comprising only dashes, and post-HmmCleaner alignments where all sequences
             # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
@@ -389,17 +409,32 @@ def run_hmm_cleaner(alignment,
             # Log any sequences that were removed:
             if seqs_all_dashes:
                 seqs_all_dashes_joined = ', '.join(seqs_all_dashes)
+
+                # For log when a listener thread is implemented:
                 logger.debug(f'After running HmmCleaner.pl, the following sequences contained dashes, and have been '
                              f'removed: {seqs_all_dashes_joined}')
+
+                log_list.append(f'After running HmmCleaner.pl, the following sequences contained dashes, and have been '
+                                f'removed: {seqs_all_dashes_joined}')
             if empty_seqs:
                 empty_seqs_joined = ', '.join(empty_seqs)
+
+                # For log when a listener thread is implemented:
                 logger.debug(f'After running HmmCleaner.pl, the following sequences were empty, and have been '
                              f'removed: {empty_seqs_joined}')
 
+                log_list.append(f'After running HmmCleaner.pl, the following sequences were empty, and have been '
+                                f'removed: {empty_seqs_joined}')
+
             # Skip any filtered alignments with fewer than 4 sequences remaining:
             if len(good_seqs) < 4:
+
+                # For log when a listener thread is implemented:
                 logger.warning(f'{"[WARNING]:":10} After running HmmCleaner.pl, file {os.path.basename(hmm_file)} '
                                f'contains fewer than 4 good sequences, skipping gene!')
+
+                log_list.append(f'{"[WARNING]:":10} After running HmmCleaner.pl, file {os.path.basename(hmm_file)} '
+                                f'contains fewer than 4 good sequences, skipping gene!')
             else:
                 with open(f'{output_folder}/{hmm_file_output}', 'w') as filtered_hmm_fasta:
                     SeqIO.write(good_seqs, filtered_hmm_fasta, 'fasta')
@@ -413,15 +448,28 @@ def run_hmm_cleaner(alignment,
 
             with lock:
                 counter.value += 1
+                return os.path.basename(expected_cleaned_alignment), log_list
 
         except subprocess.CalledProcessError as exc:
+
+            log_list.append(f'hmmcleaner FAILED. Output is: {exc}')
+            log_list.append(f'hmmcleaner stdout is: {exc.stdout}')
+            log_list.append(f'hmmcleaner stderr is: {exc.stderr}')
+            log_list.append(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
+                            f' {command}')
+            log_list.append(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
+
+            # For log when a listener thread is implemented:
             logger.error(f'hmmcleaner FAILED. Output is: {exc}')
             logger.error(f'hmmcleaner stdout is: {exc.stdout}')
             logger.error(f'hmmcleaner stderr is: {exc.stderr}')
             logger.info(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
                         f' {command}')
             logger.info(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
+
             shutil.copy(alignment, f'{output_folder}/{hmm_file_output}')
+
+            return os.path.basename(expected_cleaned_alignment), log_list
 
         except:
             raise
