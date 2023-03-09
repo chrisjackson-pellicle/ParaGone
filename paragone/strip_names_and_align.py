@@ -320,8 +320,8 @@ def main(args,
     strip_names_for_concat(selected_alignment_directory,
                            stripped_names_folder)
 
-    if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
-        logger.debug(f'Running without no_stitched_contigs option - aligning with mafft only')
+    if not args.use_clustal:
+        logger.debug(f'Running without --use_clustal option - aligning with MAFFT only')
 
         alignments_output_folder = mafft_align_multiprocessing(
             stripped_names_folder,
@@ -339,8 +339,8 @@ def main(args,
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
-    elif args.no_stitched_contigs:  # Align with Clustal Omega.
-        logger.debug(f'Running with no_stitched_contigs option - aligning with clustal omega')
+    elif args.use_clustal:  # Align with Clustal Omega.
+        logger.debug(f'Running with --use_clustal option - aligning with Clustal Omega only')
 
         alignments_output_folder = clustalo_align_multiprocessing(
             stripped_names_folder,

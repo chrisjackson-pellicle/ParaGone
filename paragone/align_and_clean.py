@@ -268,16 +268,18 @@ def run_trimal(input_folder,
     return trimmed_alignments_directory
 
 
-def run_hmm_cleaner(input_folder,
-                    no_trimming=False,
-                    logger=None):
+def run_hmm_cleaner_multiprocessing(alignments_to_clean_folder,
+                                    no_trimming=False,
+                                    pool_threads=1,
+                                    logger=None):
     """
     Runs HmmCleaner.pl on each alignment within a provided folder.
 
-    :param str input_folder: path to a folder containing trimmed fasta alignment files
+    :param str alignments_to_clean_folder: path to folder containing input fasta alignment files for cleaning
     :param bool no_trimming: if True, sequences have NOT been trimmed with trimal
+    :param int pool_threads: number of alignments to clean concurrently
     :param logging.Logger logger: a logger object
-    :return:
+    :return str output_folder: name of the output folder containing cleaned alignments
     """
 
     if no_trimming:
@@ -293,17 +295,73 @@ def run_hmm_cleaner(input_folder,
                          width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
     logger.info(fill)
 
-    for alignment in glob.glob(f'{input_folder}/*.fasta'):
+    input_alignments = [file for file in sorted(glob.glob(f'{alignments_to_clean_folder}/*.fasta'))]
 
-        alignment_basename = os.path.basename(alignment)
-        command = f'perl $(which HmmCleaner.pl) {alignment}'
+    with ProcessPoolExecutor(max_workers=pool_threads) as pool:
+        manager = Manager()
+        lock = manager.Lock()
+        counter = manager.Value('i', 0)
+        future_results = [pool.submit(run_hmm_cleaner,
+                                      fasta_file,
+                                      output_folder,
+                                      counter,
+                                      lock,
+                                      num_files_to_process=len(input_alignments),
+                                      logger=logger)
+                          for fasta_file in input_alignments]
 
-        logger.debug(f'Trying command {command}')
+        for future in future_results:
+            future.add_done_callback(utils.done_callback)
+        wait(future_results, return_when="ALL_COMPLETED")
 
-        hmm_file = re.sub('.fasta', '_hmm.fasta', str(alignment_basename))  # output by HmmCleaner.pl
-        hmm_score = re.sub('.fasta', '_hmm.score', str(alignment_basename))  # output by HmmCleaner.pl
-        hmm_log = re.sub('.fasta', '_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
-        hmm_file_output = re.sub('.fasta', '.hmm.fasta', str(alignment_basename))  # Desired filename
+    alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.hmm.fasta') if
+                      utils.file_exists_and_not_empty(alignment)]
+
+    logger.debug(f'{len(alignment_list)} HmmCleaned alignments generated from {len(future_results)} alignment files...')
+
+    return output_folder
+
+
+def run_hmm_cleaner(alignment,
+                    output_folder,
+                    counter,
+                    lock,
+                    num_files_to_process,
+                    logger=None):
+    """
+    Runs HmmCleaner.pl on an alignment.
+
+    :param str alignment: name of a fasta alignment file
+    :param str output_folder: name of output folder for cleaned sequences
+    :param multiprocessing.managers.ValueProxy counter: shared counter for fasta files processed
+    :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
+    :param int num_files_to_process: total number of fasta files for alignment
+    :param logging.Logger logger: a logger object
+    :return:
+    """
+
+    alignment_parent_directory = os.path.dirname(alignment)
+    alignment_basename = os.path.basename(alignment)
+    command = f'perl $(which HmmCleaner.pl) {alignment}'
+
+    logger.debug(f'Trying command {command}')
+
+    # Set HmmCleaner output filenames, a desired output file name, and path to expected output fil:
+    hmm_file = re.sub('.fasta', '_hmm.fasta', str(alignment_basename))  # output by HmmCleaner.pl
+    hmm_score = re.sub('.fasta', '_hmm.score', str(alignment_basename))  # output by HmmCleaner.pl
+    hmm_log = re.sub('.fasta', '_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
+    hmm_file_output = re.sub('.fasta', '.hmm.fasta', str(alignment_basename))  # Desired filename
+    expected_cleaned_alignment = f'{output_folder}/{hmm_file_output}'
+
+    try:
+        assert utils.file_exists_and_not_empty(expected_cleaned_alignment)
+        logger.debug(f'Cleaned alignment exists for {alignment_basename}, skipping...')
+        with lock:
+            counter.value += 1
+
+        return os.path.basename(expected_cleaned_alignment)
+
+    except AssertionError:
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
@@ -314,12 +372,11 @@ def run_hmm_cleaner(input_folder,
 
             # Filter out empty sequences comprising only dashes, and post-HmmCleaner alignments where all sequences
             # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
-            with open(f'{input_folder}/{hmm_file}', 'r') as hmm_fasta_handle:
+            with open(f'{alignment_parent_directory}/{hmm_file}', 'r') as hmm_fasta_handle:
                 good_seqs = []
                 seqs_all_dashes = []
                 empty_seqs = []
                 seqs = SeqIO.parse(hmm_fasta_handle, 'fasta')
-
                 for seq in seqs:
                     characters = set(character for character in seq.seq)
                     if len(characters) == 0:
@@ -334,7 +391,6 @@ def run_hmm_cleaner(input_folder,
                 seqs_all_dashes_joined = ', '.join(seqs_all_dashes)
                 logger.debug(f'After running HmmCleaner.pl, the following sequences contained dashes, and have been '
                              f'removed: {seqs_all_dashes_joined}')
-
             if empty_seqs:
                 empty_seqs_joined = ', '.join(empty_seqs)
                 logger.debug(f'After running HmmCleaner.pl, the following sequences were empty, and have been '
@@ -344,31 +400,36 @@ def run_hmm_cleaner(input_folder,
             if len(good_seqs) < 4:
                 logger.warning(f'{"[WARNING]:":10} After running HmmCleaner.pl, file {os.path.basename(hmm_file)} '
                                f'contains fewer than 4 good sequences, skipping gene!')
-
             else:
                 with open(f'{output_folder}/{hmm_file_output}', 'w') as filtered_hmm_fasta:
                     SeqIO.write(good_seqs, filtered_hmm_fasta, 'fasta')
 
                 # Remove the original HmmCleaner output fasta file:
-                os.remove(f'{input_folder}/{hmm_file}')
+                os.remove(f'{alignment_parent_directory}/{hmm_file}')
 
                 # Delete the HmmCleaner score and log files:
-                os.remove(f'{input_folder}/{hmm_score}')
-                os.remove(f'{input_folder}/{hmm_log}')
+                os.remove(f'{alignment_parent_directory}/{hmm_score}')
+                os.remove(f'{alignment_parent_directory}/{hmm_log}')
+
+            with lock:
+                counter.value += 1
 
         except subprocess.CalledProcessError as exc:
             logger.error(f'hmmcleaner FAILED. Output is: {exc}')
             logger.error(f'hmmcleaner stdout is: {exc.stdout}')
             logger.error(f'hmmcleaner stderr is: {exc.stderr}')
-
             logger.info(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
                         f' {command}')
             logger.info(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
-
             shutil.copy(alignment, f'{output_folder}/{hmm_file_output}')
 
         except:
             raise
+
+    finally:
+        with lock:
+            sys.stderr.write(f'\r{"[INFO]:":10} Finished generating cleaned alignment for file {alignment_basename}, '
+                             f'{counter.value}/{num_files_to_process}')
 
 
 def clustalo_align_multiprocessing(fasta_to_align_folder,
@@ -526,9 +587,10 @@ def main(args, logger=None):
 
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
-            run_hmm_cleaner(alignments_output_folder,
-                            no_trimming=args.no_trimming,
-                            logger=logger)
+            run_hmm_cleaner_multiprocessing(alignments_output_folder,
+                                            no_trimming=args.no_trimming,
+                                            pool_threads=args.pool,
+                                            logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
@@ -569,11 +631,12 @@ def main(args, logger=None):
 
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
-            run_hmm_cleaner(alignments_output_folder,
-                            no_trimming=args.no_trimming,
-                            logger=logger)
+            run_hmm_cleaner_multiprocessing(alignments_output_folder,
+                                            no_trimming=args.no_trimming,
+                                            pool_threads=args.pool,
+                                            logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
-    logger.info(f'{"[INFO]:":10} Finished aligning and trimming/cleaning input files.')
+    logger.info(f'\n{"[INFO]:":10} Finished aligning and trimming/cleaning input files.')
 

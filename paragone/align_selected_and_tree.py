@@ -324,7 +324,6 @@ def mafft_align(fasta_file,
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
     :param int num_files_to_process: total number of fasta files for alignment
     :param int threads: number of threads to use for alignment program
-    # :param bool use_muscle: if True, use muscle instead of mafft for alignments
     :param logging.Logger logger: a logger object
     :return str expected_alignment_file/expected_alignment_file_trimmed: filename of output alignment
     """
@@ -779,8 +778,8 @@ def main(args,
                                                external_outgroup_taxa,
                                                logger=logger)
 
-    if not args.no_stitched_contigs:  # i.e. if it's a standard run with stitched contigs produced.
-        logger.debug(f'Running without no_stitched_contigs option - aligning with mafft or muscle only')
+    if not args.use_clustal:
+        logger.debug(f'Running without --use_clustal option - aligning with MAFFT only')
 
         alignments_output_folder = mafft_align_multiprocessing(
             outgroups_added_folder,
@@ -817,8 +816,8 @@ def main(args,
 
             utils.resolve_polytomies(trees_folder, logger=logger)
 
-    elif args.no_stitched_contigs:  # Re-align with Clustal Omega only - no need for MAFFT.
-        logger.debug(f'Running with no_stitched_contigs option - realigning with clustal omega')
+    elif args.use_clustal:  # Re-align with Clustal Omega only - no need for MAFFT.
+        logger.debug(f'Running with --use-clustal option - aligning with Clustal Omega only')
 
         alignments_output_folder = clustalo_align_multiprocessing(
             outgroups_added_folder,

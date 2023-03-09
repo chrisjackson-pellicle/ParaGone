@@ -102,50 +102,50 @@ def write_mi_report(report_directory,
         except KeyError:
             tree_stats.append('0')
 
-        try:
-            check = dictionaries['pruned_ortholog_nodes_above_trim_relative_cutoff']
-            tips_trimmed = False
-            for ortho, tip_dict in check.items():
-                if len(tip_dict) != 0:
-                    tips_trimmed = True
-                    break
-
-            if tips_trimmed:
-                print(check)
-                trees_with_pruned_ortholog_nodes_above_trim_relative_cutoff += 1
-                ortho_suffix = 1
-                ortho_stats = []
-                for ortho, tip_dict in check.items():
-                    ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
-                    ortho_suffix += 1
-                tree_stats.append(' '.join(ortho_stats).rstrip(';'))
-
-            else:
-                tree_stats.append('0')
-        except KeyError:
-            tree_stats.append('0')
-
-        try:
-            check = dictionaries['pruned_ortholog_nodes_above_trim_absolute_cutoff']
-            tips_trimmed = False
-            for ortho, tip_dict in check.items():
-                if len(tip_dict) != 0:
-                    tips_trimmed = True
-                    break
-
-            if tips_trimmed:
-                trees_with_pruned_ortholog_nodes_above_trim_absolute_cutoff += 1
-                ortho_suffix = 1
-                ortho_stats = []
-                for ortho, tip_dict in check.items():
-                    ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
-                    ortho_suffix += 1
-                tree_stats.append(' '.join(ortho_stats).rstrip(';'))
-
-            else:
-                tree_stats.append('0')
-        except KeyError:
-            tree_stats.append('0')
+        # try:
+        #     check = dictionaries['pruned_ortholog_nodes_above_trim_relative_cutoff']
+        #     tips_trimmed = False
+        #     for ortho, tip_dict in check.items():
+        #         if len(tip_dict) != 0:
+        #             tips_trimmed = True
+        #             break
+        #
+        #     if tips_trimmed:
+        #         print(check)
+        #         trees_with_pruned_ortholog_nodes_above_trim_relative_cutoff += 1
+        #         ortho_suffix = 1
+        #         ortho_stats = []
+        #         for ortho, tip_dict in check.items():
+        #             ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
+        #             ortho_suffix += 1
+        #         tree_stats.append(' '.join(ortho_stats).rstrip(';'))
+        #
+        #     else:
+        #         tree_stats.append('0')
+        # except KeyError:
+        #     tree_stats.append('0')
+        #
+        # try:
+        #     check = dictionaries['pruned_ortholog_nodes_above_trim_absolute_cutoff']
+        #     tips_trimmed = False
+        #     for ortho, tip_dict in check.items():
+        #         if len(tip_dict) != 0:
+        #             tips_trimmed = True
+        #             break
+        #
+        #     if tips_trimmed:
+        #         trees_with_pruned_ortholog_nodes_above_trim_absolute_cutoff += 1
+        #         ortho_suffix = 1
+        #         ortho_stats = []
+        #         for ortho, tip_dict in check.items():
+        #             ortho_stats.append(f'ortho_{str(ortho_suffix)}, {len(tip_dict)} tips;')
+        #             ortho_suffix += 1
+        #         tree_stats.append(' '.join(ortho_stats).rstrip(';'))
+        #
+        #     else:
+        #         tree_stats.append('0')
+        # except KeyError:
+        #     tree_stats.append('0')
 
         try:
             check = dictionaries['pruned_ortholog_above_min_taxa']
@@ -176,8 +176,8 @@ def write_mi_report(report_directory,
                             f'1-to-1 orthologs\t'
                             f'Ortholog clades < minimum ingroup taxa\t'
                             f'Ortholog clades > minimum ingroup taxa\t'
-                            f'Pruned orthologs with tips > relative cutoff\t'
-                            f'Pruned orthologs with tips > absolute cutoff\t'
+                            # f'Pruned orthologs with tips > relative cutoff\t'
+                            # f'Pruned orthologs with tips > absolute cutoff\t'
                             f'Pruned orthologs > than minimum taxa\t'
                             f'Pruned orthologs < than minimum taxa'
                             f'\n')
@@ -402,17 +402,17 @@ def main(args,
                     if tree.nchildren == 2:
                         node, tree = tree_utils.remove_kink(tree, tree)
 
-                    # Trim tips:
-                    tree, nodes_above_absolute_cutoff, nodes_above_relative_cutoff = \
-                        trim_tree_tips.trim(tree,
-                                            args.relative_tip_cutoff,
-                                            args.absolute_tip_cutoff,
-                                            args.minimum_taxa,
-                                            tree_name=treefile_basename,
-                                            logger=logger)
-
-                    pruned_orthologs_relative_cutoffs[tree] = nodes_above_relative_cutoff
-                    pruned_orthologs_absolute_cutoffs[tree] = nodes_above_absolute_cutoff
+                    # # Trim tips:
+                    # tree, nodes_above_absolute_cutoff, nodes_above_relative_cutoff = \
+                    #     trim_tree_tips.trim(tree,
+                    #                         args.relative_tip_cutoff,
+                    #                         args.absolute_tip_cutoff,
+                    #                         args.minimum_taxa,
+                    #                         tree_name=treefile_basename,
+                    #                         logger=logger)
+                    #
+                    # pruned_orthologs_relative_cutoffs[tree] = nodes_above_relative_cutoff
+                    # pruned_orthologs_absolute_cutoffs[tree] = nodes_above_absolute_cutoff
 
                     # Write pruned ortholog trees if above minimum taxa:
                     if tree:
@@ -436,11 +436,11 @@ def main(args,
                             pruned_orthologs_below_minimum_taxa.append(tree)
 
                 # Recover stats in dictionary for report:
-                tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_relative_cutoff'] = \
-                    pruned_orthologs_relative_cutoffs
-
-                tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_absolute_cutoff'] = \
-                    pruned_orthologs_absolute_cutoffs
+                # tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_relative_cutoff'] = \
+                #     pruned_orthologs_relative_cutoffs
+                #
+                # tree_stats_collated[treefile_basename]['pruned_ortholog_nodes_above_trim_absolute_cutoff'] = \
+                #     pruned_orthologs_absolute_cutoffs
 
                 tree_stats_collated[treefile_basename]['pruned_ortholog_above_min_taxa'] = \
                     pruned_orthologs_above_minimum_taxa
