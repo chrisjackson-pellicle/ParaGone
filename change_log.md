@@ -1,3 +1,8 @@
+**0.0.8** *16th March, 2023*
+
+- Fix bug in `prune_paralogs_rt.py` where ingroups with fewer than the minimum required taxa caused an endless loop.
+
+
 **0.0.7** *9th March, 2023*
 
 - Make the MAFFT option `--adjustdirection` (https://mafft.cbrc.jp/alignment/software/adjustdirection.html) optional for the first alignment step of the pipeline; default is not to use this flag.
