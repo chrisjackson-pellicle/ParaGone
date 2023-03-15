@@ -21,7 +21,6 @@ import shutil
 from paragone import newick3
 from paragone import tree_utils
 from paragone import utils
-# from paragone import trim_tree_tips
 
 
 def write_mi_report(report_directory,

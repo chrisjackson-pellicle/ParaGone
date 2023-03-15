@@ -321,6 +321,8 @@ def extract_rooted_ingroup_clades(root,
             logger.debug(f'Clade {newick3.tostring(max_node)} from tree {treefile_basename} contains fewer than the '
                          f'min_ingroup_taxa value of {min_ingroup_taxa}. Skipping clade.')
             inclades_with_fewer_than_min_ingroup_taxa_list.append(newick3.tostring(max_node))
+
+            break
         else:
             break
 

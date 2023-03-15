@@ -188,7 +188,8 @@ def check_dependencies(logger=None):
                    'iqtree',
                    'FastTreeMP',
                    'HmmCleaner.pl',
-                   'trimal']
+                   'trimal',
+                   'run_treeshrink.py']
 
     logger.info(f'{"[INFO]:":10} Checking for external dependencies:\n')
 
