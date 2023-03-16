@@ -65,8 +65,9 @@ def mafft_align(fasta_file,
         logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 
         stdout, stderr = mafft_cline()
-        logger.debug(f'stdout is: {stdout}')
-        logger.debug(f'stderr is: {stderr}')
+
+        # logger.debug(f'stdout is: {stdout}')
+        # logger.debug(f'stderr is: {stderr}')
 
         with open(expected_alignment_file, 'w') as alignment_file:
             alignment_file.write(stdout)
@@ -184,8 +185,8 @@ def clustalo_align(fasta_file,
 
         stdout, stderr = clustalomega_cline()
 
-        logger.debug(f'stdout is: {stdout}')
-        logger.debug(f'stderr is: {stderr}')
+        # logger.debug(f'stdout is: {stdout}')
+        # logger.debug(f'stderr is: {stderr}')
 
         with lock:
             counter.value += 1

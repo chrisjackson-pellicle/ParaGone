@@ -615,7 +615,7 @@ def delete_intermediate_files_main(args,
     # Create a logger for delete_intermediate_files_main:
     logger = utils.setup_logger(__name__, f'{log_directory}/delete_intermediate_files')
 
-    logger.info(f'{"[INFO]:":10} Deleting all intermediate files and folder...')
+    logger.info(f'{"[INFO]:":10} Deleting all intermediate files and folders...')
 
     utils.delete_intermediate_data(logger=logger)
 

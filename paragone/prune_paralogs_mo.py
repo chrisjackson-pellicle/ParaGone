@@ -148,6 +148,7 @@ def prune_paralogs_from_rerooted_homotree(root,
 
     # Identify the ingroup clades and check for names overlap:
     if out0 == 0 and out1 == 0:  # 0 and 1 are the ingroup clades
+        print('Mia1')
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set1 = set(tree_utils.get_front_names(node1))
         if len(name_set0.intersection(name_set1)) > 0:  # i.e. clades contain overlapping taxon names
@@ -162,6 +163,7 @@ def prune_paralogs_from_rerooted_homotree(root,
                 node0.prune()
 
     elif out1 == 0 and out2 == 0:  # 1 and 2 are the ingroup clades
+        print('Mia2')
         name_set1 = set(tree_utils.get_front_names(node1))
         name_set2 = set(tree_utils.get_front_names(node2))
 
@@ -177,21 +179,27 @@ def prune_paralogs_from_rerooted_homotree(root,
                 node1.prune()
 
     elif out0 == 0 and out2 == 0:  # 0 and 2 are the ingroup clades
+        print('Mia3')
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set2 = set(tree_utils.get_front_names(node2))
         if len(name_set0.intersection(name_set2)) > 0:  # i.e. clades contain overlapping taxon names
+            print(name_set0.intersection(name_set2))
             # cut the side with fewer taxa:
             if len(name_set0) > len(name_set2):
                 root.remove_child(node2)
                 logger.debug(f'Cutting node2: {newick3.tostring(node2)}')
+                print(f'Cutting node2: {newick3.tostring(node2)}')
                 node2.prune()
             else:
                 root.remove_child(node0)
                 logger.debug(f'Cutting node0: {newick3.tostring(node0)}')
+                print(f'Cutting node0: {newick3.tostring(node0)}')
                 node0.prune()
 
     else:  # CJJ added
         raise ValueError('More than one clade with outgroup sequences!')
+
+    print(f'Length of tree after first prune: {len(root.leaves())}')
 
     # If there are still taxon duplications (putative paralogs) in the ingroup clade, keep pruning:
     while len(tree_utils.get_front_names(root)) > len(set(tree_utils.get_front_names(root))):
@@ -200,23 +208,40 @@ def prune_paralogs_from_rerooted_homotree(root,
             if node.istip:
                 continue
             elif node == root:
+                print(f'node == root')
                 continue
+
+            print(f'node is {newick3.tostring(node)}')
+            print(f'node len is {len(node.leaves())}')
 
             child0, child1 = node.children[0], node.children[1]
             name_set0 = set(tree_utils.get_front_names(child0))
             name_set1 = set(tree_utils.get_front_names(child1))
+            name_list0 = tree_utils.get_front_names(child0)  # CJJ
+            name_list1 = tree_utils.get_front_names(child1)  # CJJ
+
+            print(f'name_list0 is: {name_list0}')
+            print(f'name_list1 is: {name_list1}')
+            print(f'name_list0 len is: {len(name_list0)}')
+            print(f'name_list1 len is: {len(name_list1)}')
+
             if len(name_set0.intersection(name_set1)) > 0:
+                print(f'INTERSECTION is {name_set0.intersection(name_set1)}')
                 # cut the side with fewer taxa:
                 if len(name_set0) > len(name_set1):
                     node.remove_child(child1)
                     logger.debug(f'Cutting child1: {newick3.tostring(child1)}')
+                    print(f'Cutting child1: {newick3.tostring(child1)}')
                     child1.prune()
                 else:
                     node.remove_child(child0)
                     logger.debug(f'Cutting child0: {newick3.tostring(child0)}')
+                    print(f'Cutting child0: {newick3.tostring(child0)}')
                     child0.prune()
                 node, root = tree_utils.remove_kink(node, root)  # no re-rooting here
                 break
+            else:
+                print(f'NO INTERSECTION')
 
     return root
 
@@ -244,6 +269,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
                        len(tree_utils.get_front_outgroup_names(node2, outgroups))
 
     logger.debug(f'Outgroup taxon count in node0, node1, node2 is: {out0}, {out1}, {out2}')
+    # print(f'Outgroup taxon count in node0, node1, node2 is: {out0}, {out1}, {out2}')
 
     # Identify the ingroup clades:
     ingroup_clade_0 = None
@@ -251,16 +277,24 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
 
     if out0 == 0 and out1 == 0:  # 0 and 1 are the ingroup clades
         outgroup_clade = node2
+        print(f'Lucy1 {newick3.tostring(outgroup_clade)}')
         ingroup_clade_0 = node0
         ingroup_clade_1 = node1
     elif out1 == 0 and out2 == 0:  # 1 and 2 are the ingroup clades
         outgroup_clade = node0
+        print(f'Lucy2 {newick3.tostring(outgroup_clade)}')
         ingroup_clade_0 = node1
         ingroup_clade_1 = node2
     elif out0 == 0 and out2 == 0:  # 0 and 2 are the ingroup clades
         outgroup_clade = node1
+        print(f'Lucy3 {newick3.tostring(outgroup_clade)}')
         ingroup_clade_0 = node0
         ingroup_clade_1 = node2
+
+        print(f'Lucy3 {len(ingroup_clade_0.leaves())}')
+        print(f'Lucy3 {len(ingroup_clade_1.leaves())}')
+
+
 
     candidate_nodes_dict = dict()
     node_count = 0
