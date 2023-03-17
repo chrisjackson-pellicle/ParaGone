@@ -1,5 +1,7 @@
 # import sets
 
+import paragone
+
 PREORDER = 0;
 POSTORDER = 1
 BRANCHLENGTH = 0;
@@ -100,21 +102,24 @@ class Node:
             p.remove_child(self)
         return p
 
+
     def graft(self, node):
-        # print('BEAGLE GRAFTING')
-        # print(f'nide is: {paragone.newick3.tostring(node)}')
+        print('BEAGLE GRAFTING')
+        print(f'node GRAFTING is: \n{paragone.newick3.tostring(node)}')
         parent = self.parent
-        # print(f'parent: {paragone.newick3.tostring(parent)}')
+        # print(f'parent: {parent}')
+        print(f'parent GRAFTING is: \n{paragone.newick3.tostring(parent)}')
         parent.remove_child(self)
-        # print(f'parent: {paragone.newick3.tostring(parent)}')
+        print(f'parent after remove_child: \n{paragone.newick3.tostring(parent)}')
         n = Node()
-        # print(f'n: {paragone.newick3.tostring(n)}')
+        print(f'n GRAFTING: \n{paragone.newick3.tostring(n)}')
         n.add_child(self)
-        # print(f'n: {paragone.newick3.tostring(n)}')
+        print(f'n GRAFTING after add_child(self): \n{paragone.newick3.tostring(n)}')
         n.add_child(node)
-        # print(f'n: {paragone.newick3.tostring(n)}')
+        print(f'n GRAFTING after add_child(node): \n{paragone.newick3.tostring(n)}')
+        print(f'GRAFTING parent: \n{paragone.newick3.tostring(parent)}')
         parent.add_child(n)
-        # print(f'parent final: {paragone.newick3.tostring(parent)}')
+        print(f'GRAFTING parent final: \n{paragone.newick3.tostring(parent)}')
 
     def leaf_distances(self, store=None, measure=BRANCHLENGTH):
         """

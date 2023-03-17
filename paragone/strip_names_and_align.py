@@ -58,9 +58,9 @@ def mafft_align(fasta_file,
     except AssertionError:
 
         if algorithm == 'auto':
-            mafft_cline = (MafftCommandline(auto='true', adjustdirection='false', thread=threads, input=fasta_file))
+            mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
         else:
-            mafft_cline = (MafftCommandline(algorithm, adjustdirection='false', thread=threads, input=fasta_file))
+            mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
 
         logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
 

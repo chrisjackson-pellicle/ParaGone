@@ -275,6 +275,12 @@ def add_prune_paralogs_parser(subparsers):
                                        action='store_true',
                                        default=False,
                                        help='Run the RooTed ingroups (RT) algorithm')
+    parser_prune_paralogs.add_argument('--original_mo_algorithm',
+                                       action='store_true',
+                                       default=False,
+                                       help='If pruning trees using the MO algorithm, use the original Yang and Smith '
+                                            '2014 implementation. Otherwise, use the updated ParaGone implementation. '
+                                            'Default is: %(default)s')
     parser_prune_paralogs.add_argument('--minimum_taxa',
                                        type=int,
                                        default=4,
@@ -494,6 +500,12 @@ def add_full_pipeline_parser(subparsers):
                                       action='store_true',
                                       default=False,
                                       help='Run the RooTed ingroups (RT) algorithm')
+    parser_full_pipeline.add_argument('--original_mo_algorithm',
+                                      action='store_true',
+                                      default=False,
+                                      help='If pruning trees using the MO algorithm, use the original Yang and Smith '
+                                           '2014 implementation. Otherwise, use the updated ParaGone implementation. '
+                                           'Default is: %(default)s')
     parser_full_pipeline.add_argument('--minimum_taxa',
                                       type=int,
                                       default=4,
