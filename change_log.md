@@ -2,6 +2,7 @@
 
 - Fix bug in `prune_paralogs_rt.py` where ingroups with fewer than the minimum required taxa caused an endless loop.
 - Add optional flag `--original_mo_algorithm` to subcommand `prune_paralogs` and `full_pipeline`; if used, apply the original Yang and Smith MO algorithm. Default is to apply a re-implementation of the MO algorithm.
+- Prevent full MAFFT alignments from being written to log files on Linux.
 
 
 **0.0.7** *9th March, 2023*
