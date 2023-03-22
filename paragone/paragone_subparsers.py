@@ -290,20 +290,17 @@ def add_prune_paralogs_parser(subparsers):
                                        default=False,
                                        help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
                                             'default)s')
-    # parser_prune_paralogs.add_argument('--relative_tip_cutoff',
-    #                                    type=float,
-    #                                    default=0.2,
-    #                                    help='Relative tip cut-off threshold. Default is: %(default)s')
-    # parser_prune_paralogs.add_argument('--absolute_tip_cutoff',
-    #                                    type=float,
-    #                                    default=0.4,
-    #                                    help='Absolute tip cut-off threshold. Default is: %(default)s')
     parser_prune_paralogs.add_argument('--run_profiler',
                                        action='store_true',
                                        dest='run_profiler',
                                        default=False,
                                        help='If supplied, run the subcommand using cProfile. Saves a *.csv file of '
                                             'results')
+    parser_prune_paralogs.add_argument('--debug',
+                                       action='store_true',
+                                       default=False,
+                                       help='If supplied, log additional information when running the subcommand. '
+                                            'This can make the log files much larger.')
 
     return parser_prune_paralogs
 

@@ -1,3 +1,8 @@
+**0.0.9** *23rd March, 2023*
+
+- Add the flag `--debug` to the `prune_paralogs` subcommand. When supplied, additional details will be written to the log file. This can increase the size of the log file substantially.
+- Fix bug in `prune_paralogs_mo.py` where the default implementation of the MO algorithm incorrectly parsed trees rooted with a single outgroup taxon.
+
 **0.0.8** *17th March, 2023*
 
 - Fix bug in `prune_paralogs_rt.py` where ingroups with fewer than the minimum required taxa caused an endless loop.
