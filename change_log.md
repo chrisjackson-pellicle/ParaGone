@@ -1,3 +1,8 @@
+**0.0.10** *31st March, 2023*
+
+- Fix bug in `prune_paralogs_mo.py`: update outgroup trimming regex in new MO implementation to allow for optional boostrap support values, and/or tree lengths in scientific notation (e.g. `2.079e-06`)    
+
+
 **0.0.9** *23rd March, 2023*
 
 - Add the flag `--debug` to the `prune_paralogs` subcommand. When supplied, additional details will be written to the log file. This can increase the size of the log file substantially.

@@ -322,7 +322,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
                 continue
 
             if node.istip:
-                assert node.label in outgroups
+                assert node.label.split('.')[0] in outgroups
 
             if not node.istip:  # i.e. it's an internal branch
                 children_taxon_names = [leaf.label for leaf in node.leaves()]
@@ -336,11 +336,16 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
                     outgroup_clade = root  # The outgroup clade is whatever is remaining
 
                     # Remove closing bracket and branch length from outgroup string:
-                    bracket_and_branch_length_regex = re.compile('\):[0-9]+[.][0-9]+$')
+                    # bracket_and_branch_length_regex = re.compile('\):[0-9]+[.][0-9]+$')
+                    # bracket_and_branch_length_regex = re.compile('\)([0-9]+)?:[0-9]+[.][0-9]+$')
+                    bracket_and_branch_length_regex = re.compile('\)([0-9]+)?:[0-9]+[.][0-9]+(e-[0-9]+)?$')
                     outgroup_for_grafting = \
                         re.sub(bracket_and_branch_length_regex, '', newick3.tostring(outgroup_clade))
 
                     break
+
+        # print(f'outgroup_clade:\n{newick3.tostring(outgroup_clade)}')
+        # print(f'outgroup_for_grafting:\n{outgroup_for_grafting}')
 
     elif len(outgroup_tips) == 1:  # i.e. there is a single outgroup taxon
 
