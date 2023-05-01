@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.10rc (March 2023)
+ParaGone: paralogy resolution pipeline version 0.0.11rc (May 2023)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 
@@ -50,6 +50,7 @@ from paragone import trim_trees_treeshrink
 from paragone import mask_tree_tips
 from paragone import cut_deep_paralogs
 from paragone import fasta_from_tree
+from paragone import paralogy_report
 from paragone import align_selected_and_tree
 from paragone import prune_paralogs_mo
 from paragone import prune_paralogs_rt
@@ -222,6 +223,12 @@ def qc_trees_and_extract_fasta_main(args,
 
     # Extract fasta sequences corresponding to the QC'd trees:
     fasta_from_tree.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Write reports on putative paralogy in the QC'd trees:
+    paralogy_report.main(
         args,
         report_directory,
         logger=logger)
@@ -637,7 +644,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.10rc',
+                         version='%(prog)s 0.0.11rc',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:
