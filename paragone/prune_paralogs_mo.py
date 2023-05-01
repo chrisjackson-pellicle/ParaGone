@@ -565,13 +565,13 @@ def main(args,
 
     logger.info('')
 
-    if args.original_mo_algorithm:
+    if args.new_mo_algorithm:
 
-        logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH ORIGINAL MO ALGORITHM <======\n')
+        logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH NEW PARAGONE MO ALGORITHM <======\n')
 
     else:
 
-        logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH MO ALGORITHM <======\n')
+        logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH ORIGINAL MO ALGORITHM <======\n')
 
     # Checking input directories and files:
     treefile_directory = '13_pre_paralog_resolution_trees'
@@ -725,19 +725,20 @@ def main(args,
 
                     logger.info(f'{fill}')
 
-                    if args.original_mo_algorithm:
-
-                        ortho = prune_paralogs_from_rerooted_homotree(curroot,
-                                                                      outgroups,
-                                                                      debug=args.debug,
-                                                                      logger=logger)
-                    else:
+                    if args.new_mo_algorithm:
 
                         ortho = prune_paralogs_from_rerooted_homotree_cjj(curroot,
                                                                           outgroups,
                                                                           tree_name=tree_name,
                                                                           debug=args.debug,
                                                                           logger=logger)
+
+                    else:
+
+                        ortho = prune_paralogs_from_rerooted_homotree(curroot,
+                                                                      outgroups,
+                                                                      debug=args.debug,
+                                                                      logger=logger)
 
                     # Filter out pruned trees that have fewer ingroup taxa than the minimum_taxa value:
                     ingroup_names_mo = tree_utils.get_front_ingroup_names(ortho, ingroups)
