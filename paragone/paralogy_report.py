@@ -74,8 +74,8 @@ def write_putative_paralogy_reports(treefile_directory,
 
     # Per-locus report:
     with open(f'{locus_report_outfile}', 'w') as locus_report_handle:
-        locus_report_handle.write(f'locus\tnum_taxa_total\tnum_taxa_duplicated\tduplicated_taxa_names\n')
-        for locus, stats_tuple in locus2stats.items():
+        locus_report_handle.write(f'locus\tnum_taxa_total\tnum_taxa_>1_tip\t>1_tip_taxa_names\n')
+        for locus, stats_tuple in sorted(locus2stats.items()):
             if len(stats_tuple[1]) != 0:
                 duplicated_taxa = '; '.join(sorted(stats_tuple[1]))
             else:
@@ -85,7 +85,7 @@ def write_putative_paralogy_reports(treefile_directory,
 
     # Per taxon report:
     with open(f'{taxon_report_outfile}', 'w') as taxon_report_handle:
-        taxon_report_handle.write(f'taxon\tloci_where_duplicated\n')
+        taxon_report_handle.write(f'taxon\tloci_where_>1_tip\n')
         for taxon in sorted(list(all_taxa)):
             loci_list = taxon2stats[taxon]
             if len(loci_list) != 0:

@@ -1,6 +1,7 @@
 **0.0.11** *1st May, 2023*
 
 - Following QC but before paralog pruning, trees are now parsed to produce two additional reports in *.tsv format: `per_locus_paralogy_report_post_tree_qc.tsv` and `per_taxon_paralogy_report_post_tree_qc.tsv`. 
+- Change optional flag `--original_mo_algorithm` to `--new_mo_algorithm` for subcommand `prune_paralogs` and `full_pipeline`; if used, apply a re-implementation of the MO algorithm rather than the original Yang and Smith MO algorithm. Default is to apply the original Yang and Smith MO algorithm.
 
 **0.0.10** *31st March, 2023*
 

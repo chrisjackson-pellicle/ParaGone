@@ -196,7 +196,7 @@ def check_dependencies(logger=None):
     all_executable_found = True
     for executable in executables:
         executable_loc = shutil.which(executable)
-        if executable:
+        if executable_loc:
             logger.info(f'{executable:20} found at {executable_loc}')
         else:
             logger.info(f'{executable:20} not found in your $PATH!')
