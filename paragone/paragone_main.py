@@ -227,12 +227,6 @@ def qc_trees_and_extract_fasta_main(args,
         report_directory,
         logger=logger)
 
-    # Write reports on putative paralogy in the QC'd trees:
-    paralogy_report.main(
-        args,
-        report_directory,
-        logger=logger)
-
 
 def align_selected_and_tree_main(args,
                                  log_directory=None,
@@ -276,6 +270,12 @@ def align_selected_and_tree_main(args,
     utils.get_ulimit_info(logger=logger)
 
     align_selected_and_tree.main(
+        args,
+        report_directory,
+        logger=logger)
+
+    # Write reports on putative paralogy in the QC'd trees:
+    paralogy_report.main(
         args,
         report_directory,
         logger=logger)
