@@ -1,6 +1,10 @@
+**0.0.11** *1st May, 2023*
+
+- Following QC but before paralog pruning, trees are now parsed to produce two additional reports in *.tsv format: `per_locus_paralogy_report_post_tree_qc.tsv` and `per_taxon_paralogy_report_post_tree_qc.tsv`. 
+
 **0.0.10** *31st March, 2023*
 
-- Fix bug in `prune_paralogs_mo.py`: update outgroup trimming regex in new MO implementation to allow for optional boostrap support values, and/or tree lengths in scientific notation (e.g. `2.079e-06`)    
+- Fix bug in `prune_paralogs_mo.py`: update outgroup trimming regex in new MO implementation to allow for optional bootstrap support values, and/or tree lengths in scientific notation (e.g. `2.079e-06`)    
 
 
 **0.0.9** *23rd March, 2023*
