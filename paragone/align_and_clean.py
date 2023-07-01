@@ -223,15 +223,18 @@ def remove_r_prefix(alignment, logger=None):
 
 def run_trimal(input_folder,
                output_folder,
+               args_for_trimal_options=None,
                logger=None):
     """
     Runs trimal on each alignment within a provided folder.
     :param str input_folder: path to a folder containing fasta alignment files
     :param str output_folder: path to a folder for output trimmed fasta alignment files
+    :param argparse.Namespace args_for_trimal_options: argparse.Namespace object to get trimal options, else None
     :param logging.Logger logger: a logger object
     :return str trimmed_alignments_directory: directory containing trimmed alignments
     """
 
+    trimal_options_string = utils.get_trimal_options(args_for_trimal_options)
     trimmed_alignments_directory = utils.createfolder(output_folder)
 
     logger.info('')
@@ -253,10 +256,23 @@ def run_trimal(input_folder,
 
         except AssertionError:
             try:
-                result = subprocess.run(['trimal', '-in', alignment, '-out', expected_trimmed_alignment_file,
-                                         '-gapthreshold', '0.12', '-terminalonly', '-gw', '1'],
-                                        universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                        check=True)
+                command = f'trimal -in {alignment} -out {expected_trimmed_alignment_file} {trimal_options_string}'
+                logger.debug(f'trimal command is: {command}')
+
+                # result = subprocess.run(['trimal',
+                #                          '-in', alignment,
+                #                          '-out', expected_trimmed_alignment_file,
+                #                          '-gapthreshold', '0.12',
+                #                          '-terminalonly',
+                #                          '-gw', '1'],
+                #                         universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                #                         check=True)
+                result = subprocess.run(command,
+                                        universal_newlines=True,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        check=True,
+                                        shell=True)
                 logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
                 logger.debug(f'trimal stdout is: {result.stdout}')
                 logger.debug(f'trimal stderr is: {result.stderr}')
@@ -630,6 +646,7 @@ def main(args, logger=None):
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
+                                                  args_for_trimal_options=args,
                                                   logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
@@ -674,6 +691,7 @@ def main(args, logger=None):
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
+                                                  args_for_trimal_options=args,
                                                   logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
