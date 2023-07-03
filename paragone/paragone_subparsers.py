@@ -847,6 +847,11 @@ def add_full_pipeline_parser(subparsers):
                                       action='store_true',
                                       default=False,
                                       help='Keep all intermediate files and folders. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--debug',
+                                      action='store_true',
+                                      default=False,
+                                      help='If supplied, log additional information when running the subcommand. '
+                                           'This can make the log files much larger.')
     return parser_full_pipeline
 
 
