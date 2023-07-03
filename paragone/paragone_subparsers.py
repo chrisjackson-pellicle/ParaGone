@@ -81,7 +81,90 @@ def add_check_and_align_parser(subparsers):
     parser_check_and_align.add_argument('--no_trimming',
                                         action='store_true',
                                         default=False,
-                                        help='No not trim alignments using Trimal. Default is: %(default)s')
+                                        help='Do not trim alignments using Trimal. Default is: %(default)s')
+    parser_check_and_align.add_argument('--trimal_terminalonly_off',
+                                        action='store_true',
+                                        default=False,
+                                        help='Consider all alignment positions when trimming using Trimal, '
+                                             'rather than only terminal columns. Default is: %(default)s')
+    parser_check_and_align.add_argument('--trimal_gapthreshold',
+                                        type=float,
+                                        default=0.12,
+                                        help='1 - (fraction of sequences with a gap allowed) when trimming alignments '
+                                             'with Trimal. Range: [0 - 1]. Default is: %(default)s')
+    parser_check_and_align.add_argument('--trimal_simthreshold',
+                                        type=float,
+                                        help='Trimal minimum average similarity allowed when trimming alignments '
+                                             'with Trimal. Range: [0 - 1]')
+    parser_check_and_align.add_argument('--trimal_cons',
+                                        type=int,
+                                        help='Minimum percentage of positions in the original alignment to conserve '
+                                             'when trimming alignments with Trimal. Range: [0 - 100].')
+    parser_check_and_align.add_argument('--trimal_nogaps',
+                                        action='store_true',
+                                        default=False,
+                                        help='Remove all positions with gaps in the alignment when trimming. Default '
+                                             'is: %(default)s')
+    parser_check_and_align.add_argument('--trimal_noallgaps',
+                                        action='store_true',
+                                        default=False,
+                                        help='Remove columns composed only by gaps when trimming alignments. Default '
+                                             'is: %(default)s')
+    group_1 = parser_check_and_align.add_mutually_exclusive_group(required=False)
+    group_1.add_argument('--trimal_gappyout',
+                         action='store_const',
+                         const='gappyout',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "gappyout" mode. '
+                              'This method only uses information based on gaps distribution')
+    group_1.add_argument('--trimal_strict',
+                         action='store_const',
+                         const='strict',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strict" mode.')
+    group_1.add_argument('--trimal_strictplus',
+                         action='store_const',
+                         const='strictplus',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strictplus" mode.')
+    group_1.add_argument('--trimal_automated1',
+                         action='store_const',
+                         const='automated1',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal,use a heuristic selection of the automatic method '
+                              'based on similarity statistics.')
+    parser_check_and_align.add_argument('--trimal_block',
+                                        type=int,
+                                        help='Minimum column block size to be kept in the trimmed alignment. Available '
+                                             'with manual and automatic (gappyout) methods when trimming alignments '
+                                             'with Trimal.')
+    parser_check_and_align.add_argument('--trimal_resoverlap',
+                                        type=int,
+                                        help='Minimum overlap of a positions with other positions in the column to be '
+                                             'considered a "good position" when trimming alignments with Trimal. '
+                                             'Range: [0 - 1].')
+    parser_check_and_align.add_argument('--trimal_seqoverlap',
+                                        type=int,
+                                        help='Minimum percentage of "good positions" that a sequence must have in '
+                                             'order to be conserved when trimming alignments with Trimal. '
+                                             'Range: [0 - 100].')
+    parser_check_and_align.add_argument('--trimal_w',
+                                        type=int,
+                                        help='(half) Window size, score of position i is the average of the window '
+                                             '(i - n) to (i + n), when trimming alignments with Trimal.')
+    parser_check_and_align.add_argument('--trimal_gw',
+                                        type=int,
+                                        default=1,
+                                        help='(half) Window size only applies to statistics/methods based on gaps, '
+                                             'when trimming alignments with Trimal.')
+    parser_check_and_align.add_argument('--trimal_sw',
+                                        type=int,
+                                        help='(half) Window size only applies to statistics/methods based on '
+                                             'similarity, when trimming alignments with Trimal.')
     parser_check_and_align.add_argument('--no_cleaning',
                                         action='store_true',
                                         default=False,
@@ -231,7 +314,90 @@ def add_align_selected_and_tree_parser(subparsers):
     parser_align_selected_and_tree.add_argument('--no_trimming',
                                                 action='store_true',
                                                 default=False,
-                                                help='No not trim alignments using Trimal. Default is: %(default)s')
+                                                help='Do not trim alignments using Trimal. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--trimal_terminalonly_off',
+                                                action='store_true',
+                                                default=False,
+                                                help='Consider all alignment positions when trimming using Trimal, '
+                                                     'rather than only terminal columns. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--trimal_gapthreshold',
+                                                type=float,
+                                                default=0.12,
+                                                help='1 - (fraction of sequences with a gap allowed) when trimming '
+                                                     'alignments with Trimal. Range: [0 - 1]. Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--trimal_simthreshold',
+                                                type=float,
+                                                help='Trimal minimum average similarity allowed when trimming '
+                                                     'alignments with Trimal. Range: [0 - 1]')
+    parser_align_selected_and_tree.add_argument('--trimal_cons',
+                                                type=int,
+                                                help='Minimum percentage of positions in the original alignment to '
+                                                     'conserve when trimming alignments with Trimal. Range: [0 - 100].')
+    parser_align_selected_and_tree.add_argument('--trimal_nogaps',
+                                                action='store_true',
+                                                default=False,
+                                                help='Remove all positions with gaps in the alignment when trimming. '
+                                                     'Default is: %(default)s')
+    parser_align_selected_and_tree.add_argument('--trimal_noallgaps',
+                                                action='store_true',
+                                                default=False,
+                                                help='Remove columns composed only by gaps when trimming alignments. '
+                                                     'Default is: %(default)s')
+    group_1 = parser_align_selected_and_tree.add_mutually_exclusive_group(required=False)
+    group_1.add_argument('--trimal_gappyout',
+                         action='store_const',
+                         const='gappyout',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "gappyout" mode. '
+                              'This method only uses information based on gaps distribution')
+    group_1.add_argument('--trimal_strict',
+                         action='store_const',
+                         const='strict',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strict" mode.')
+    group_1.add_argument('--trimal_strictplus',
+                         action='store_const',
+                         const='strictplus',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strictplus" mode.')
+    group_1.add_argument('--trimal_automated1',
+                         action='store_const',
+                         const='automated1',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal,use a heuristic selection of the automatic method '
+                              'based on similarity statistics.')
+    parser_align_selected_and_tree.add_argument('--trimal_block',
+                                                type=int,
+                                                help='Minimum column block size to be kept in the trimmed alignment. '
+                                                     'Available with manual and automatic (gappyout) methods when '
+                                                     'trimming alignments with Trimal.')
+    parser_align_selected_and_tree.add_argument('--trimal_resoverlap',
+                                                type=int,
+                                                help='Minimum overlap of a positions with other positions in the '
+                                                     'column to be considered a "good position" when trimming '
+                                                     'alignments with Trimal. Range: [0 - 1].')
+    parser_align_selected_and_tree.add_argument('--trimal_seqoverlap',
+                                                type=int,
+                                                help='Minimum percentage of "good positions" that a sequence must '
+                                                     'have in order to be conserved when trimming alignments with '
+                                                     'Trimal. Range: [0 - 100].')
+    parser_align_selected_and_tree.add_argument('--trimal_w',
+                                                type=int,
+                                                help='(half) Window size, score of position i is the average of the '
+                                                     'window (i - n) to (i + n), when trimming alignments with Trimal.')
+    parser_align_selected_and_tree.add_argument('--trimal_gw',
+                                                type=int,
+                                                default=1,
+                                                help='(half) Window size only applies to statistics/methods based on '
+                                                     'gaps, when trimming alignments with Trimal.')
+    parser_align_selected_and_tree.add_argument('--trimal_sw',
+                                                type=int,
+                                                help='(half) Window size only applies to statistics/methods based on '
+                                                     'similarity, when trimming alignments with Trimal.')
     parser_align_selected_and_tree.add_argument('--generate_bootstraps',
                                                 action='store_true',
                                                 default=False,
@@ -352,7 +518,90 @@ def add_final_alignments_parser(subparsers):
     parser_final_alignments.add_argument('--no_trimming',
                                          action='store_true',
                                          default=False,
-                                         help='No not trim alignments using Trimal. Default is: %(default)s')
+                                         help='Do not trim alignments using Trimal. Default is: %(default)s')
+    parser_final_alignments.add_argument('--trimal_terminalonly_off',
+                                         action='store_true',
+                                         default=False,
+                                         help='Consider all alignment positions when trimming using Trimal, '
+                                              'rather than only terminal columns. Default is: %(default)s')
+    parser_final_alignments.add_argument('--trimal_gapthreshold',
+                                         type=float,
+                                         default=0.12,
+                                         help='1 - (fraction of sequences with a gap allowed) when trimming alignments '
+                                              'with Trimal. Range: [0 - 1]. Default is: %(default)s')
+    parser_final_alignments.add_argument('--trimal_simthreshold',
+                                         type=float,
+                                         help='Trimal minimum average similarity allowed when trimming alignments '
+                                              'with Trimal. Range: [0 - 1]')
+    parser_final_alignments.add_argument('--trimal_cons',
+                                         type=int,
+                                         help='Minimum percentage of positions in the original alignment to conserve '
+                                              'when trimming alignments with Trimal. Range: [0 - 100].')
+    parser_final_alignments.add_argument('--trimal_nogaps',
+                                         action='store_true',
+                                         default=False,
+                                         help='Remove all positions with gaps in the alignment when trimming. Default '
+                                              'is: %(default)s')
+    parser_final_alignments.add_argument('--trimal_noallgaps',
+                                         action='store_true',
+                                         default=False,
+                                         help='Remove columns composed only by gaps when trimming alignments. Default '
+                                              'is: %(default)s')
+    group_1 = parser_final_alignments.add_mutually_exclusive_group(required=False)
+    group_1.add_argument('--trimal_gappyout',
+                         action='store_const',
+                         const='gappyout',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "gappyout" mode. '
+                              'This method only uses information based on gaps distribution')
+    group_1.add_argument('--trimal_strict',
+                         action='store_const',
+                         const='strict',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strict" mode.')
+    group_1.add_argument('--trimal_strictplus',
+                         action='store_const',
+                         const='strictplus',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strictplus" mode.')
+    group_1.add_argument('--trimal_automated1',
+                         action='store_const',
+                         const='automated1',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal,use a heuristic selection of the automatic method '
+                              'based on similarity statistics.')
+    parser_final_alignments.add_argument('--trimal_block',
+                                         type=int,
+                                         help='Minimum column block size to be kept in the trimmed alignment. '
+                                              'Available with manual and automatic (gappyout) methods when trimming '
+                                              'alignments with Trimal.')
+    parser_final_alignments.add_argument('--trimal_resoverlap',
+                                         type=int,
+                                         help='Minimum overlap of a positions with other positions in the column to be '
+                                              'considered a "good position" when trimming alignments with Trimal. '
+                                              'Range: [0 - 1].')
+    parser_final_alignments.add_argument('--trimal_seqoverlap',
+                                         type=int,
+                                         help='Minimum percentage of "good positions" that a sequence must have in '
+                                              'order to be conserved when trimming alignments with Trimal. '
+                                              'Range: [0 - 100].')
+    parser_final_alignments.add_argument('--trimal_w',
+                                         type=int,
+                                         help='(half) Window size, score of position i is the average of the window '
+                                              '(i - n) to (i + n), when trimming alignments with Trimal.')
+    parser_final_alignments.add_argument('--trimal_gw',
+                                         type=int,
+                                         default=1,
+                                         help='(half) Window size only applies to statistics/methods based on gaps, '
+                                              'when trimming alignments with Trimal.')
+    parser_final_alignments.add_argument('--trimal_sw',
+                                         type=int,
+                                         help='(half) Window size only applies to statistics/methods based on '
+                                              'similarity, when trimming alignments with Trimal.')
     parser_final_alignments.add_argument('--run_profiler',
                                          action='store_true',
                                          dest='run_profiler',
@@ -436,7 +685,89 @@ def add_full_pipeline_parser(subparsers):
     parser_full_pipeline.add_argument('--no_trimming',
                                       action='store_true',
                                       default=False,
-                                      help='No not trim alignments using Trimal. Default is: %(default)s')
+                                      help='Do not trim alignments using Trimal. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--trimal_terminalonly_off',
+                                      action='store_true',
+                                      default=False,
+                                      help='Consider all alignment positions when trimming using Trimal, '
+                                           'rather than only terminal columns. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--trimal_gapthreshold',
+                                      type=float,
+                                      default=0.12,
+                                      help='1 - (fraction of sequences with a gap allowed) when trimming alignments '
+                                           'with Trimal. Range: [0 - 1]. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--trimal_simthreshold',
+                                      type=float,
+                                      help='Trimal minimum average similarity allowed when trimming alignments '
+                                           'with Trimal. Range: [0 - 1]')
+    parser_full_pipeline.add_argument('--trimal_cons',
+                                      type=int,
+                                      help='Minimum percentage of positions in the original alignment to conserve '
+                                           'when trimming alignments with Trimal. Range: [0 - 100].')
+    parser_full_pipeline.add_argument('--trimal_nogaps',
+                                      action='store_true',
+                                      default=False,
+                                      help='Remove all positions with gaps in the alignment when trimming. Default '
+                                           'is: %(default)s')
+    parser_full_pipeline.add_argument('--trimal_noallgaps',
+                                      action='store_true',
+                                      default=False,
+                                      help='Remove columns composed only by gaps when trimming alignments. Default '
+                                           'is: %(default)s')
+    group_1 = parser_full_pipeline.add_mutually_exclusive_group(required=False)
+    group_1.add_argument('--trimal_gappyout',
+                         action='store_const',
+                         const='gappyout',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "gappyout" mode. '
+                              'This method only uses information based on gaps distribution')
+    group_1.add_argument('--trimal_strict',
+                         action='store_const',
+                         const='strict',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strict" mode.')
+    group_1.add_argument('--trimal_strictplus',
+                         action='store_const',
+                         const='strictplus',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal, use the automated selection on "strictplus" mode.')
+    group_1.add_argument('--trimal_automated1',
+                         action='store_const',
+                         const='automated1',
+                         dest='automated_method',
+                         default=False,
+                         help='When trimming alignments with Trimal,use a heuristic selection of the automatic method '
+                              'based on similarity statistics.')
+    parser_full_pipeline.add_argument('--trimal_block',
+                                      type=int,
+                                      help='Minimum column block size to be kept in the trimmed alignment. '
+                                           'Available with manual and automatic (gappyout) methods when trimming '
+                                           'alignments with Trimal.')
+    parser_full_pipeline.add_argument('--trimal_resoverlap',
+                                      type=int,
+                                      help='Minimum overlap of a positions with other positions in the column to be '
+                                           'considered a "good position" when trimming alignments with Trimal. '
+                                           'Range: [0 - 1].')
+    parser_full_pipeline.add_argument('--trimal_seqoverlap',
+                                      type=int,
+                                      help='Minimum percentage of "good positions" that a sequence must have in order '
+                                           'to be conserved when trimming alignments with Trimal. Range: [0 - 100].')
+    parser_full_pipeline.add_argument('--trimal_w',
+                                      type=int,
+                                      help='(half) Window size, score of position i is the average of the window '
+                                           '(i - n) to (i + n), when trimming alignments with Trimal.')
+    parser_full_pipeline.add_argument('--trimal_gw',
+                                      type=int,
+                                      default=1,
+                                      help='(half) Window size only applies to statistics/methods based on gaps, '
+                                           'when trimming alignments with Trimal.')
+    parser_full_pipeline.add_argument('--trimal_sw',
+                                      type=int,
+                                      help='(half) Window size only applies to statistics/methods based on '
+                                           'similarity, when trimming alignments with Trimal.')
     parser_full_pipeline.add_argument('--mafft_adjustdirection',
                                       action='store_true',
                                       default=False,
