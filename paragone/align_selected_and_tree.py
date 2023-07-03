@@ -794,6 +794,7 @@ def main(args,
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
+                                                  args_for_trimal_options=args,
                                                   logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
@@ -831,6 +832,7 @@ def main(args,
         if not args.no_trimming:
             alignments_output_folder = run_trimal(alignments_output_folder,
                                                   trimmed_output_folder,
+                                                  args_for_trimal_options=args,
                                                   logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
