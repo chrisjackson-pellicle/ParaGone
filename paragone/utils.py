@@ -525,3 +525,62 @@ def check_macos_version(logger=None):
         logger.error(f'sw_vers stderr is: {exc.stderr}')
 
 
+def get_trimal_options(args_for_trimal_options):
+    """
+    Takes an argparse.Namespace object and returns string of options for Trimal.
+
+    :param argparse.Namespace args_for_trimal_options:
+    :return:
+    """
+
+    trimal_options_list = []
+
+    if args_for_trimal_options.trimal_terminalonly_off:
+        pass
+    else:
+        trimal_options_list.append('-terminalonly')
+
+    # If automated method flag, return the options string now:
+    if args_for_trimal_options.automated_method:
+        trimal_options_list.append(f'-{args_for_trimal_options.automated_method}')
+        trimal_options_string = ' '.join(trimal_options_list)
+
+        return trimal_options_string
+
+    # If no automated method flag, continue parsing options:
+    if args_for_trimal_options.trimal_gapthreshold:
+        trimal_options_list.append(f'-gapthreshold {args_for_trimal_options.trimal_gapthreshold}')
+
+    if args_for_trimal_options.trimal_simthreshold:
+        trimal_options_list.append(f'-simthreshold {args_for_trimal_options.trimal_simthreshold}')
+
+    if args_for_trimal_options.trimal_cons:
+        trimal_options_list.append(f'-cons {args_for_trimal_options.trimal_cons}')
+
+    if args_for_trimal_options.trimal_nogaps:
+        trimal_options_list.append(f'-nogaps {args_for_trimal_options.trimal_nogaps}')
+
+    if args_for_trimal_options.trimal_noallgaps:
+        trimal_options_list.append(f'-noallgaps {args_for_trimal_options.trimal_noallgaps}')
+
+    if args_for_trimal_options.trimal_block:
+        trimal_options_list.append(f'-block {args_for_trimal_options.trimal_block}')
+
+    if args_for_trimal_options.trimal_resoverlap:
+        trimal_options_list.append(f'-resoverlap {args_for_trimal_options.trimal_resoverlap}')
+
+    if args_for_trimal_options.trimal_seqoverlap:
+        trimal_options_list.append(f'-seqoverlap {args_for_trimal_options.trimal_seqoverlap}')
+
+    if args_for_trimal_options.trimal_w:
+        trimal_options_list.append(f'-w {args_for_trimal_options.trimal_w}')
+
+    if args_for_trimal_options.trimal_gw:
+        trimal_options_list.append(f'-gw {args_for_trimal_options.trimal_gw}')
+
+    if args_for_trimal_options.trimal_sw:
+        trimal_options_list.append(f'-sw {args_for_trimal_options.trimal_sw}')
+
+    trimal_options_string = ' '.join(trimal_options_list)
+
+    return trimal_options_string
