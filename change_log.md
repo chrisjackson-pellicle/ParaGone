@@ -1,3 +1,8 @@
+**0.0.12** *3rd July, 2023*
+
+- Add full trimal options to steps that use trimal: `check_and_align`, `align_selected_and_tree`, and `final_alignments`, as well as `full_pipeline`. 
+- Bugfix in `prune_paralogs_mo.py`: correct error when parsing outgroup tip labels in function `prune_paralogs_from_rerooted_homotree_cjj()`.
+
 **0.0.11** *1st May, 2023*
 
 - Following QC but before paralog pruning, trees are now parsed to produce two additional reports in *.tsv format: `per_locus_paralogy_report_post_tree_qc.tsv` and `per_taxon_paralogy_report_post_tree_qc.tsv`. 
