@@ -307,7 +307,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
             continue
 
         if node.istip:
-            if node.label in outgroups:
+            if node.label.split('.')[0] in outgroups:
                 outgroup_tips.append((node.label, str(node.length)))
 
     if debug:
@@ -325,7 +325,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
                 assert node.label.split('.')[0] in outgroups
 
             if not node.istip:  # i.e. it's an internal branch
-                children_taxon_names = [leaf.label for leaf in node.leaves()]
+                children_taxon_names = [leaf.label.split('.')[0] for leaf in node.leaves()]
 
                 # Check if any of the child leaf names are outgroups:
                 intersection = set(children_taxon_names).intersection(set(outgroups))
@@ -351,11 +351,9 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
 
         outgroup_for_grafting, outgroup_for_grafting_length = outgroup_tips[0]
         single_outgroup_children_list = root.children
-        children_to_keep = []
 
         for child in single_outgroup_children_list:
-            if child.label not in outgroup_tips:
-                children_to_keep.append(newick3.tostring(child))
+            if child.label not in outgroup_tips:  # Not using .split('.)[0] is correct here
                 ingroup_clades_to_test.append(child)
     else:
         raise ValueError(f'outgroup_tips for tree {tree_name} is: {outgroup_tips}')
