@@ -231,6 +231,13 @@ def add_qc_trees_and_extract_fasta(subparsers):
     parser_qc_trees_and_fasta = subparsers.add_parser('qc_trees_and_extract_fasta',
                                                       help='Quality control trees;\nextract fasta sequences '
                                                            'corresponding to remaining tips')
+    parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
+                                           type=str,
+                                           help='directory containing original fasta alignment files')
+    parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
+                                           type=str,
+                                           default='.fasta',
+                                           help='Suffix for alignment files. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--min_tips',
                                            type=int,
                                            default=4,
@@ -242,13 +249,6 @@ def add_qc_trees_and_extract_fasta(subparsers):
                                            default=0.05,
                                            help='q value for TreeShrink; the quantile(s) to set threshold. Default '
                                                 'is: %(default)s')
-    parser_qc_trees_and_fasta.add_argument('mask_tips_alignment_directory',
-                                           type=str,
-                                           help='directory containing original fasta alignment files')
-    parser_qc_trees_and_fasta.add_argument('--mask_tips_alignment_file_suffix',
-                                           type=str,
-                                           default='.fasta',
-                                           help='Suffix for alignment files. Default is: %(default)s')
     parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_internal_branch_length_cutoff',
                                            type=float,
                                            default=0.3,
@@ -283,10 +283,10 @@ def add_align_selected_and_tree_parser(subparsers):
     parser_align_selected_and_tree = subparsers.add_parser('align_selected_and_tree',
                                                            help='Align selected fasta seqs for each subtree, '
                                                                 'and generate a new tree')
-    parser_align_selected_and_tree.add_argument('selected_alignment_directory',
-                                                type=str,
-                                                help='directory containing selected alignment files corresponding to '
-                                                     'subtrees')
+    # parser_align_selected_and_tree.add_argument('selected_alignment_directory',
+    #                                             type=str,
+    #                                             help='directory containing selected alignment files corresponding to '
+    #                                                  'subtrees')
     parser_align_selected_and_tree.add_argument('qc_alignment_directory',
                                                 type=str,
                                                 help='directory containing quality controlled alignment files')
