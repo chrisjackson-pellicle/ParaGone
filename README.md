@@ -2,7 +2,7 @@
 
 Documentation in progress...
 
-Current version: 0.0.12rc (July 2023)
+Current version: 0.0.13rc (July 2023)
 
 -----
 

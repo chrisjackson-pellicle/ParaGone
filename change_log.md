@@ -1,3 +1,7 @@
+**0.0.13** *6th July, 2023*
+
+- Remove the positional parameter `selected_alignment_directory` from subparser `add_align_selected_and_tree_parser`, as `align_selected_and_tree.py` now hardcodes this path as `09_sequences_from_qc_trees`
+
 **0.0.12** *3rd July, 2023*
 
 - Add full trimal options to steps that use trimal: `check_and_align`, `align_selected_and_tree`, and `final_alignments`, as well as `full_pipeline`. 
