@@ -723,7 +723,7 @@ def main(args,
 
                     logger.info(f'{fill}')
 
-                    if args.new_mo_algorithm:
+                    if args.mo_algorithm_paragone:
 
                         ortho = prune_paralogs_from_rerooted_homotree_cjj(curroot,
                                                                           outgroups,
