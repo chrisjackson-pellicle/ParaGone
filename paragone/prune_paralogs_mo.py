@@ -563,7 +563,7 @@ def main(args,
 
     logger.info('')
 
-    if args.new_mo_algorithm:
+    if args.mo_algorithm_paragone:
 
         logger.info(f'{"[INFO]:":10} ======> PRUNING PARALOGS WITH NEW PARAGONE MO ALGORITHM <======\n')
 
