@@ -1,3 +1,7 @@
+**0.0.14** *7th July, 2023*
+
+- Change the parameter `new_mo_algorithm` to `mo_algorithm_paragone` for subparsers `parser_full_pipeline` and `parser_prune_paralogs`
+
 **0.0.13** *6th July, 2023*
 
 - Remove the positional parameter `selected_alignment_directory` from subparser `add_align_selected_and_tree_parser`, as `align_selected_and_tree.py` now hardcodes this path as `09_sequences_from_qc_trees`

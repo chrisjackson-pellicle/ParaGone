@@ -168,7 +168,7 @@ def add_check_and_align_parser(subparsers):
     parser_check_and_align.add_argument('--no_cleaning',
                                         action='store_true',
                                         default=False,
-                                        help='No not clean alignments using HmmCleaner.pl. Default is: %(default)s')
+                                        help='Do not clean alignments using HmmCleaner.pl. Default is: %(default)s')
     parser_check_and_align.add_argument('--run_profiler',
                                         action='store_true',
                                         dest='run_profiler',
@@ -441,7 +441,7 @@ def add_prune_paralogs_parser(subparsers):
                                        action='store_true',
                                        default=False,
                                        help='Run the RooTed ingroups (RT) algorithm')
-    parser_prune_paralogs.add_argument('--new_mo_algorithm',
+    parser_prune_paralogs.add_argument('--mo_algorithm_paragone',
                                        action='store_true',
                                        default=False,
                                        help='If pruning trees using the MO algorithm, use an updated ParaGone '
@@ -454,7 +454,7 @@ def add_prune_paralogs_parser(subparsers):
     parser_prune_paralogs.add_argument('--ignore_1to1_orthologs',
                                        action='store_true',
                                        default=False,
-                                       help='Output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
+                                       help='Do not output 1to1 orthologs, i.e. trees with no paralogs. Default is: %('
                                             'default)s')
     parser_prune_paralogs.add_argument('--run_profiler',
                                        action='store_true',
@@ -828,7 +828,7 @@ def add_full_pipeline_parser(subparsers):
                                       action='store_true',
                                       default=False,
                                       help='Run the RooTed ingroups (RT) algorithm')
-    parser_full_pipeline.add_argument('--new_mo_algorithm',
+    parser_full_pipeline.add_argument('--mo_algorithm_paragone',
                                       action='store_true',
                                       default=False,
                                       help='If pruning trees using the MO algorithm, use an updated ParaGone '

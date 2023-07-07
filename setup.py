@@ -8,7 +8,7 @@ resolve_paralogs_url = 'https://github.com/chrisjackson-pellicle/yang_and_smith_
 resolve_paralogs_entry_points = {'console_scripts': ['paragone = paragone.paragone_main:main']}
 
 setuptools.setup(name='paragone',
-                 version='0.0.13rc',
+                 version='0.0.14rc',
                  packages=setuptools.find_packages(),
                  author='Chris Jackson',
                  author_email='chris.jackson@rbg.vic.gov.au',
