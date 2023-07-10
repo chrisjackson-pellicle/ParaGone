@@ -25,8 +25,8 @@ ParaGone provides a single installable package that comprises many of the origin
     
 * [MAFFT](https://mafft.cbrc.jp/alignment/software/)
 * [ClustalOmega](https://www.ebi.ac.uk/seqdb/confluence/display/JDSAT/Clustal+Omega+Help+and+Documentation) 
-* [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl)
-* [Trimal](http://trimal.cgenomics.org/)
+* [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl). A conda install can be found [here](https://anaconda.org/chrisjackson-pellicle/hmmcleaner).
+* [Trimal](http://trimal.cgenomics.org/) version 1.4
 * [IQTREE](http://www.iqtree.org/)) 
 * [FastTree](http://www.microbesonline.org/fasttree/#OpenMP). The conda install can be found [here](link).
 * [Treeshrink](https://github.com/uym2/TreeShrink)
