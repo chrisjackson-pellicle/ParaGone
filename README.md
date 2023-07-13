@@ -21,12 +21,13 @@ ParaGone provides a single installable package that comprises many of the origin
     * [ete3](http://etetoolkit.org/)
     * [biopython](http://biopython.org/wiki/Main_Page) 1.79 or later
     
-* [MAFFT](link)
-* [ClustalOmega](link) 
-* [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl)
-* [Trimal](link)
-* [IQTREE](link)  
-* [FastTree](link). The conda install can be found [here](link).
+* [MAFFT](https://mafft.cbrc.jp/alignment/software/)
+* [ClustalOmega](https://www.ebi.ac.uk/seqdb/confluence/display/JDSAT/Clustal+Omega+Help+and+Documentation) 
+* [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl). A conda install can be found [here](https://anaconda.org/chrisjackson-pellicle/hmmcleaner).
+* [Trimal](http://trimal.cgenomics.org/) version 1.4
+* [IQTREE](http://www.iqtree.org/)) 
+* [FastTree](http://www.microbesonline.org/fasttree/#OpenMP). The conda install can be found [here](link).
+* [Treeshrink](https://github.com/uym2/TreeShrink)
 
 ---
 # Setup
@@ -61,7 +62,7 @@ https://github.com/chrisjackson-pellicle/ParaGone/wiki/Tutorial
 
 ### Paralog sequences
 
-A folder containing a fasta file for each gene. Each fasta file contains the 'main' contig selected by HybPiper for each sample. Where HybPiper has detected putative paralog contigs, these sequences are also included; in such cases, the main contig has the fasta header suffix `.main`, whereas putative paralogs have the suffix `.0`, `.1` etc.
+A folder containing a multi-fasta file for each gene, with paralog sequences. If these have been generated using [HybPiper](https://github.com/mossmatters/HybPiper/wiki/Paralogs), each fasta file will contains the 'main' contig selected by HybPiper for each sample. Where HybPiper has detected putative paralog contigs, these sequences are also included; in such cases, the main contig has the fasta header suffix `.main`, whereas putative paralogs have the suffix `.0`, `.1` etc.
 
 ### Outgroup sequences
 
@@ -70,7 +71,7 @@ Some of the paralogy resolution methods used in this pipeline require an outgrou
 1) Designating one or more taxa in your HybPiper paralog files as outgroups, via the `--internal_outgroup` parameter. For example, if your paralog `fasta` files contain sequences from the taxa `79686` and `79689`, you could designate these sequences as outgroups using `--internal_outgroup 79686 --internal_outgroup 79689`. 
 
 
-2) Providing a fasta file (e.g. `outgroups.fasta`) containing 'external' outgroup sequences via the option `--external_outgroups_file outgroups.fasta`. The sequences in the file should have the same fasta header formatting and gene names as your HybPiper target file. For example, if you have used the Angiosperms353 target file for you HybPiper analysis, and you wish to use sequences from *Sesame* as your outgroup, your `outgroups.fasta` file might contain the following:
+2) Providing a fasta file (e.g. `outgroups.fasta`) containing 'external' outgroup sequences via the option `--external_outgroups_file outgroups.fasta`. The sequences in the file should have the same fasta header formatting and gene names as your paralog fasta files. For example, if you have used the Angiosperms353 target file for your HybPiper analysis, and you wish to use sequences from *Sesame* as your outgroup, your `outgroups.fasta` file might contain the following:
 
        >sesame-6995
        gtgggatatgaacaaaatccattgagcttgtattactgtta...
@@ -81,7 +82,7 @@ Some of the paralogy resolution methods used in this pipeline require an outgrou
     
        ...etc
     
-Again, note that the gene identifier following the dash in the fasta headers (e.g. `6995` for header `>sesame-6995`) needs to correspond to a gene identifier in your target file. 
+Again, note that the gene identifier following the dash in the fasta headers (e.g. `6995` for header `>sesame-6995`) needs to correspond to a gene identifier in your paralog fasta files. 
 
 It's fine if your `outgroups.fasta` file contains additional sequences that you don't want to use. When running the pipeline (see below) you can optionally provide one or more taxon names using the parameter `--external_outgroup`, e.g. `--external_outgroup <taxon_id1> --external_outgroup <taxon_id2>`, and only these taxa will be included as outgroups. If this option isn't provided, all taxa/sequences in the `outgroups.fasta` file will be used.
 
