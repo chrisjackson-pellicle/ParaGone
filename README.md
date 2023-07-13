@@ -1,7 +1,5 @@
 # ParaGone
 
-Documentation in progress...
-
 Current version: 0.0.14rc (July 2023)
 
 -----
