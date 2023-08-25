@@ -42,6 +42,7 @@ if unsuccessful_imports:
              f'installation used to run paragone?')
 
 # Import program modules:
+from paragone.version import __version__
 from paragone import paragone_subparsers
 from paragone import check_inputs
 from paragone import align_and_clean
@@ -88,7 +89,8 @@ def check_and_align_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand check_and_align was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "check_and_align" was called with these '
+                f'arguments:\n')
 
     for parameter, value in parameters.items():
         if not parameter == 'func':
@@ -140,7 +142,8 @@ def alignment_to_tree_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand alignment_to_tree was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "alignment_to_tree" was called with these '
+                f'arguments:\n')
 
     for parameter, value in parameters.items():
         if not parameter == 'func':
@@ -187,7 +190,8 @@ def qc_trees_and_extract_fasta_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_extract_fasta was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "qc_trees_and_extract_fasta" was called '
+                f'with these arguments:\n')
 
     for parameter, value in parameters.items():
         if parameter not in ['func', 'from_cut_deep_paralogs']:
@@ -253,7 +257,8 @@ def align_selected_and_tree_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand qc_trees_and_extract_fasta was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "align_selected_and_tree" was called with '
+                f'these arguments:\n')
 
     for parameter, value in parameters.items():
         if parameter not in ['func', 'from_cut_deep_paralogs']:
@@ -306,7 +311,8 @@ def prune_paralogs_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand prune_paralogs was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "prune_paralogs" was called with these '
+                f'arguments:\n')
 
     for parameter, value in parameters.items():
         if not parameter == 'func':
@@ -353,9 +359,10 @@ def final_alignments_main(args,
                           log_directory=None,
                           report_directory=None):
     """
-    Calls the function main() from module strip_names_and_align
+    Calls the function main() from module fasta_from_tree then strip_names_and_align
 
-    :param args: argparse namespace with subparser options for function strip_names_and_align.main()
+    :param args: argparse namespace with subparser options for function fasta_from_tree.main() and
+    strip_names_and_align.main()
     :param str log_directory: path to directory for log files
     :param str report_directory: path to directory for report files
     :return: None: no return value specified; default is None
@@ -374,7 +381,8 @@ def final_alignments_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand strip_names_and_align was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "final_alignments" was called with these '
+                f'arguments:\n')
 
     for parameter, value in parameters.items():
         if not parameter == 'func':
@@ -462,7 +470,8 @@ def full_pipeline_main(args,
         logger.error(f'{"[ERROR]:":10} One or more dependencies not found!')
         sys.exit(1)
 
-    logger.info(f'{"[INFO]:":10} Subcommand paragone_full_pipeline was called with these arguments:\n')
+    logger.info(f'{"[INFO]:":10} ParaGone version {__version__} subcommand "full_pipeline" was called with these '
+                f'arguments:\n')
 
     for parameter, value in parameters.items():
         if not parameter == 'func':
@@ -644,7 +653,7 @@ def parse_arguments():
     group_1.add_argument('--version', '-v',
                          dest='version',
                          action='version',
-                         version='%(prog)s 0.0.14rc',
+                         version=f'paragone {__version__}',
                          help='Print the ParaGone version number.')
 
     # Add subparsers:

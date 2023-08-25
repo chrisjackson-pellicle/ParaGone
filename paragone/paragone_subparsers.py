@@ -143,7 +143,7 @@ def add_check_and_align_parser(subparsers):
                                              'with manual and automatic (gappyout) methods when trimming alignments '
                                              'with Trimal.')
     parser_check_and_align.add_argument('--trimal_resoverlap',
-                                        type=int,
+                                        type=float,
                                         help='Minimum overlap of a positions with other positions in the column to be '
                                              'considered a "good position" when trimming alignments with Trimal. '
                                              'Range: [0 - 1].')
@@ -253,11 +253,6 @@ def add_qc_trees_and_extract_fasta(subparsers):
                                            type=float,
                                            default=0.3,
                                            help='Internal branch length cutoff cutting tree. Default is: %(default)s')
-    # parser_qc_trees_and_fasta.add_argument('--cut_deep_paralogs_minimum_number_taxa',
-    #                                        type=int,
-    #                                        default=4,
-    #                                        help='Minimum number of taxa in tree for tree to be retained. Default is: '
-    #                                             '%(default)s')
     parser_qc_trees_and_fasta.add_argument('--run_profiler',
                                            action='store_true',
                                            dest='run_profiler',
@@ -283,10 +278,6 @@ def add_align_selected_and_tree_parser(subparsers):
     parser_align_selected_and_tree = subparsers.add_parser('align_selected_and_tree',
                                                            help='Align selected fasta seqs for each subtree, '
                                                                 'and generate a new tree')
-    # parser_align_selected_and_tree.add_argument('selected_alignment_directory',
-    #                                             type=str,
-    #                                             help='directory containing selected alignment files corresponding to '
-    #                                                  'subtrees')
     parser_align_selected_and_tree.add_argument('qc_alignment_directory',
                                                 type=str,
                                                 help='directory containing quality controlled alignment files')
@@ -376,7 +367,7 @@ def add_align_selected_and_tree_parser(subparsers):
                                                      'Available with manual and automatic (gappyout) methods when '
                                                      'trimming alignments with Trimal.')
     parser_align_selected_and_tree.add_argument('--trimal_resoverlap',
-                                                type=int,
+                                                type=float,
                                                 help='Minimum overlap of a positions with other positions in the '
                                                      'column to be considered a "good position" when trimming '
                                                      'alignments with Trimal. Range: [0 - 1].')
@@ -580,7 +571,7 @@ def add_final_alignments_parser(subparsers):
                                               'Available with manual and automatic (gappyout) methods when trimming '
                                               'alignments with Trimal.')
     parser_final_alignments.add_argument('--trimal_resoverlap',
-                                         type=int,
+                                         type=float,
                                          help='Minimum overlap of a positions with other positions in the column to be '
                                               'considered a "good position" when trimming alignments with Trimal. '
                                               'Range: [0 - 1].')
@@ -747,7 +738,7 @@ def add_full_pipeline_parser(subparsers):
                                            'Available with manual and automatic (gappyout) methods when trimming '
                                            'alignments with Trimal.')
     parser_full_pipeline.add_argument('--trimal_resoverlap',
-                                      type=int,
+                                      type=float,
                                       help='Minimum overlap of a positions with other positions in the column to be '
                                            'considered a "good position" when trimming alignments with Trimal. '
                                            'Range: [0 - 1].')
@@ -811,11 +802,6 @@ def add_full_pipeline_parser(subparsers):
                                       default=0.3,
                                       help='Internal branch length cutoff cutting tree. Default is: '
                                            '%(default)s')
-    # parser_full_pipeline.add_argument('--cut_deep_paralogs_minimum_number_taxa',
-    #                                   type=int,
-    #                                   default=4,
-    #                                   help='Minimum number of taxa in tree for tree to be retained. Default '
-    #                                        'is: %(default)s')
     parser_full_pipeline.add_argument('--mo',
                                       action='store_true',
                                       default=False,

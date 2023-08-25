@@ -234,7 +234,8 @@ def run_trimal(input_folder,
     :return str trimmed_alignments_directory: directory containing trimmed alignments
     """
 
-    trimal_options_string = utils.get_trimal_options(args_for_trimal_options)
+    trimal_options_string = utils.get_trimal_options(args_for_trimal_options,
+                                                     logger=logger)
     trimmed_alignments_directory = utils.createfolder(output_folder)
 
     logger.info('')

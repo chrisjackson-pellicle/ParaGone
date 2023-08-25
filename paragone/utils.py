@@ -525,11 +525,13 @@ def check_macos_version(logger=None):
         logger.error(f'sw_vers stderr is: {exc.stderr}')
 
 
-def get_trimal_options(args_for_trimal_options):
+def get_trimal_options(args_for_trimal_options,
+                       logger=None):
     """
     Takes an argparse.Namespace object and returns string of options for Trimal.
 
     :param argparse.Namespace args_for_trimal_options:
+    :param None, logging.Logger logger: a logger object
     :return:
     """
 
@@ -546,6 +548,22 @@ def get_trimal_options(args_for_trimal_options):
         trimal_options_string = ' '.join(trimal_options_list)
 
         return trimal_options_string
+
+    # Manually check some arguments, as -resoverlap requires -seqoverlap and vice-versa:
+    fill = textwrap.fill(
+        f'{"[ERROR]:":10} If either --trimal_resoverlap and --trimal_seqoverlap are provided, both parameters need to '
+        f'be defined. Please provide both parameters!',
+        width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+
+    if args_for_trimal_options.trimal_resoverlap and not args_for_trimal_options.trimal_seqoverlap:
+        logger.info(f'')
+        logger.info(f'{fill}')
+        sys.exit()
+
+    if args_for_trimal_options.trimal_seqoverlap and not args_for_trimal_options.trimal_resoverlap:
+        logger.info(f'')
+        logger.info(f'{fill}')
+        sys.exit()
 
     # If no automated method flag, continue parsing options:
     if args_for_trimal_options.trimal_gapthreshold:

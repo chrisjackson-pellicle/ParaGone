@@ -1,3 +1,9 @@
+**1.0.0** *25 August, 2023*
+
+- Bugfix: change type from `int` to `float` for `--trimal_resoverlap` in all relevant subparsers.
+- Add check that `--trimal_resoverlap` is provided if `--trimal_seqoverlap` is used, and vice-versa.
+- Add module `version.py` for a single location of ParaGone version number.
+
 **0.0.14** *7th July, 2023*
 
 - Change the parameter `new_mo_algorithm` to `mo_algorithm_paragone` for subparsers `parser_full_pipeline` and `parser_prune_paralogs`
