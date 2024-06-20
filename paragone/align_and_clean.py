@@ -7,20 +7,19 @@
   realigns using Clustal Omega (which can do a better job when the alignment contains contigs from different regions of
   the full-length reference e.g. split between 5' and 3' halves).
 - Trims alignments with Trimal (optional)
-- Runs HmmCleaner.pl on the alignments (optional).
+- Runs TAPER (https://github.com/chaoszhang/TAPER on the alignments (optional).
 """
 
 import logging
 import sys
 import textwrap
 import os
-import socket
 import re
 import glob
 import subprocess
-import shutil
+import io
+import traceback
 from Bio import SeqIO, AlignIO
-from Bio.Align.Applications import MafftCommandline, ClustalOmegaCommandline
 from concurrent.futures.process import ProcessPoolExecutor
 from concurrent.futures import as_completed
 from multiprocessing import Manager
@@ -55,11 +54,11 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
     logger.info(f'{"[INFO]:":10} Generating alignments for fasta files using MAFFT...')
 
     if adjust_direction:
-        fill = textwrap.fill (f'{"[INFO]:":10} The MAFFT flag "--adjustdirection" is set. This allow MAFFT to '
-                              f'generate reverse complement sequences, as necessary, and align them together with the '
-                              f'remaining sequences. Note that MAFFT assumes that the first sequence in the input '
-                              f'*.fasta file is in the correct orientation!',
-                              width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+        fill = textwrap.fill(f'{"[INFO]:":10} The MAFFT flag "--adjustdirection" is set. This allows MAFFT to '
+                             f'generate reverse complement sequences, as necessary, and align them together with the '
+                             f'remaining sequences. Note that MAFFT assumes that the first sequence in the input '
+                             f'*.fasta file is in the correct orientation!',
+                             width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
 
         logger.info(f'{fill}')
 
@@ -91,8 +90,16 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
 
                           for fasta_file in target_genes]
 
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
+
         wait(future_results, return_when="ALL_COMPLETED")
 
     for future in future_results:
@@ -151,33 +158,43 @@ def mafft_align(fasta_file,
         with lock:
             counter.value += 1
 
-        return os.path.basename(expected_alignment_file), None  # None here as it should already have been processed
+        return os.path.basename(expected_alignment_file), None  # "None" here as it should already have been processed
 
     except AssertionError:
-
         if algorithm == 'auto':
             if adjust_direction:
-                mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file, adjustdirection=True))
+                command = f'mafft --auto --thread {threads} --adjustdirection {fasta_file} > {expected_alignment_file}'
             else:
-                mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
-
+                command = f'mafft --auto --thread {threads} {fasta_file} > {expected_alignment_file}'
         else:
             if adjust_direction:
-                mafft_cline = (MafftCommandline(algorithm,thread=threads, input=fasta_file, adjustdirection=True))
+                command = f'{algorithm} --thread {threads} --adjustdirection {fasta_file} > {expected_alignment_file}'
             else:
-                mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
+                command = f'{algorithm} --thread {threads} {fasta_file} > {expected_alignment_file}'
 
-        logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
+        logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {command}')
 
-        stdout, stderr = mafft_cline()
+        try:
 
-        # logger.debug(f'stdout is: {stdout}')
-        # logger.debug(f'stderr is: {stderr}')
+            result = subprocess.run(command,
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=True,
+                                    shell=True)
 
-        with open(expected_alignment_file, 'w') as alignment_file:
-            alignment_file.write(stdout)
+            logger.debug(f'MAFFT check_returncode() is: {result.check_returncode()}')
+            logger.debug(f'MAFFT stdout is: {result.stdout}')
+            logger.debug(f'MAFFT stderr is: {result.stderr}')
 
-        # If mafft has reversed any sequences, remove the prefix "_R_" from such sequence names:
+        except subprocess.CalledProcessError as exc:
+            logger.error(f'MAFFT FAILED. Output is: {exc}')
+            logger.error(f'MAFFT stdout is: {exc.stdout}')
+            logger.error(f'MAFFT stderr is: {exc.stderr}')
+
+            raise ValueError('There was an issue running MAFFT. Check input files!')
+
+        # If mafft has reversed any sequences, remove the prefix "_R_" from corresponding sequence names:
         seqs_renamed_list = remove_r_prefix(expected_alignment_file, logger=logger)
 
         with lock:
@@ -236,6 +253,7 @@ def run_trimal(input_folder,
 
     trimal_options_string = utils.get_trimal_options(args_for_trimal_options,
                                                      logger=logger)
+
     trimmed_alignments_directory = utils.createfolder(output_folder)
 
     logger.info('')
@@ -256,24 +274,21 @@ def run_trimal(input_folder,
             continue
 
         except AssertionError:
+
             try:
-                command = f'trimal -in {alignment} -out {expected_trimmed_alignment_file} {trimal_options_string}'
+                command = (f'trimal '
+                           f'-in {alignment} '
+                           f' {trimal_options_string}')
+
                 logger.debug(f'trimal command is: {command}')
 
-                # result = subprocess.run(['trimal',
-                #                          '-in', alignment,
-                #                          '-out', expected_trimmed_alignment_file,
-                #                          '-gapthreshold', '0.12',
-                #                          '-terminalonly',
-                #                          '-gw', '1'],
-                #                         universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                #                         check=True)
                 result = subprocess.run(command,
                                         universal_newlines=True,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,
                                         check=True,
                                         shell=True)
+
                 logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
                 logger.debug(f'trimal stdout is: {result.stdout}')
                 logger.debug(f'trimal stderr is: {result.stderr}')
@@ -284,32 +299,84 @@ def run_trimal(input_folder,
                 logger.error(f'trimal stderr is: {exc.stderr}')
                 raise ValueError('There was an issue running trimal. Check input files!')
 
+        # Filter out empty sequences comprising only dashes, and post-Trimal alignments where all sequences are either
+        # dashes or empty. If fewer than 4 'good' sequences are present, skip the alignment:
+        good_seqs = []
+        seqs_all_dashes = []
+        empty_seqs = []
+
+        alignment_io = io.StringIO(result.stdout)
+        seqs = SeqIO.parse(alignment_io, 'fasta')
+
+        for seq in seqs:
+            characters = set(character for character in seq.seq)
+            if len(characters) == 0:
+                empty_seqs.append(seq.name)
+            elif len(characters) == 1 and '-' in characters:
+                seqs_all_dashes.append(seq.name)
+            else:
+                good_seqs.append(seq)
+
+        # Log any sequences that were removed:
+        if seqs_all_dashes:
+            seqs_all_dashes_joined = ', '.join(seqs_all_dashes)
+
+            fill = textwrap.fill(f'{"[INFO]:":10} After running Trimal, the following sequences in alignment'
+                                 f' {alignment_basename} contained only dashes, and have been removed:',
+                                 width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+            logger.info(fill)
+            logger.info(f'{" "* 11}{seqs_all_dashes_joined}')
+
+        if empty_seqs:
+            empty_seqs_joined = ', '.join(empty_seqs)
+
+            fill = textwrap.fill(f'{"[INFO]:":10} After running Trimal, the following sequences in alignment'
+                                 f' {alignment_basename} contained were empty, and have been removed:',
+                                 width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+            logger.info(fill)
+            logger.info(f'{" " * 11}{empty_seqs_joined}')
+
+        # Skip any filtered alignments with fewer than 4 sequences remaining:
+        if len(good_seqs) < 4:
+
+            fill = textwrap.fill(f'{"[INFO]:":10} After running Trimal, alignment'
+                                 f' {alignment_basename} contains fewer than 4 sequences, skipping alignment!',
+                                 width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+            logger.info(fill)
+
+        else:
+
+            with open(f'{expected_trimmed_alignment_file}', 'w') as trimal_checked_fasta:
+                SeqIO.write(good_seqs, trimal_checked_fasta, 'fasta')
+
     return trimmed_alignments_directory
 
 
-def run_hmm_cleaner_multiprocessing(alignments_to_clean_folder,
-                                    no_trimming=False,
-                                    pool_threads=1,
-                                    logger=None):
+def run_taper_multiprocessing(alignments_to_clean_folder,
+                              no_trimming=False,
+                              cleaning_cutoff=3,
+                              pool_threads=1,
+                              logger=None):
     """
-    Runs HmmCleaner.pl on each alignment within a provided folder.
+    Runs TAPER (correction_multi.jl) on each alignment within a provided folder.
 
     :param str alignments_to_clean_folder: path to folder containing input fasta alignment files for cleaning
     :param bool no_trimming: if True, sequences have NOT been trimmed with trimal
+    :param int cleaning_cutoff: cutoff value to pass to TAPER. Lower will perform more aggressive cleaning
     :param int pool_threads: number of alignments to clean concurrently
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing cleaned alignments
     """
 
     if no_trimming:
-        output_folder = f'04_alignments_hmmcleaned'
+        output_folder = f'04_alignments_cleaned'
     else:
-        output_folder = f'04_alignments_trimmed_hmmcleaned'
+        output_folder = f'04_alignments_trimmed_cleaned'
 
     utils.createfolder(output_folder)
 
     logger.info('')
-    fill = textwrap.fill(f'{"[INFO]:":10} Running HmmCleaner.pl on alignments. Cleaned alignments will be '
+    fill = textwrap.fill(f'{"[INFO]:":10} Running TAPER on alignments. Cleaned alignments will be '
                          f'written to directory: "{output_folder}".',
                          width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
     logger.info(fill)
@@ -320,177 +387,151 @@ def run_hmm_cleaner_multiprocessing(alignments_to_clean_folder,
         manager = Manager()
         lock = manager.Lock()
         counter = manager.Value('i', 0)
-        future_results = [pool.submit(run_hmm_cleaner,
+        future_results = [pool.submit(run_taper,
                                       fasta_file,
                                       output_folder,
                                       counter,
                                       lock,
+                                      cleaning_cutoff=cleaning_cutoff,
                                       num_files_to_process=len(input_alignments),
                                       logger=logger)
                           for fasta_file in input_alignments]
 
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
-
-        # Log any messages from the HmmCleaner processes to the main log:
         for future in as_completed(future_results):
+
             try:
-                cleaned_alignment, log_list = future.result()
-                if log_list:
-                    for item in log_list:
+                check = future.result()
+
+                # Log any messages from the TAPER processes to the main log:
+                cleaned_alignment, log_list_subcommand, log_list_check_seqs = check
+                if log_list_check_seqs:
+                    for item in log_list_check_seqs:
+                        fill = textwrap.fill(f'{"[INFO]:":10} {item}',
+                                             width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
+                        logger.info(fill)
+                if log_list_subcommand:
+                    for item in log_list_subcommand:
                         logger.debug(item)
-            except:
-                raise
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
 
         wait(future_results, return_when="ALL_COMPLETED")  # redundant, but...
 
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.hmm.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
-    logger.debug(f'{len(alignment_list)} HmmCleaned alignments generated from {len(future_results)} alignment files...')
+    logger.debug(f'{len(alignment_list)} Cleaned alignments generated from {len(future_results)} alignment files...')
 
     return output_folder
 
 
-def run_hmm_cleaner(alignment,
-                    output_folder,
-                    counter,
-                    lock,
-                    num_files_to_process,
-                    logger=None):
+def run_taper(alignment,
+              output_folder,
+              counter,
+              lock,
+              cleaning_cutoff,
+              num_files_to_process,
+              logger=None):
     """
-    Runs HmmCleaner.pl on an alignment.
+    Runs TAPER on an alignment.
 
     :param str alignment: name of a fasta alignment file
     :param str output_folder: name of output folder for cleaned sequences
     :param multiprocessing.managers.ValueProxy counter: shared counter for fasta files processed
     :param multiprocessing.managers.AcquirerProxy lock: lock for ordered logging of info messages
+    :param int cleaning_cutoff: cutoff value to pass to TAPER. Lower will perform more aggressive cleaning
     :param int num_files_to_process: total number of fasta files for alignment
     :param logging.Logger logger: a logger object
     :return:
     """
 
-    alignment_parent_directory = os.path.dirname(alignment)
     alignment_basename = os.path.basename(alignment)
-    command = f'perl $(which HmmCleaner.pl) {alignment}'
 
-    logger.debug(f'Trying command {command}')
+    # Set TAPER output filename:
+    expected_cleaned_alignment_file = (f'{output_folder}/'
+                                       f'{re.sub(".fasta", ".cleaned.fasta", str(alignment_basename))}')
 
-    # Set HmmCleaner output filenames, a desired output file name, and path to expected output fil:
-    hmm_file = re.sub('.fasta', '_hmm.fasta', str(alignment_basename))  # output by HmmCleaner.pl
-    hmm_score = re.sub('.fasta', '_hmm.score', str(alignment_basename))  # output by HmmCleaner.pl
-    hmm_log = re.sub('.fasta', '_hmm.log', str(alignment_basename))  # output by HmmCleaner.pl
-    hmm_file_output = re.sub('.fasta', '.hmm.fasta', str(alignment_basename))  # Desired filename
-    expected_cleaned_alignment = f'{output_folder}/{hmm_file_output}'
+    command = (f'julia $(which correction_multi.jl) '
+               f'-c {cleaning_cutoff} '
+               f'-m - '
+               f'-a N '
+               f'{alignment}')
+
+    logger.debug(f'TAPER command is: {command}')
 
     try:
-        assert utils.file_exists_and_not_empty(expected_cleaned_alignment)
+        assert utils.file_exists_and_not_empty(expected_cleaned_alignment_file)
         logger.debug(f'Cleaned alignment exists for {alignment_basename}, skipping...')
         with lock:
             counter.value += 1
 
-        return os.path.basename(expected_cleaned_alignment), None  # log_list None as already processed
+        return os.path.basename(expected_cleaned_alignment_file), None, None  # log lists None as already processed
 
     except AssertionError:
 
-        log_list = []
+        log_list_subcommand = []
+        log_list_check_seqs = []
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-            # For log when a listener thread is implemented:
-            logger.debug(f'hmmcleaner check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'hmmcleaner stdout is: {result.stdout}')
-            logger.debug(f'hmmcleaner stderr is: {result.stderr}')
-
-            log_list.append(f'hmmcleaner check_returncode() is: {result.check_returncode()}')
-            log_list.append(f'hmmcleaner stdout is: {result.stdout}')
-            log_list.append(f'hmmcleaner stderr is: {result.stderr}')
-
-            # Filter out empty sequences comprising only dashes, and post-HmmCleaner alignments where all sequences
-            # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
-            with open(f'{alignment_parent_directory}/{hmm_file}', 'r') as hmm_fasta_handle:
-                good_seqs = []
-                seqs_all_dashes = []
-                empty_seqs = []
-                seqs = SeqIO.parse(hmm_fasta_handle, 'fasta')
-                for seq in seqs:
-                    characters = set(character for character in seq.seq)
-                    if len(characters) == 0:
-                        empty_seqs.append(seq.name)
-                    elif len(characters) == 1 and '-' in characters:
-                        seqs_all_dashes.append(seq.name)
-                    else:
-                        good_seqs.append(seq)
-
-            # Log any sequences that were removed:
-            if seqs_all_dashes:
-                seqs_all_dashes_joined = ', '.join(seqs_all_dashes)
-
-                # For log when a listener thread is implemented:
-                logger.debug(f'After running HmmCleaner.pl, the following sequences contained dashes, and have been '
-                             f'removed: {seqs_all_dashes_joined}')
-
-                log_list.append(f'After running HmmCleaner.pl, the following sequences contained dashes, and have been '
-                                f'removed: {seqs_all_dashes_joined}')
-            if empty_seqs:
-                empty_seqs_joined = ', '.join(empty_seqs)
-
-                # For log when a listener thread is implemented:
-                logger.debug(f'After running HmmCleaner.pl, the following sequences were empty, and have been '
-                             f'removed: {empty_seqs_joined}')
-
-                log_list.append(f'After running HmmCleaner.pl, the following sequences were empty, and have been '
-                                f'removed: {empty_seqs_joined}')
-
-            # Skip any filtered alignments with fewer than 4 sequences remaining:
-            if len(good_seqs) < 4:
-
-                # For log when a listener thread is implemented:
-                logger.warning(f'{"[WARNING]:":10} After running HmmCleaner.pl, file {os.path.basename(hmm_file)} '
-                               f'contains fewer than 4 good sequences, skipping gene!')
-
-                log_list.append(f'{"[WARNING]:":10} After running HmmCleaner.pl, file {os.path.basename(hmm_file)} '
-                                f'contains fewer than 4 good sequences, skipping gene!')
-            else:
-                with open(f'{output_folder}/{hmm_file_output}', 'w') as filtered_hmm_fasta:
-                    SeqIO.write(good_seqs, filtered_hmm_fasta, 'fasta')
-
-                # Remove the original HmmCleaner output fasta file:
-                os.remove(f'{alignment_parent_directory}/{hmm_file}')
-
-                # Delete the HmmCleaner score and log files:
-                os.remove(f'{alignment_parent_directory}/{hmm_score}')
-                os.remove(f'{alignment_parent_directory}/{hmm_log}')
-
-            with lock:
-                counter.value += 1
-                return os.path.basename(expected_cleaned_alignment), log_list
+            log_list_subcommand.append(f'TAPER check_returncode() is: {result.check_returncode()}')
+            log_list_subcommand.append(f'TAPER stdout is: {result.stdout}')
+            log_list_subcommand.append(f'TAPER stderr is: {result.stderr}')
 
         except subprocess.CalledProcessError as exc:
 
-            log_list.append(f'hmmcleaner FAILED. Output is: {exc}')
-            log_list.append(f'hmmcleaner stdout is: {exc.stdout}')
-            log_list.append(f'hmmcleaner stderr is: {exc.stderr}')
-            log_list.append(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
-                            f' {command}')
-            log_list.append(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
+            log_list_subcommand.append(f'TAPER FAILED. Output is: {exc}')
+            log_list_subcommand.append(f'TAPER stdout is: {exc.stdout}')
+            log_list_subcommand.append(f'TAPER stderr is: {exc.stderr}')
+            log_list_subcommand.append(f'{"[INFO]:":10} Could not run TAPER for alignment {alignment} using command {command}')
 
-            # For log when a listener thread is implemented:
-            logger.error(f'hmmcleaner FAILED. Output is: {exc}')
-            logger.error(f'hmmcleaner stdout is: {exc.stdout}')
-            logger.error(f'hmmcleaner stderr is: {exc.stderr}')
-            logger.info(f'{"[INFO]:":10} Could not run HmmCleaner.pl for alignment {alignment} using command'
-                        f' {command}')
-            logger.info(f'Copying un-cleaned alignment {alignment} to {hmm_file_output} anyway...')
+        # Filter out empty sequences comprising only dashes, and post-TAPER alignments where all sequences
+        # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
+        good_seqs = []
+        seqs_all_dashes = []
+        empty_seqs = []
 
-            shutil.copy(alignment, f'{output_folder}/{hmm_file_output}')
+        alignment_io = io.StringIO(result.stdout)
+        seqs = SeqIO.parse(alignment_io, 'fasta')
 
-            return os.path.basename(expected_cleaned_alignment), log_list
+        for seq in seqs:
+            characters = set(character for character in seq.seq)
+            if len(characters) == 0:
+                empty_seqs.append(seq.name)
+            elif len(characters) == 1 and '-' in characters:
+                seqs_all_dashes.append(seq.name)
+            else:
+                good_seqs.append(seq)
 
-        except:
-            raise
+        # Log any sequences that were removed:
+        if seqs_all_dashes:
+            seqs_all_dashes_joined = ', '.join(seqs_all_dashes)
+
+            log_list_check_seqs.append(f'After running TAPER, the following sequences contained dashes, and have been '
+                                       f'removed: {seqs_all_dashes_joined}')
+        if empty_seqs:
+            empty_seqs_joined = ', '.join(empty_seqs)
+
+            log_list_check_seqs.append(f'After running TAPER, the following sequences were empty, and have been '
+                                       f'removed: {empty_seqs_joined}')
+
+        # Skip any filtered alignments with fewer than 4 sequences remaining:
+        if len(good_seqs) < 4:
+
+            log_list_check_seqs.append(f'{"[WARNING]:":10} After running TAPER, file {alignment_basename} contains '
+                                       f'fewer than 4 good sequences, skipping gene!')
+        else:
+            with open(f'{expected_cleaned_alignment_file}', 'w') as filtered_taper_fasta:
+                SeqIO.write(good_seqs, filtered_taper_fasta, 'fasta')
+
+        with lock:
+            counter.value += 1
+            return os.path.basename(expected_cleaned_alignment_file), log_list_subcommand, log_list_check_seqs
 
     finally:
         with lock:
@@ -532,8 +573,17 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                                       threads=clustalo_threads,
                                       logger=logger)
                           for fasta_file in target_genes]
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
+
         wait(future_results, return_when="ALL_COMPLETED")
 
     alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.aln.fasta') if
@@ -577,15 +627,28 @@ def clustalo_align(fasta_file,
         return os.path.basename(expected_alignment_file)
 
     except AssertionError:
-        clustalomega_cline = ClustalOmegaCommandline(infile=fasta_file, outfile=expected_alignment_file,
-                                                     verbose=True, auto=True, threads=threads)
+        command = f'clustalo --in {fasta_file} --out {expected_alignment_file} --threads {threads} --verbose'
+        logger.info(f'{"[INFO]:":10} Performing Clustal alignment with command: {command}')
 
-        logger.info(f'{"[INFO]:":10} Performing Clustal alignment with command: {clustalomega_cline}')
+        try:
 
-        stdout, stderr = clustalomega_cline()
+            result = subprocess.run(command,
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=True,
+                                    shell=True)
 
-        # logger.debug(f'stdout is: {stdout}')
-        # logger.debug(f'stderr is: {stderr}')
+            logger.debug(f'ClustalO check_returncode() is: {result.check_returncode()}')
+            logger.debug(f'ClustalO stdout is: {result.stdout}')
+            logger.debug(f'ClustalO stderr is: {result.stderr}')
+
+        except subprocess.CalledProcessError as exc:
+            logger.error(f'ClustalO FAILED. Output is: {exc}')
+            logger.error(f'ClustalO stdout is: {exc.stdout}')
+            logger.error(f'ClustalO stderr is: {exc.stderr}')
+
+            raise ValueError('There was an issue running ClustalO. Check input files!')
 
         with lock:
             counter.value += 1
@@ -652,16 +715,17 @@ def main(args, logger=None):
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
-        # Perform optional cleaning with HmmCleaner.pl
+        # Perform optional cleaning with TAPER (correction_multi.jl):
         if not args.no_cleaning:
-            run_hmm_cleaner_multiprocessing(alignments_output_folder,
-                                            no_trimming=args.no_trimming,
-                                            pool_threads=args.pool,
-                                            logger=logger)
+            run_taper_multiprocessing(alignments_output_folder,
+                                      no_trimming=args.no_trimming,
+                                      cleaning_cutoff=args.cleaning_cutoff,
+                                      pool_threads=args.pool,
+                                      logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 
-    elif args.use_clustal:  # Re-align with Clustal Omega to better align short sequences
+    elif args.use_clustal:  # Align or re-align with Clustal Omega to better align short sequences
         logger.debug(f'Running with use_clustal option - aligning/realigning with Clustal Omega')
 
         if args.mafft_adjustdirection:  # Align with MAFFT first to revcomp any paralog sequences that need it:
@@ -699,10 +763,10 @@ def main(args, logger=None):
 
         # Perform optional cleaning with HmmCleaner.pl
         if not args.no_cleaning:
-            run_hmm_cleaner_multiprocessing(alignments_output_folder,
-                                            no_trimming=args.no_trimming,
-                                            pool_threads=args.pool,
-                                            logger=logger)
+            run_taper_multiprocessing(alignments_output_folder,
+                                      no_trimming=args.no_trimming,
+                                      pool_threads=args.pool,
+                                      logger=logger)
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping cleaning step...')
 

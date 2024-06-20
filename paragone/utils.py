@@ -187,7 +187,8 @@ def check_dependencies(logger=None):
                    'clustalo',
                    'iqtree',
                    'FastTreeMP',
-                   'HmmCleaner.pl',
+                   'julia',
+                   'correction_multi.jl',
                    'trimal',
                    'run_treeshrink.py']
 

@@ -1,6 +1,7 @@
 # ParaGone
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/paragone/README.html)
 
-Current version: 0.0.14rc (July 2023)
+Current version: 1.1.0 (June 2024). See the change_log.md [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/change_log.md)
 
 -----
 
@@ -16,16 +17,17 @@ ParaGone provides a single installable package that comprises many of the origin
 ---
 
 # Dependencies
-* [Python](https://www.python.org/downloads/) 3.6 or later, along with the Python libraries:
+* [Python](https://www.python.org/downloads/) >=3.6,<=3.9.16 (this maximum version constraint is due to an [issue](https://github.com/uym2/TreeShrink/issues/33) with Treeshrink), along with the Python libraries:
     * [progressbar2](https://github.com/WoLpH/python-progressbar). The conda install can be found [here](https://anaconda.org/conda-forge/progressbar2).
     * [ete3](http://etetoolkit.org/)
     * [biopython](http://biopython.org/wiki/Main_Page) 1.79 or later
     
 * [MAFFT](https://mafft.cbrc.jp/alignment/software/)
 * [ClustalOmega](https://www.ebi.ac.uk/seqdb/confluence/display/JDSAT/Clustal+Omega+Help+and+Documentation) 
-* [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl). A conda install can be found [here](https://anaconda.org/chrisjackson-pellicle/hmmcleaner).
+* [Julia](https://julialang.org/downloads/)  **NEW for version 1.1.0**
+* [TAPER](https://github.com/chaoszhang/TAPER). The TAPER script [correction_multi.jl](https://github.com/chaoszhang/TAPER/blob/master/correction_multi.jl) should be in your `$PATH`. **NEW for version 1.1.0**. TAPER replaces [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl) in ParaGone version 1.1.0
 * [Trimal](http://trimal.cgenomics.org/) version 1.4
-* [IQTREE](http://www.iqtree.org/)) 
+* [IQTREE](http://www.iqtree.org/)
 * [FastTree](http://www.microbesonline.org/fasttree/#OpenMP). The conda install can be found [here](link).
 * [Treeshrink](https://github.com/uym2/TreeShrink)
 
@@ -35,8 +37,8 @@ ParaGone provides a single installable package that comprises many of the origin
 We strongly recommend installing ParaGone using [conda](https://docs.conda.io/en/latest/miniconda.html) with a new environment. This will install ParaGone, all required Python packages, and all required external programs. If you have conda installed and the channels `bioconda` and `conda-forge` have already been added, this can be done using the command:
 
 ```
-conda create -n paragone -c chrisjackson-pellicle paragone
-```
+conda create -n paragone paragone
+`````
 
 ...followed by:
 
@@ -49,7 +51,7 @@ For full installation instructions, please see the wiki page:
 https://github.com/chrisjackson-pellicle/ParaGone/wiki/Installation
 
 
-Once all dependencies are installed you can download a test dataset [here](link), extract the `*.tar.gz` file, and execute the `run_paragone_test_dataset.sh` script from the `test_dataset` directory for a demonstration of ParaGone.
+Once all dependencies are installed you can download a test dataset [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/test_dataset.tar.gz), extract the `*.tar.gz` file, and execute the `run_paragone_test_dataset.sh` script from the `test_dataset` directory for a demonstration of ParaGone.
 
 
 ----
@@ -104,13 +106,6 @@ Running the pipeline will produce up to 28 output folders. The data in these fol
     28_RT_final_alignments_trimmed
 
 For a full description of ParaGone output, [see the wiki](https://github.com/chrisjackson-pellicle/ParaGone/wiki/Results-and-output-files).
-
-
------
-# Changelog
-
-**0.0.1rc** *January, 2023*
-
 
 
 [1]: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4209138/ "Link to the Yang and Smith 2014 manuscript"

@@ -1,3 +1,11 @@
+**1.1.0** *20 June, 2024*
+
+- Replaced HmmCleaner with TAPER for sequence-specific cleaning/QC.
+- Remove use of Bio.Align.Applications.MafftCommandline and Bio.Align.Applications.ClustalOmegaCommandline due to deprecation.
+- Ensure an internal outgroup sequence is always selected for each taxon when multiple sequences are present (issue#5).
+- Add check that interal outgroup sequences are found in the folder provided to command `align_selected_and_tree` (issue#6).
+- Update error handling and logging for the steps of the pipeline that use multiprocessing.
+
 **1.0.0** *25 August, 2023*
 
 - Bugfix: change type from `int` to `float` for `--trimal_resoverlap` in all relevant subparsers.

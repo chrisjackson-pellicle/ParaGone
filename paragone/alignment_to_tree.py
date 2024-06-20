@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-Takes a trimmed, hmmcleaned alignment, and produces a tree via FastTreeMP or IQTree
+Takes a trimmed (optional), cleaned (optional) alignment, and produces a tree via FastTreeMP or IQTree
 """
 
 import logging
@@ -12,9 +12,10 @@ import os
 import glob
 from concurrent.futures.process import ProcessPoolExecutor
 from multiprocessing import Manager
-from concurrent.futures import wait
+from concurrent.futures import wait, as_completed
 import subprocess
 import textwrap
+import traceback
 
 from paragone import utils
 
@@ -61,8 +62,16 @@ def fasttree_multiprocessing(alignments_folder,
                                       bootstraps=bootstraps,
                                       logger=logger)
                           for alignment in alignments]
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
 
         wait(future_results, return_when="ALL_COMPLETED")
 
@@ -183,8 +192,16 @@ def iqtree_multiprocessing(alignments_folder,
                                       bootstraps=bootstraps,
                                       logger=logger)
                           for alignment in alignments]
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
 
         wait(future_results, return_when="ALL_COMPLETED")
 

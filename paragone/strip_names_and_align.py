@@ -12,10 +12,11 @@ import re
 import textwrap
 import glob
 from Bio import SeqIO, AlignIO
-from Bio.Align.Applications import MafftCommandline, ClustalOmegaCommandline
 from concurrent.futures.process import ProcessPoolExecutor
 from multiprocessing import Manager
-from concurrent.futures import wait
+from concurrent.futures import wait, as_completed
+import traceback
+import subprocess
 
 from paragone import utils
 from paragone.align_and_clean import run_trimal
@@ -58,19 +59,31 @@ def mafft_align(fasta_file,
     except AssertionError:
 
         if algorithm == 'auto':
-            mafft_cline = (MafftCommandline(auto='true', thread=threads, input=fasta_file))
+            command = f'mafft --auto --thread {threads} {fasta_file} > {expected_alignment_file}'
         else:
-            mafft_cline = (MafftCommandline(algorithm, thread=threads, input=fasta_file))
+            command = f'{algorithm} --thread {threads} {fasta_file} > {expected_alignment_file}'
 
-        logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {mafft_cline}')
+        logger.debug(f'{"[INFO]:":10} Performing MAFFT alignment with command: {command}')
 
-        stdout, stderr = mafft_cline()
+        try:
 
-        # logger.debug(f'stdout is: {stdout}')
-        # logger.debug(f'stderr is: {stderr}')
+            result = subprocess.run(command,
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=True,
+                                    shell=True)
 
-        with open(expected_alignment_file, 'w') as alignment_file:
-            alignment_file.write(stdout)
+            logger.debug(f'MAFFT check_returncode() is: {result.check_returncode()}')
+            logger.debug(f'MAFFT stdout is: {result.stdout}')
+            logger.debug(f'MAFFT stderr is: {result.stderr}')
+
+        except subprocess.CalledProcessError as exc:
+            logger.error(f'MAFFT FAILED. Output is: {exc}')
+            logger.error(f'MAFFT stdout is: {exc.stdout}')
+            logger.error(f'MAFFT stderr is: {exc.stderr}')
+
+            raise ValueError('There was an issue running MAFFT. Check input files!')
 
         with lock:
             counter.value += 1
@@ -133,8 +146,16 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
 
                           for fasta_file in target_genes]
 
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
+
         wait(future_results, return_when="ALL_COMPLETED")
 
     alignment_list = [alignment for alignment in glob.glob(f'{alignments_output_folder}/*.aln.fasta') if
@@ -178,15 +199,28 @@ def clustalo_align(fasta_file,
         return os.path.basename(expected_alignment_file)
 
     except AssertionError:
-        clustalomega_cline = ClustalOmegaCommandline(infile=fasta_file, outfile=expected_alignment_file,
-                                                     verbose=True, auto=True, threads=threads)
+        command = f'clustalo --in {fasta_file} --out {expected_alignment_file} --threads {threads} --verbose'
+        logger.info(f'{"[INFO]:":10} Performing Clustal alignment with command: {command}')
 
-        logger.info(f'{"[INFO]:":10} Performing Clustal alignment with command: {clustalomega_cline}')
+        try:
 
-        stdout, stderr = clustalomega_cline()
+            result = subprocess.run(command,
+                                    universal_newlines=True,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    check=True,
+                                    shell=True)
 
-        # logger.debug(f'stdout is: {stdout}')
-        # logger.debug(f'stderr is: {stderr}')
+            logger.debug(f'ClustalO check_returncode() is: {result.check_returncode()}')
+            logger.debug(f'ClustalO stdout is: {result.stdout}')
+            logger.debug(f'ClustalO stderr is: {result.stderr}')
+
+        except subprocess.CalledProcessError as exc:
+            logger.error(f'ClustalO FAILED. Output is: {exc}')
+            logger.error(f'ClustalO stdout is: {exc.stdout}')
+            logger.error(f'ClustalO stderr is: {exc.stderr}')
+
+            raise ValueError('There was an issue running ClustalO. Check input files!')
 
         with lock:
             counter.value += 1
@@ -237,8 +271,16 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
 
                           for fasta_file in target_genes]
 
-        for future in future_results:
-            future.add_done_callback(utils.done_callback)
+        for future in as_completed(future_results):
+
+            try:
+                check = future.result()
+
+            except Exception as error:
+                print(f'Error raised: {error}')
+                tb = traceback.format_exc()
+                print(f'traceback is:\n{tb}')
+
         wait(future_results, return_when="ALL_COMPLETED")
 
     alignment_list = [alignment for alignment in glob.glob(f'{alignments_output_folder}/*.aln.fasta') if
