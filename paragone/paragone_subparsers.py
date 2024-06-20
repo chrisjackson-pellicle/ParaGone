@@ -774,8 +774,12 @@ def add_full_pipeline_parser(subparsers):
     parser_full_pipeline.add_argument('--no_cleaning',
                                       action='store_true',
                                       default=False,
-                                      help='No not clean alignments using HmmCleaner.pl. Default is: '
-                                           '%(default)s')
+                                      help='Do not clean alignments using TAPER. Default is: %(default)s')
+    parser_full_pipeline.add_argument('--cleaning_cutoff',
+                                      type=int,
+                                      default=3,
+                                      help='Cutoff value to pass to TAPER. Lower will perform more aggressive '
+                                           'cleaning. Default is: %(default)s')
     parser_full_pipeline.add_argument('--generate_bootstraps',
                                       action='store_true',
                                       default=False,
