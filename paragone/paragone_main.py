@@ -3,7 +3,7 @@
 # Author: Chris Jackson chris.jackson@rbg.vic.gov.au https://github.com/chrisjackson-pellicle
 
 """
-ParaGone: paralogy resolution pipeline version 0.0.14rc (July 2023)
+ParaGone: paralogy resolution pipeline version 1.1.- (June 2024)
 
 Adapted from Yang and Smith, Mol Biol Evol. 2014 Nov; 31(11): 3081–3092.
 

@@ -45,12 +45,12 @@ def subsample_alignments(treefile_directory,
 
     # Check for trim/clean status of original alignments:
     if from_cut_deep_paralogs:
-        if re.search('hmmcleaned', alignment_directory) and re.search('trimmed', alignment_directory):
+        if re.search('cleaned', alignment_directory) and re.search('trimmed', alignment_directory):
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed and cleaned')
-            alignment_suffix = '.aln.trimmed.hmm.fasta'
-        elif re.search('hmmcleaned', alignment_directory):
+            alignment_suffix = '.aln.trimmed.cleaned.fasta'
+        elif re.search('cleaned', alignment_directory):
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were cleaned but not trimmed')
-            alignment_suffix = '.aln.hmm.fasta'
+            alignment_suffix = '.aln.cleaned.fasta'
         elif re.search('trimmed', alignment_directory):
             logger.debug(f'Input alignment folder is {alignment_directory}; sequenced were trimmed but not cleaned')
             alignment_suffix = '.aln.trimmed.fasta'
