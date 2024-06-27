@@ -1,7 +1,7 @@
 # ParaGone
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/paragone/README.html)
 
-Current version: 1.1.0 (June 2024). See the change_log.md [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/change_log.md)
+Current version: 1.1.1 (June 2024). See the change_log.md [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/change_log.md)
 
 -----
 

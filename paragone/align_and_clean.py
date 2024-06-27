@@ -191,7 +191,6 @@ def mafft_align(fasta_file,
             logger.error(f'MAFFT FAILED. Output is: {exc}')
             logger.error(f'MAFFT stdout is: {exc.stdout}')
             logger.error(f'MAFFT stderr is: {exc.stderr}')
-
             raise ValueError('There was an issue running MAFFT. Check input files!')
 
         # If mafft has reversed any sequences, remove the prefix "_R_" from corresponding sequence names:
@@ -403,15 +402,12 @@ def run_taper_multiprocessing(alignments_to_clean_folder,
                 check = future.result()
 
                 # Log any messages from the TAPER processes to the main log:
-                cleaned_alignment, log_list_subcommand, log_list_check_seqs = check
+                cleaned_alignment, log_list_check_seqs = check
                 if log_list_check_seqs:
                     for item in log_list_check_seqs:
                         fill = textwrap.fill(f'{"[INFO]:":10} {item}',
                                              width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
                         logger.info(fill)
-                if log_list_subcommand:
-                    for item in log_list_subcommand:
-                        logger.debug(item)
 
             except Exception as error:
                 print(f'Error raised: {error}')
@@ -468,27 +464,26 @@ def run_taper(alignment,
         with lock:
             counter.value += 1
 
-        return os.path.basename(expected_cleaned_alignment_file), None, None  # log lists None as already processed
+        return os.path.basename(expected_cleaned_alignment_file), None  # log list None as already processed
 
     except AssertionError:
 
-        log_list_subcommand = []
         log_list_check_seqs = []
 
         try:
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-            log_list_subcommand.append(f'TAPER check_returncode() is: {result.check_returncode()}')
-            log_list_subcommand.append(f'TAPER stdout is: {result.stdout}')
-            log_list_subcommand.append(f'TAPER stderr is: {result.stderr}')
+            logger.debug(f'TAPER check_returncode() is: {result.check_returncode()}')
+            logger.debug(f'TAPER stdout is: {result.stdout}')
+            logger.debug(f'TAPER stderr is: {result.stderr}')
 
         except subprocess.CalledProcessError as exc:
 
-            log_list_subcommand.append(f'TAPER FAILED. Output is: {exc}')
-            log_list_subcommand.append(f'TAPER stdout is: {exc.stdout}')
-            log_list_subcommand.append(f'TAPER stderr is: {exc.stderr}')
-            log_list_subcommand.append(f'{"[INFO]:":10} Could not run TAPER for alignment {alignment} using command {command}')
+            logger.error(f'TAPER FAILED. Output is: {exc}')
+            logger.error(f'TAPER stdout is: {exc.stdout}')
+            logger.error(f'TAPER stderr is: {exc.stderr}')
+            raise ValueError('There was an issue running TAPER. Check input files!')
 
         # Filter out empty sequences comprising only dashes, and post-TAPER alignments where all sequences
         # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
@@ -531,7 +526,7 @@ def run_taper(alignment,
 
         with lock:
             counter.value += 1
-            return os.path.basename(expected_cleaned_alignment_file), log_list_subcommand, log_list_check_seqs
+            return os.path.basename(expected_cleaned_alignment_file), log_list_check_seqs
 
     finally:
         with lock:
@@ -647,7 +642,6 @@ def clustalo_align(fasta_file,
             logger.error(f'ClustalO FAILED. Output is: {exc}')
             logger.error(f'ClustalO stdout is: {exc.stdout}')
             logger.error(f'ClustalO stderr is: {exc.stderr}')
-
             raise ValueError('There was an issue running ClustalO. Check input files!')
 
         with lock:

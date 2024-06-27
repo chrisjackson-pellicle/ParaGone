@@ -1,3 +1,7 @@
+**1.1.1** *27 June, 2024*
+
+- Bugfix: raise an error if TAPER doesn't run successfully.
+
 **1.1.0** *20 June, 2024*
 
 - Add new dependency: Julia
