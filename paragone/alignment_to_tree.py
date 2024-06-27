@@ -69,9 +69,10 @@ def fasttree_multiprocessing(alignments_folder,
                 check = future.result()
 
             except Exception as error:
-                print(f'Error raised: {error}')
+                logger.error(f'Error raised: {error}')
                 tb = traceback.format_exc()
-                print(f'traceback is:\n{tb}')
+                logger.error(f'traceback is:\n{tb}')
+                sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")
 
@@ -199,9 +200,10 @@ def iqtree_multiprocessing(alignments_folder,
                 check = future.result()
 
             except Exception as error:
-                print(f'Error raised: {error}')
+                logger.error(f'Error raised: {error}')
                 tb = traceback.format_exc()
-                print(f'traceback is:\n{tb}')
+                logger.error(f'traceback is:\n{tb}')
+                sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")
 

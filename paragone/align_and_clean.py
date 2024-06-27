@@ -96,9 +96,10 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                print(f'Error raised: {error}')
+                logger.error(f'Error raised: {error}')
                 tb = traceback.format_exc()
-                print(f'traceback is:\n{tb}')
+                logger.error(f'traceback is:\n{tb}')
+                sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")
 
@@ -410,9 +411,10 @@ def run_taper_multiprocessing(alignments_to_clean_folder,
                         logger.info(fill)
 
             except Exception as error:
-                print(f'Error raised: {error}')
+                logger.error(f'Error raised: {error}')
                 tb = traceback.format_exc()
-                print(f'traceback is:\n{tb}')
+                logger.error(f'traceback is:\n{tb}')
+                sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")  # redundant, but...
 
@@ -575,9 +577,10 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                print(f'Error raised: {error}')
+                logger.error(f'Error raised: {error}')
                 tb = traceback.format_exc()
-                print(f'traceback is:\n{tb}')
+                logger.error(f'traceback is:\n{tb}')
+                sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")
 
