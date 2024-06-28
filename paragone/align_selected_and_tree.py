@@ -336,7 +336,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -403,16 +403,9 @@ def mafft_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'MAFFT check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'MAFFT stdout is: {result.stdout}')
-            logger.debug(f'MAFFT stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'MAFFT FAILED. Output is: {exc}')
-            logger.error(f'MAFFT stdout is: {exc.stdout}')
-            logger.error(f'MAFFT stderr is: {exc.stderr}')
-
-            raise ValueError('There was an issue running MAFFT. Check input files!')
+            raise ValueError(f'\nMAFFT FAILED. Output is: {exc}\nMAFFT stdout is: {exc.stdout}\nMAFFT stderr is:'
+                             f' {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -466,7 +459,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -526,16 +519,9 @@ def clustalo_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'ClustalO check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'ClustalO stdout is: {result.stdout}')
-            logger.debug(f'ClustalO stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'ClustalO FAILED. Output is: {exc}')
-            logger.error(f'ClustalO stdout is: {exc.stdout}')
-            logger.error(f'ClustalO stderr is: {exc.stderr}')
-
-            raise ValueError('There was an issue running ClustalO. Check input files!')
+            raise ValueError(f'\nClustalO FAILED. Output is: {exc}\nClustalO stdout is: {exc.stdout}\n'
+                             f'ClustalO stderr is: {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -592,7 +578,7 @@ def fasttree_multiprocessing(alignments_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -646,23 +632,15 @@ def fasttree(alignment_file,
                                    f'FastTreeMP -gtr -nt < {alignment_file} > {expected_output_file}'
                 result = subprocess.run(fasttree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         universal_newlines=True, check=True)
-                logger.debug(f'FastTreeMP check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'FastTreeMP stdout is: {result.stdout}')
-                logger.debug(f'FastTreeMP stderr is: {result.stderr}')
-
             else:
                 fasttree_command = f'export OMP_NUM_THREADS={threads};' \
                                    f'FastTreeMP -gtr -nt -nosupport < {alignment_file} > {expected_output_file}'
                 result = subprocess.run(fasttree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         universal_newlines=True, check=True)
-                logger.debug(f'FastTreeMP check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'FastTreeMP stdout is: {result.stdout}')
-                logger.debug(f'FastTreeMP stderr is: {result.stderr}')
 
         except subprocess.CalledProcessError as exc:
-            logger.error(f'FastTreeMP FAILED. Output is: {exc}')
-            logger.error(f'FastTreeMP stdout is: {exc.stdout}')
-            logger.error(f'FastTreeMP stderr is: {exc.stderr}')
+            raise ValueError(f'\nFastTreeMP FAILED. Output is: {exc}\nFastTreeMP stdout is: {exc.stdout}\n'
+                             f'FastTreeMP stderr is: {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -717,7 +695,7 @@ def iqtree_multiprocessing(alignments_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -771,23 +749,15 @@ def iqtree(alignment_file,
                                  f'-m GTR+G -bb 1000 -bnni -nt {str(threads)} -quiet'
                 result = subprocess.run(iqtree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         universal_newlines=True, check=True)
-                logger.debug(f'IQTREE check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'IQTREE stdout is: {result.stdout}')
-                logger.debug(f'IQTREE stderr is: {result.stderr}')
-
             else:
                 iqtree_command = f'iqtree -redo -pre {output_folder}/{alignment_file_basename} -s {alignment_file} ' \
                                  f'-m GTR+G -nt {str(threads)} -quiet'
                 result = subprocess.run(iqtree_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                         universal_newlines=True, check=True)
-                logger.debug(f'IQTREE check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'IQTREE stdout is: {result.stdout}')
-                logger.debug(f'IQTREE stderr is: {result.stderr}')
 
         except subprocess.CalledProcessError as exc:
-            logger.error(f'IQTREE FAILED. Output is: {exc}')
-            logger.error(f'IQTREE stdout is: {exc.stdout}')
-            logger.error(f'IQTREE stderr is: {exc.stderr}')
+            raise ValueError(f'\nIQTREE FAILED. Output is: {exc}\nIQTREE stdout is: {exc.stdout}\n'
+                             f'IQTREE stderr is: {exc.stderr}')
 
         with lock:
             counter.value += 1

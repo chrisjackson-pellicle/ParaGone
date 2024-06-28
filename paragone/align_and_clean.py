@@ -96,7 +96,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -184,15 +184,9 @@ def mafft_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'MAFFT check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'MAFFT stdout is: {result.stdout}')
-            logger.debug(f'MAFFT stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'MAFFT FAILED. Output is: {exc}')
-            logger.error(f'MAFFT stdout is: {exc.stdout}')
-            logger.error(f'MAFFT stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running MAFFT. Check input files!')
+            raise ValueError(f'\nMAFFT FAILED. Output is: {exc}\nMAFFT stdout is: {exc.stdout}\nMAFFT stderr is:'
+                             f' {exc.stderr}')
 
         # If mafft has reversed any sequences, remove the prefix "_R_" from corresponding sequence names:
         seqs_renamed_list = remove_r_prefix(expected_alignment_file, logger=logger)
@@ -290,7 +284,6 @@ def run_trimal(input_folder,
                                         shell=True)
 
                 logger.debug(f'trimal check_returncode() is: {result.check_returncode()}')
-                logger.debug(f'trimal stdout is: {result.stdout}')
                 logger.debug(f'trimal stderr is: {result.stderr}')
 
             except subprocess.CalledProcessError as exc:
@@ -411,14 +404,14 @@ def run_taper_multiprocessing(alignments_to_clean_folder,
                         logger.info(fill)
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
 
         wait(future_results, return_when="ALL_COMPLETED")  # redundant, but...
 
-    alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.hmm.fasta') if
+    alignment_list = [alignment for alignment in glob.glob(f'{output_folder}/*.cleaned.fasta') if
                       utils.file_exists_and_not_empty(alignment)]
 
     logger.debug(f'{len(alignment_list)} Cleaned alignments generated from {len(future_results)} alignment files...')
@@ -476,16 +469,9 @@ def run_taper(alignment,
             result = subprocess.run(command, shell=True, universal_newlines=True, check=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
 
-            logger.debug(f'TAPER check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'TAPER stdout is: {result.stdout}')
-            logger.debug(f'TAPER stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-
-            logger.error(f'TAPER FAILED. Output is: {exc}')
-            logger.error(f'TAPER stdout is: {exc.stdout}')
-            logger.error(f'TAPER stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running TAPER. Check input files!')
+            raise ValueError(f'\nTAPER FAILED. Output is: {exc}\nTAPER stdout is: {exc.stdout}\nTAPER stderr is:'
+                             f' {exc.stderr}')
 
         # Filter out empty sequences comprising only dashes, and post-TAPER alignments where all sequences
         # are either dashes or empty. If fewer than 4 'good' sequences are present, skip the gene:
@@ -577,7 +563,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -637,15 +623,9 @@ def clustalo_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'ClustalO check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'ClustalO stdout is: {result.stdout}')
-            logger.debug(f'ClustalO stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'ClustalO FAILED. Output is: {exc}')
-            logger.error(f'ClustalO stdout is: {exc.stdout}')
-            logger.error(f'ClustalO stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running ClustalO. Check input files!')
+            raise ValueError(f'\nClustalO FAILED. Output is: {exc}\nClustalO stdout is: {exc.stdout}\n'
+                             f'ClustalO stderr is: {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -758,7 +738,7 @@ def main(args, logger=None):
         else:
             logger.info(f'\n{"[INFO]:":10} Skipping trimming step...')
 
-        # Perform optional cleaning with HmmCleaner.pl
+        # Perform optional cleaning with TAPER
         if not args.no_cleaning:
             run_taper_multiprocessing(alignments_output_folder,
                                       no_trimming=args.no_trimming,

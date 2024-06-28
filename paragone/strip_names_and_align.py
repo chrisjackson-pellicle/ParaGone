@@ -74,16 +74,9 @@ def mafft_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'MAFFT check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'MAFFT stdout is: {result.stdout}')
-            logger.debug(f'MAFFT stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'MAFFT FAILED. Output is: {exc}')
-            logger.error(f'MAFFT stdout is: {exc.stdout}')
-            logger.error(f'MAFFT stderr is: {exc.stderr}')
-
-            raise ValueError('There was an issue running MAFFT. Check input files!')
+            raise ValueError(f'\nMAFFT FAILED. Output is: {exc}\nMAFFT stdout is: {exc.stdout}\nMAFFT stderr is:'
+                             f' {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -152,7 +145,7 @@ def mafft_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)
@@ -212,16 +205,9 @@ def clustalo_align(fasta_file,
                                     check=True,
                                     shell=True)
 
-            logger.debug(f'ClustalO check_returncode() is: {result.check_returncode()}')
-            logger.debug(f'ClustalO stdout is: {result.stdout}')
-            logger.debug(f'ClustalO stderr is: {result.stderr}')
-
         except subprocess.CalledProcessError as exc:
-            logger.error(f'ClustalO FAILED. Output is: {exc}')
-            logger.error(f'ClustalO stdout is: {exc.stdout}')
-            logger.error(f'ClustalO stderr is: {exc.stderr}')
-
-            raise ValueError('There was an issue running ClustalO. Check input files!')
+            raise ValueError(f'\nClustalO FAILED. Output is: {exc}\nClustalO stdout is: {exc.stdout}\n'
+                             f'ClustalO stderr is: {exc.stderr}')
 
         with lock:
             counter.value += 1
@@ -278,7 +264,7 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
                 check = future.result()
 
             except Exception as error:
-                logger.error(f'Error raised: {error}')
+                logger.error(f'\nError raised: {error}')
                 tb = traceback.format_exc()
                 logger.error(f'traceback is:\n{tb}')
                 sys.exit(1)

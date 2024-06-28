@@ -1,8 +1,10 @@
-**1.1.1** *27 June, 2024*
+**1.1.1** *28th June, 2024*
 
-- Bugfix: raise an error if TAPER doesn't run successfully.
+- Bugfix: raise the correct error if TAPER doesn't run successfully.
+- Removed logging of stdout/stderr for successful commands (only affects osx, due to the default use of spawn for multiprocessing).
+- Improved logging of error messages and control flow for unsuccessful commands.
 
-**1.1.0** *20 June, 2024*
+**1.1.0** *20th June, 2024*
 
 - Add new dependency: Julia
 - Replaced HmmCleaner with TAPER for sequence-specific cleaning/QC.
@@ -12,7 +14,7 @@
 - Update error handling and logging for the steps of the pipeline that use multiprocessing.
 - Update commands in `run_paragone_test_dataset.sh` to match output directory names.
 
-**1.0.0** *25 August, 2023*
+**1.0.0** *25th August, 2023*
 
 - Bugfix: change type from `int` to `float` for `--trimal_resoverlap` in all relevant subparsers.
 - Add check that `--trimal_resoverlap` is provided if `--trimal_seqoverlap` is used, and vice-versa.
