@@ -1,3 +1,7 @@
+***1.1.2** *28th June, 2024*
+
+- Bugfix: correct an  error when running `paragone full_pipeline` due to mis-specified output folders.
+
 **1.1.1** *28th June, 2024*
 
 - Bugfix: raise the correct error if TAPER doesn't run successfully.

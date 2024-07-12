@@ -418,7 +418,7 @@ def delete_intermediate_data(logger=None):
         '01_input_paralog_fasta_with_sanitised_filenames',
         '02_alignments',
         '03_alignments_trimmed',
-        '04_alignments_trimmed_hmmcleaned',
+        '04_alignments_trimmed_cleaned',
         '05_trees_pre_quality_control',
         '06_trees_trimmed',
         '07_trees_trimmed_masked',

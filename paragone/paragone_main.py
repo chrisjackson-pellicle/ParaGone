@@ -502,9 +502,9 @@ def full_pipeline_main(args,
     elif args.no_cleaning and not args.no_trimming:
         args.alignment_directory = '03_alignments_trimmed'
     elif args.no_trimming and not args.no_cleaning:
-        args.alignment_directory = '04_alignments_hmmcleaned'
+        args.alignment_directory = '04_alignments_cleaned'
     else:
-        args.alignment_directory = '04_alignments_trimmed_hmmcleaned'
+        args.alignment_directory = '04_alignments_trimmed_cleaned'
 
     # Produce trees from alignments:
     alignment_to_tree.main(
