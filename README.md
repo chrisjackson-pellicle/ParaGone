@@ -47,7 +47,7 @@ conda create -n paragone paragone
 conda activate paragone
 ```
 
-For full installation instructions, please see the wiki page:
+For full installation instructions, including details on how to install on **Macs with Apple Silicon (M1/M2/M3 chips)**, please see our wiki page:
 
 https://github.com/chrisjackson-pellicle/ParaGone/wiki/Installation
 
