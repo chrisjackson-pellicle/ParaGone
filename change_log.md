@@ -1,4 +1,4 @@
-***1.1.2** *15th July, 2024*
+**1.1.2** *15th July, 2024*
 
 - Bugfix: correct an  error when running `paragone full_pipeline` due to mis-specified output folders.
 
