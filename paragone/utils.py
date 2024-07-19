@@ -417,6 +417,7 @@ def delete_intermediate_data(logger=None):
     folders_to_delete = [
         '01_input_paralog_fasta_with_sanitised_filenames',
         '02_alignments',
+        '02_alignments_clustal',
         '03_alignments_trimmed',
         '04_alignments_trimmed_cleaned',
         '05_trees_pre_quality_control',
