@@ -497,8 +497,10 @@ def full_pipeline_main(args,
         args,
         logger=logger)
 
-    if args.no_trimming and args.no_cleaning:
+    if args.no_trimming and args.no_cleaning and not args.use_clustal:
         args.alignment_directory = '02_alignments'
+    elif args.no_trimming and args.no_cleaning and args.use_clustal:
+        args.alignment_directory = '02_alignments_clustal'
     elif args.no_cleaning and not args.no_trimming:
         args.alignment_directory = '03_alignments_trimmed'
     elif args.no_trimming and not args.no_cleaning:
