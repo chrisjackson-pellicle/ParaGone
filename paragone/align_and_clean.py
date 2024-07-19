@@ -368,7 +368,6 @@ def run_taper_multiprocessing(alignments_to_clean_folder,
 
     utils.createfolder(output_folder)
 
-    logger.info('')
     fill = textwrap.fill(f'{"[INFO]:":10} Running TAPER on alignments. Cleaned alignments will be '
                          f'written to directory: "{output_folder}".',
                          width=90, subsequent_indent=' ' * 11, break_on_hyphens=False)
@@ -529,15 +528,14 @@ def clustalo_align_multiprocessing(fasta_to_align_folder,
     """
     Generate alignments via function <clustalo_align> using multiprocessing.
 
-    :param fasta_to_align_folder: path to folder containing input fasta alignment files
+    :param str fasta_to_align_folder: path to folder containing input fasta alignment files
     :param int pool_threads: number of alignments to run concurrently
     :param int clustalo_threads: number of threads to use for each concurrent alignment
     :param logging.Logger logger: a logger object
     :return str output_folder: name of the output folder containing alignments
     """
 
-    input_folder_basename = os.path.basename(fasta_to_align_folder)
-    output_folder = f'{input_folder_basename}_clustal'
+    output_folder = f'02_alignments_clustal'
     utils.createfolder(output_folder)
 
     logger.info(f'\n{"[INFO]:":10} Generating alignments for fasta files using Clustal Omega...')
@@ -600,7 +598,7 @@ def clustalo_align(fasta_file,
     """
 
     fasta_file_basename = os.path.basename(fasta_file)
-    expected_alignment_file = f'{output_folder}/{fasta_file_basename}'
+    expected_alignment_file = f'{output_folder}/{re.sub("(.aln)?.fasta", ".aln.fasta", fasta_file_basename)}'
 
     try:
         assert utils.file_exists_and_not_empty(expected_alignment_file)
