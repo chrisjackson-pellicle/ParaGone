@@ -1,3 +1,8 @@
+**1.1.3** *19th July, 2024*
+
+- Bugfix: correct a file and folder name issue that resulted in missing output files when using the option `--use-clustal`.
+
+
 **1.1.2** *15th July, 2024*
 
 - Bugfix: correct an  error when running `paragone full_pipeline` due to mis-specified output folders.
