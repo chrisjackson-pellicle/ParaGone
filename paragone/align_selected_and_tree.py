@@ -496,7 +496,7 @@ def clustalo_align(fasta_file,
     """
 
     fasta_file_basename = os.path.basename(fasta_file)
-    expected_alignment_file = f'{output_folder}/{fasta_file_basename}'
+    expected_alignment_file = f'{output_folder}/{re.sub("(.aln)?.fasta", ".aln.fasta", fasta_file_basename)}'
 
     try:
         assert utils.file_exists_and_not_empty(expected_alignment_file)
