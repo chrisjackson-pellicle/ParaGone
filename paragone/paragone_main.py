@@ -547,6 +547,12 @@ def full_pipeline_main(args,
         report_directory,
         logger=logger)
 
+    # Write reports on putative paralogy in the QC'd trees:
+    paralogy_report.main(
+        args,
+        report_directory,
+        logger=logger)
+
     # Run the Monophyletic Outgroups (MO) algorithm:
     if args.mo:
         prune_paralogs_mo.main(
