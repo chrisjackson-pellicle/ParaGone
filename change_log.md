@@ -1,3 +1,8 @@
+**1.1.4** *8th January, 2026*
+
+- If TreeShrink fails for a given input tree, skip this tree and log a warning. Previous behaviour was to exit the pipeline with an error. See issue [#11](https://github.com/chrisjackson-pellicle/ParaGone/issues/11).
+
+
 **1.1.3** *19th July, 2024*
 
 - Bugfix: correct a file and folder name issue that resulted in missing output files when using the option `--use-clustal`.

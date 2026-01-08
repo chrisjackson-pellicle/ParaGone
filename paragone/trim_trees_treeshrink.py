@@ -49,6 +49,16 @@ def write_trim_report(collated_trim_report_dict,
 
         tree_stats = [tree_name]
 
+        # Check if TreeShrink failed for this tree:
+        if 'treeshrink_failed' in dictionaries:
+            tree_stats.append('FAILED')
+            tree_stats.append('N/A')
+            tree_stats.append('N')
+            tree_stats.append('N')
+            tree_stats.append('Y')
+            all_tree_stats_for_report.append(tree_stats)
+            continue
+
         try:
             check = dictionaries['tips_removed']
             assert len(check) != 0
@@ -71,6 +81,8 @@ def write_trim_report(collated_trim_report_dict,
         except KeyError:
             tree_stats.append('N')
 
+        tree_stats.append('N')  # TreeShrink did not fail
+
         all_tree_stats_for_report.append(tree_stats)
 
     with open(report_filename, 'w') as report_handle:
@@ -78,7 +90,8 @@ def write_trim_report(collated_trim_report_dict,
                             f'Tips removed by TreeShrink with quantile {quantile}\t'
                             f'Tip names\t'
                             f'Trimmed trees > {min_tips} taxa\t'
-                            f'Trimmed trees < {min_tips} taxa'
+                            f'Trimmed trees < {min_tips} taxa\t'
+                            f'TreeShrink failed'
                             f'\n')
 
         for stats in all_tree_stats_for_report:
@@ -154,10 +167,15 @@ def treeshrink(treefile,
                         tips_removed.extend(tip_names)
 
         except subprocess.CalledProcessError as exc:
-            logger.error(f'treeshrink FAILED. Output is: {exc}')
-            logger.error(f'v stdout is: {exc.stdout}')
-            logger.error(f'treeshrink stderr is: {exc.stderr}')
-            raise ValueError('There was an issue running TreeShrink. Check input files!')
+            logger.warning(f'{"[WARNING]:":10} TreeShrink FAILED for tree {treefile_basename}. See the log file for details.')
+            logger.debug(f'Output is: {exc}')
+            logger.debug(f'{"[WARNING]:":10} TreeShrink stdout is: {exc.stdout}')
+            logger.debug(f'{"[WARNING]:":10} TreeShrink stderr is: {exc.stderr}')
+            logger.warning(f'{"":10} Skipping TreeShrink processing for this tree and continuing...')
+
+            # Move TreeShrink directory to folder treeshrink_output_dirs
+            shutil.move(expected_shrunk_treefile_dir, treeshrink_output_archive)
+            return None, None
 
         # Unroot the TreeShrink tree and write it to the parent directory:
         try:
@@ -220,11 +238,21 @@ def main(args,
                                                 q_value=args.treeshrink_q_value,
                                                 logger=logger)
 
+        # Check if TreeShrink failed:
+        if trimmed_tree is None:
+            collated_trim_report_dict[basename]['treeshrink_failed'] = True
+            collated_trim_report_dict[basename]['tips_removed'] = []
+            continue
+
         collated_trim_report_dict[basename]['tips_removed'] = tips_removed
 
         # Read in the tree produced by TreeShrink:
         with open(trimmed_tree, 'r') as trimmed_tree_handle:
             intree = newick3.parse(trimmed_tree_handle.readline())
+            logger.info(f'intree: {len(intree.leaves())}')
+            print(dir(intree))
+            for node in intree.iternodes():
+                print(node.label)
 
         # Check number of tips:
         if len(intree.leaves()) >= args.min_tips:

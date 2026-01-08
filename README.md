@@ -1,7 +1,7 @@
 # ParaGone
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/paragone/README.html)
 
-Current version: 1.1.2 (July 2024). See the change_log.md [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/change_log.md)
+Current version: 1.1.4 (October 2025). See the change_log.md [here](https://github.com/chrisjackson-pellicle/ParaGone/blob/main/change_log.md)
 
 -----
 
@@ -47,7 +47,7 @@ conda create -n paragone paragone
 conda activate paragone
 ```
 
-For full installation instructions, including details on how to install on **Macs with Apple Silicon (M1/M2/M3 chips)**, please see our wiki page:
+For full installation instructions, including details on how to install on **Macs with Apple Silicon (M1-M5 chips)**, please see our wiki page:
 
 https://github.com/chrisjackson-pellicle/ParaGone/wiki/Installation
 

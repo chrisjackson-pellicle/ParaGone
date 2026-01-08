@@ -670,7 +670,7 @@ def main(args, logger=None):
                        logger=logger)
 
     if not args.use_clustal:
-        logger.debug(f'Running without no_stitched_contigs option - aligning with mafft only')
+        logger.debug(f'Running without --use_clustal option - aligning with MAFFT only')
 
         alignments_output_folder = mafft_align_multiprocessing(
             gene_fasta_directory,

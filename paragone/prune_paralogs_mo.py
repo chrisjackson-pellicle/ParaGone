@@ -194,7 +194,7 @@ def prune_paralogs_from_rerooted_homotree(root,
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set2 = set(tree_utils.get_front_names(node2))
         if len(name_set0.intersection(name_set2)) > 0:  # i.e. clades contain overlapping taxon names
-            print(name_set0.intersection(name_set2))
+            # print(name_set0.intersection(name_set2))
             # cut the side with fewer taxa:
             if len(name_set0) > len(name_set2):
                 root.remove_child(node2)
