@@ -35,6 +35,7 @@ import traceback
 
 from paragone import utils
 from paragone.align_and_clean import run_trimal
+from paragone.tree_utils import get_name
 
 
 def add_outgroup_seqs(qc_alignment_directory,
@@ -86,7 +87,7 @@ def add_outgroup_seqs(qc_alignment_directory,
 
         # Populate the internal_outgroup_dict (potentially more than one sequence per taxon):
         for seq in seqs:
-            seq_name_prefix = seq.name.split('.')[0]  # assumes there are no other dots ('.') in the sequence name
+            seq_name_prefix = get_name(seq.name)
             all_paralog_taxon_names.add(seq_name_prefix)
             if list_of_internal_outgroups and seq_name_prefix in list_of_internal_outgroups:
                 internal_outgroup_dict[gene_id][seq_name_prefix].append(seq)
@@ -100,7 +101,7 @@ def add_outgroup_seqs(qc_alignment_directory,
             alignment_ingroup_seqs_only = []
             ingroup_count = 0
             for sequence in alignment:
-                gene_name = sequence.id.split('.')[0]
+                gene_name = get_name(sequence.id)
                 if gene_name not in list_of_internal_outgroups:
                     ingroup_count += 1
                     if ingroup_count <= 10:
@@ -185,7 +186,7 @@ def add_outgroup_seqs(qc_alignment_directory,
         seqs = list(SeqIO.parse(selected_alignment, 'fasta'))
         if list_of_internal_outgroups:
             # Get seqs that are NOT internal outgroups:
-            seqs_to_write = [seq for seq in seqs if seq.name.split('.')[0] not in list_of_internal_outgroups]
+            seqs_to_write = [seq for seq in seqs if get_name(seq.name) not in list_of_internal_outgroups]
         else:
             seqs_to_write = seqs
 

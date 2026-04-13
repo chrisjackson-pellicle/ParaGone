@@ -249,10 +249,6 @@ def main(args,
         # Read in the tree produced by TreeShrink:
         with open(trimmed_tree, 'r') as trimmed_tree_handle:
             intree = newick3.parse(trimmed_tree_handle.readline())
-            logger.info(f'intree: {len(intree.leaves())}')
-            print(dir(intree))
-            for node in intree.iternodes():
-                print(node.label)
 
         # Check number of tips:
         if len(intree.leaves()) >= args.min_tips:

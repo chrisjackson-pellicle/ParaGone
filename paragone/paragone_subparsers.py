@@ -20,7 +20,7 @@ def add_check_and_align_parser(subparsers):
                                                         'paralog alignments;\ntrim and/or clean alignments (optional)')
     parser_check_and_align.add_argument('gene_fasta_directory',
                                         type=str,
-                                        help='Directory contains fasta files with paralog sequences')
+                                        help='Directory of per-locus paralog sequence files (.fasta or .fna)')
     parser_check_and_align.add_argument('--gene_name_delimiter',
                                         type=str,
                                         default='_',
@@ -477,7 +477,8 @@ def add_final_alignments_parser(subparsers):
 
     parser_final_alignments = subparsers.add_parser('final_alignments',
                                                     help='Recover fasta sequences for pruned trees;\nstrip names of '
-                                                         'paralog designations (e.g. .main, .0, .1 etc);\nperform '
+                                                         'paralog designations (e.g. .main, .0, .1 or Captus __00, '
+                                                         '__01);\nperform '
                                                          'final alignments')
     parser_final_alignments.add_argument('--mo',
                                          action='store_true',
@@ -627,7 +628,7 @@ def add_full_pipeline_parser(subparsers):
                                                  help='Run all steps of the ParaGone pipeline.')
     parser_full_pipeline.add_argument('gene_fasta_directory',
                                       type=str,
-                                      help='Directory contains fasta files with paralog sequences')
+                                      help='Directory of per-locus paralog sequence files (.fasta or .fna)')
     parser_full_pipeline.add_argument('--gene_name_delimiter',
                                       type=str,
                                       default='_',

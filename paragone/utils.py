@@ -24,13 +24,35 @@ import resource
 import subprocess
 
 
+# Per-locus paralog nucleotide inputs (check_and_align / sanitise step); also accepted by check_inputs as a tuple.
+PARALOG_INPUT_SUFFIXES = ('.fasta', '.fna')
+
+
+def glob_paralog_input_files(directory):
+    """
+    Return sorted paths to per-locus paralog files (.fasta or .fna) in *directory*.
+
+    :param str directory: folder containing input paralog sequence files
+    :return list[str]: sorted file paths, each basename unique (first wins if duplicates)
+    """
+    seen = set()
+    paths = []
+    for ext in PARALOG_INPUT_SUFFIXES:
+        for path in glob.glob(os.path.join(directory, f'*{ext}')):
+            if path not in seen:
+                seen.add(path)
+                paths.append(path)
+    return sorted(paths)
+
+
 def check_inputs(directory_suffix_dict,
                  file_list,
                  logger=None):
     """
     Checks that provided directories and files both exist and are not empty.
 
-    :param directory_suffix_dict:
+    :param directory_suffix_dict: maps directory path to expected filename suffix (str) or suffixes (tuple/list of str);
+           files matching any listed suffix count toward the non-empty requirement.
     :param file_list:
     :param logging.Logger logger: a logger object
     :return:
@@ -38,17 +60,25 @@ def check_inputs(directory_suffix_dict,
 
     # Check that inpout directories exist, contains files with the expected suffix, and the files are not empty:
     for directory, expected_file_suffix in directory_suffix_dict.items():
-        logger.debug(f'Checking directory {directory} for files with suffix {expected_file_suffix}')
+        suffixes = (expected_file_suffix,) if isinstance(expected_file_suffix, str) else tuple(expected_file_suffix)
+        suffix_desc = suffixes[0] if len(suffixes) == 1 else ' or '.join(suffixes)
+        logger.debug(f'Checking directory {directory} for files with suffix {suffix_desc}')
         if not os.path.isdir(directory):
             logger.error(f'{"[ERROR]:":10} Directory not found: {directory}')
             sys.exit(1)
         else:
             logger.debug(f'Directory {directory} exists, proceeding...')
 
-        expected_files = glob.glob(f'{directory}/*{expected_file_suffix}')
+        expected_files = []
+        seen_paths = set()
+        for sfx in suffixes:
+            for path in glob.glob(f'{directory}/*{sfx}'):
+                if path not in seen_paths:
+                    seen_paths.add(path)
+                    expected_files.append(path)
         if not expected_files:
             logger.error(f'{"[ERROR]:":10} Directory "{directory}" contains no files with suffix:'
-                         f' {expected_file_suffix}')
+                         f' {suffix_desc}')
             sys.exit(1)
         else:
             logger.debug(f'Expected_files are {expected_files}, proceeding...')
