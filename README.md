@@ -26,7 +26,7 @@ ParaGone provides a single installable package that comprises many of the origin
 * [ClustalOmega](https://www.ebi.ac.uk/seqdb/confluence/display/JDSAT/Clustal+Omega+Help+and+Documentation) 
 * [Julia](https://julialang.org/downloads/)  **NEW for version 1.1.0**, along with the Julia module:
   * [ArgParse](https://carlobaldassi.github.io/ArgParse.jl/latest/)
-* [TAPER](https://github.com/chaoszhang/TAPER). The TAPER script [correction_multi.jl](https://github.com/chaoszhang/TAPER/blob/master/correction_multi.jl) should be in your `$PATH`. **NEW for version 1.1.0**. TAPER replaces [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl) in ParaGone version 1.1.0
+* [TAPER](https://github.com/chaoszhang/TAPER). The TAPER script [correction_multi.jl](https://github.com/chaoszhang/TAPER/blob/master/correction_multi.jl) should be in your `$PATH` and it should be executable. **NEW for version 1.1.0**. TAPER replaces [HmmCleaner.pl](https://metacpan.org/dist/Bio-MUST-Apps-HmmCleaner/view/bin/HmmCleaner.pl) in ParaGone version 1.1.0
 * [Trimal](http://trimal.cgenomics.org/) version 1.4
 * [IQTREE](http://www.iqtree.org/)
 * [FastTree](http://www.microbesonline.org/fasttree/#OpenMP). The conda install can be found [here](link).
