@@ -53,7 +53,7 @@ def write_putative_paralogy_reports(treefile_directory,
             intree = newick3.parse(infile.readline())
             for node in intree.iternodes(order=0):  # PREORDER, root to tip
                 if node.istip:
-                    base_taxon_name = node.label.split('.')[0]
+                    base_taxon_name = tree_utils.get_name(node.label)
                     all_taxa.add(base_taxon_name)
 
                     taxon_to_count_dict[base_taxon_name].append(node.label)

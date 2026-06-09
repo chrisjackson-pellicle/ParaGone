@@ -59,7 +59,7 @@ def reroot_with_monophyletic_outgroups(root,
     # Since no taxon repeat in outgroups name and leaf is one-to-one  # CJJ what the latter clause mean?
     outgroup_labels = []
     for leaf in leaves:
-        label = leaf.label  # e.g. 376678.main or 376728.0, etc
+        label = leaf.label  # e.g. 376678.main, 376728.0, or Captus 376678__00
         name = tree_utils.get_name(label)  # e.g. 376678 or 376728, etc
         if name in outgroups:
             outgroup_matches[label] = leaf
@@ -194,7 +194,7 @@ def prune_paralogs_from_rerooted_homotree(root,
         name_set0 = set(tree_utils.get_front_names(node0))
         name_set2 = set(tree_utils.get_front_names(node2))
         if len(name_set0.intersection(name_set2)) > 0:  # i.e. clades contain overlapping taxon names
-            print(name_set0.intersection(name_set2))
+            # print(name_set0.intersection(name_set2))
             # cut the side with fewer taxa:
             if len(name_set0) > len(name_set2):
                 root.remove_child(node2)
@@ -307,7 +307,7 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
             continue
 
         if node.istip:
-            if node.label.split('.')[0] in outgroups:
+            if tree_utils.get_name(node.label) in outgroups:
                 outgroup_tips.append((node.label, str(node.length)))
 
     if debug:
@@ -322,10 +322,10 @@ def prune_paralogs_from_rerooted_homotree_cjj(root,
                 continue
 
             if node.istip:
-                assert node.label.split('.')[0] in outgroups
+                assert tree_utils.get_name(node.label) in outgroups
 
             if not node.istip:  # i.e. it's an internal branch
-                children_taxon_names = [leaf.label.split('.')[0] for leaf in node.leaves()]
+                children_taxon_names = [tree_utils.get_name(leaf.label) for leaf in node.leaves()]
 
                 # Check if any of the child leaf names are outgroups:
                 intersection = set(children_taxon_names).intersection(set(outgroups))

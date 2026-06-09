@@ -20,6 +20,7 @@ import subprocess
 
 from paragone import utils
 from paragone.align_and_clean import run_trimal
+from paragone.tree_utils import get_name
 
 
 def mafft_align(fasta_file,
@@ -297,8 +298,9 @@ def strip_names_for_concat(selected_alignment_directory,
         alignment_basename = os.path.basename(alignment)
         seqs = AlignIO.read(alignment, 'fasta')
         for seq in seqs:
-            seq.name = f'{seq.name.split(".")[0]}'
-            seq.id = f'{seq.id.split(".")[0]}'
+            stripped = get_name(seq.name)
+            seq.name = stripped
+            seq.id = stripped
             seq.description = ''
         with open(f'{output_folder}/{re.sub(".fasta", "_stripped.fasta", alignment_basename)}', 'w') as stripped:
             AlignIO.write(seqs, stripped, 'fasta')

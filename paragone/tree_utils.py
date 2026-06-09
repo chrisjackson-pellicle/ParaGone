@@ -4,7 +4,7 @@
 # Modified by: Chris Jackson chris.jackson@rbg.vic.gov.au
 
 from collections import defaultdict
-
+import re
 import sys
 
 from paragone import phylo3
@@ -24,13 +24,23 @@ def get_cluster_id(filename):
 
 def get_name(label):
     """
-    Given a tip label, return taxon name identifier (first field after splitting by dot/period).
+    Given a tip or sequence label, return the taxon/sample identifier (paralog suffix removed).
 
-    :param str label: label of a tree tip
-    :return:
+    Supports HybPiper-style names (e.g. ``taxon``, ``taxon.main``, ``taxon.1``) by taking the substring
+    before the first period, and Captus-style names (e.g. ``taxon``, ``taxon__00``, ``taxon__01``) by
+    stripping a trailing ``__`` + digits. A dot immediately before ``__`` digits is not treated as Captus
+    (so ``taxon.__00`` still resolves to ``taxon`` via the dot rule).
+
+    :param str label: label of a tree tip or fasta sequence name
+    :return str: taxon identifier
     """
 
-    return label.split(".")[0]
+    if not label:
+        return label
+    captus_stripped = re.sub(r'(?<!\.)__\d+$', '', label)
+    if captus_stripped != label:
+        return captus_stripped
+    return label.split('.')[0]
 
 
 def get_clusterID(filename):

@@ -1,3 +1,15 @@
+**1.1.5** *13th April, 2026*
+
+- Added support for sequences produced by Captus (e.g. the folder `04_alignments -> 01_unaligned -> 01_coding_NUC 
+-> 02_NT` produced by running the command `captus align -e 03_extractions --collect_only`). These Captus sequences 
+  use a different suffix to denote paralogs compared to HybPiper, e.g. `__00`, `__01` instead of `.main`, `.1` etc.
+
+
+**1.1.4** *8th January, 2026*
+
+- If TreeShrink fails for a given input tree, skip this tree and log a warning. Previous behaviour was to exit the pipeline with an error. See issue [#11](https://github.com/chrisjackson-pellicle/ParaGone/issues/11).
+
+
 **1.1.3** *19th July, 2024*
 
 - Bugfix: correct a file and folder name issue that resulted in missing output files when using the option `--use-clustal`.
